@@ -1,0 +1,19 @@
+{
+  "name": "studio13-webtemplate",
+  "version": "1.0.0",
+  "description": "",
+  "main": "datamodule_mysql.js",
+  "scripts": {
+    "start": "node std13.js"
+  },
+  "keywords": [],
+  "author": "konye@csany-zeg.hu",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
+    "fs": "^0.0.1-security",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.11.3"
+  }
+}

@@ -1,0 +1,59 @@
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.css">
+<script src="common_studio13.js"></script>    
+<script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.js"></script>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+    var table = new DataTable('#myTable');
+ 
+    $('#myTable tbody').on('click', 'tr', function () 
+    {
+        console.log(table.row(this).data());
+    });
+
+
+});
+  
+</script>
+
+<body>
+    <h2>Név Táblázat</h2>
+    <table id="myTable" class="display" style="width:80%">
+        <thead>
+            <tr>
+                <th>Név</th>
+                <th>Tajszám</th>
+                <th>Születési dátum</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Az adatokat JavaScript tölti be ide -->
+        </tbody>
+    </table>
+  
+    <script>
+        $(document).ready(function() {
+            // Adatok betöltése AJAX segítségével
+            $.ajax({
+                url: '/getData',  // A szerver útvonala, ahonnan az adatokat lekérjük
+                method: 'GET',
+                success: function(data) {
+                    // Az adatok betöltése a táblázatba
+                    var tableBody = $('#myTable tbody');
+                   
+                    data.rows.forEach(function(row) { console.log(row);
+                        var newRow = `<tr>
+                                        <td>${row.NEV}</td>
+                                        <td>${row.TAJ}</td>
+                                        <td>${row.SZULDATUM}</td>
+                                      </tr>`;
+                        tableBody.append(newRow);
+                    });
+                    $('#myTable').DataTable();  // DataTables inicializálása
+                }
+            });
+        });
+    </script>
+</body>

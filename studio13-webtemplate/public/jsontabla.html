@@ -1,0 +1,24 @@
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+   
+    $("#kategoria1").empty();                              // listbox ürítése
+    var listItems  = "<option selected value='0'>--- minden ---</option>";
+    var k_json = ajax_post("kategoria", 1 );               // JSON!
+    for (var i = 0; i < k_json.rows.length; ++i)
+    {
+        listItems  += `<option value='${k_json.rows[i].ID_KATEGORIA}'>${k_json.rows[i].KATEGORIA}</option>`;
+    }
+    $("#kategoria1").append(listItems);
+    var tabla = ajax_post("tabla", 1 ) ;
+
+    $("#tabla11").html( JSON.stringify(tabla) );
+
+});
+  
+</script>
+
+<select class="form-select me-3" id="kategoria1" name="kategoria" style="width:400px;"></select>     
+
+<code id="tabla11"> </code>
