@@ -1,46 +1,14 @@
-<link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css" />
-<script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
-
-<script type="text/javascript">
-$(document).ready(function() {
-    // DataTable inicializálása keresési opcióval
-    var table = $('#myTable').DataTable({
-        searchDelay: 0, // Késleltetés kikapcsolása, azonnal reagáljon a keresés
-        autoWidth: false, // Automatikus szélesség állítás kikapcsolása
-        responsive: true  // Táblázat legyen érzékeny, mobilbarát
-    });
- 
-    $('#myTable tbody').on('click', 'tr', function () {
-        console.log(table.row(this).data());
-    });
-
-
-    // Adatok betöltése AJAX segítségével
-    $.ajax({
-        url: '/getData',  // A szerver útvonala, ahonnan az adatokat lekérjük
-        method: 'GET',
-        success: function(data) {
-            // Az adatok hozzáadása a DataTable-hez
-            data.rows.forEach(function(row) { 
-                table.row.add([
-                    row.NEV,
-                    row.TAJ,
-                    row.SZULDATUM
-                ]).draw(false);  // false azt jelenti, hogy nem frissítjük azonnal a táblázatot, a végén egyszerre frissítünk
-            });
-
-            table.draw();  // Végső frissítés, hogy az adatok megjelenjenek
-        }
-    });
-});
-</script>
+<head>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css" />
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+</head>
 
 <body>
-    <h2>Név Táblázat</h2>
+    <h2>Páciensek</h2>
     <table id="myTable" class="display" style="width:80%">
         <thead>
             <tr>
@@ -53,4 +21,66 @@ $(document).ready(function() {
             <!-- Az adatokat JavaScript tölti be ide -->
         </tbody>
     </table>
+
+    <!-- Modal Structure -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Páciens adatai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalName"></p>
+                    <p id="modalTaj"></p>
+                    <p id="modalSzuldatum"></p>
+                </div>
+                <div class="modal-footer">
+                    <!-- New button to go to the "Jelenlét" page within the current window -->
+                    <button id="presenceButton" class="btn btn-primary">Tovább a jelenlétre</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // DataTable inicializálása
+            var table = $('#myTable').DataTable({
+                searchDelay: 0,
+                autoWidth: false,
+                responsive: true
+            });
+
+            // Adatok betöltése AJAX segítségével
+            $.ajax({
+                url: '/getData',
+                method: 'GET',
+                success: function (data) {
+                    data.rows.forEach(function (row) {
+                        table.row.add([
+                            `<span class="name" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
+                            row.TAJ,
+                            row.SZULDATUM
+                        ]).draw(false);
+                    });
+                    table.draw();
+                }
+            });
+        });
+
+        // Modal megnyitása a páciens részleteivel
+        function openModal(name, taj, szuldatum) {
+            $('#modalTitle').text(name + ' adatai');
+            $('#modalName').text('Név: ' + name);
+            $('#modalTaj').text('Tajszám: ' + taj);
+            $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
+            $('#detailsModal').modal('show');
+
+            // Add click event to the "Tovább a jelenlétre" button
+            document.getElementById('presenceButton').onclick = function() {
+                window.location.href = '/presencePage';  // Redirects the current window to the new page
+            };
+        }
+    </script>
 </body>
