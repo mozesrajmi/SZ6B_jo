@@ -68,7 +68,7 @@ app.post('/login',  (req, res) => {
 
 // Adatok lekérése MySQL adatbázisból és visszaadása JSON formátumban
 app.get('/getData', (req, res) => {
-  const sql = "SELECT NEV, TAJ, SZULDATUM FROM paciensek";
+  const sql = "SELECT NEV, TAJ, DATE_FORMAT(SZULDATUM, \"%Y.%m.%d\") AS SZULDATUM FROM paciensek";
   
   DB.query(sql, napló(req), (json_data, error) => {
       let data = error ? error : JSON.parse(json_data);  // MySQL eredmények JSON formátumban
