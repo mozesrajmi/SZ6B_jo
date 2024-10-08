@@ -78,6 +78,9 @@ app.get('/getData', (req, res) => {
   });
 });
 
+app.get('/presencePage', (req, res) => {
+  res.send('<h1>Jelenlét Oldal</h1><p>Itt jelenik meg a jelenlét adatai...</p>');
+});
 
 
 /* ---------------------------- log 'fájl' naplózás ------------------  */
