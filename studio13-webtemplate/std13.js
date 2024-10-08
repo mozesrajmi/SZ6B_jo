@@ -81,6 +81,10 @@ app.get('/getData', (req, res) => {
 app.get('/presencePage', (req, res) => {
   res.send('<h1>Jelenlét Oldal</h1><p>Itt jelenik meg a jelenlét adatai...</p>');
 });
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4b51bbfe29bd65b01d69dd18415e43200931b8e9
 
 /* ---------------------------- log 'fájl' naplózás ------------------  */
 function napló (req) {
