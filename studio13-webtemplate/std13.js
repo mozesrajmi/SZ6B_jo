@@ -79,7 +79,15 @@ app.get('/getData', (req, res) => {
 });
 
 app.get('/presencePage', (req, res) => {
-  res.send('<h1>Jelenlét Oldal</h1><p>Itt jelenik meg a jelenlét adatai...</p>');
+  res.send(`
+    <h1>Jelenlét Oldal</h1>
+<img src="/images/prev-32.png" alt="Previous" id="prevButton" style="cursor: pointer;">
+<script>
+  document.getElementById('prevButton').addEventListener('click', function() {
+  window.history.back();
+  });
+</script>
+  `);
 });
 
 
