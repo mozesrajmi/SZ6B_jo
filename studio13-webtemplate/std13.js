@@ -89,10 +89,7 @@ app.get('/presencePage', (req, res) => {
 </script>
   `);
 });
-<<<<<<< HEAD
-=======
 
->>>>>>> 4b51bbfe29bd65b01d69dd18415e43200931b8e9
 
 /* ---------------------------- log 'fájl' naplózás ------------------  */
 function napló (req) {
