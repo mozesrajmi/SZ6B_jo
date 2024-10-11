@@ -73,18 +73,24 @@
   }
 
 /* --- felhasználó bejelentkezik. Neve megjelenik az id=login1_user TAG-ben --- */ 
-function login() 
-{
-    var login_json = ajax_post("login?" + $("#user1_form").serialize(), 1);  
-    if (login_json && login_json.count === 1 && login_json.rows[0].NEV) {  
-        $("#login1_user").html("Bejelentkezve: " + login_json.rows[0].NEV);
-        $('#login1_user').prop('title', "[" + (login_json.rows[0].LOGIN || 'N/A') + "]");
-        $('#login1_modal').modal('hide');
-        mySend({ text: `Bejelentkezett: ${login_json.rows[0].NEV}!`, tip: "success", mp: 3 });
-    } else {    
-        mySend({ text: `Hibás felhasználónév, vagy jelszó<br>Nincs ilyen felhasználó!`, tip: "danger", mp: 5 });
-    }
+function login() {
+  var login_json = ajax_post("login?" + $("#user1_form").serialize(), 1);
+
+  if (login_json && login_json.count === 1 && login_json.rows[0].NEV) {
+    // Siker: Felhasználó bejelentkezett
+    $("#login1_user").html("Bejelentkezve: " + login_json.rows[0].NEV);
+    $('#login1_modal').modal('hide');
+    mySend({ text: `Bejelentkezett: ${login_json.rows[0].NEV}!`, tip: "success", mp: 3 });
+    enableNavbar();
+  } else if (login_json && login_json.error) {
+    // Hiba: Már be van jelentkezve vagy egyéb hiba
+    mySend({ text: login_json.error, tip: "danger", mp: 5 });
+  } else {
+    // Hiba: Hibás felhasználónév vagy jelszó
+    mySend({ text: `Hibás felhasználónév, vagy jelszó<br>Nincs ilyen felhasználó!`, tip: "danger", mp: 5 });
+  }
 }
+
 
   /* ---- felhasználó kijelentkezik. Az id=login1_user TAG-ben "...senki ..." ---- */ 
   function logout() 
@@ -98,6 +104,13 @@ function login()
           $('#login1_modal').modal('hide');
       });  
   }
+
+  app.get('/', (req, res) => {
+  if (req.session) {
+    req.session.destroy(); // Munkamenet törlése újratöltéskor
+  }
+  res.sendFile('index.html', { root: __dirname + '/public' }); // A főoldal betöltése
+});
 
 </script>
 

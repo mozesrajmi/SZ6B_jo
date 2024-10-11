@@ -27,31 +27,82 @@ app.post('/logout',   (req, res) => {
     }); 
 });
 
-app.post('/login',  (req, res) => {       
-  var user= (req.query.user1_login_field? req.query.user1_login_field: "");
-  var psw = (req.query.user1_passwd_field? req.query.user1_passwd_field  : "");
+// Bejelentkezés POST kérés kezelése
+app.post('/login', (req, res) => {
+  session_data = req.session;
+
+  // Ellenőrizzük, hogy a felhasználó már be van-e jelentkezve
+  if (session_data && session_data.NEV) {
+    // Ha a felhasználó már be van jelentkezve, hibát küldünk
+    res.set('Content-Type', 'application/json; charset=UTF-8');
+    return res.json({
+      count: 0,
+      error: `Hiba: Már be van jelentkezve mint ${session_data.NEV}!`,
+    });
+  }
+
+  // Bejelentkezési adatok lekérdezése
+  var user = (req.query.user1_login_field ? req.query.user1_login_field : "");
+  var psw = (req.query.user1_passwd_field ? req.query.user1_passwd_field : "");
   var sql = `select ID_OPERATOR, LOGIN, NEV FROM operator WHERE NEV='Adminisztrátor' AND PASSWORD=md5('${psw}')`;
 
+  // SQL lekérdezés futtatása és adatok kezelése
   DB.query(sql, napló(req), (json_data, error) => {
-    var data = error ? error : JSON.parse(json_data); 
-    console.log(util.inspect(data, false, null, true)); // teljes objektum kiírása
-    
-    if (!error && data.count === 1) { // sikeres bejelentkezés
-        session_data = req.session;
-        session_data.ID_OPERATOR = data.rows[0].ID_OPERATOR || "N/A"; // ha nincs, 'N/A'-t állítunk be
-        session_data.LOGIN = data.rows[0].LOGIN || "N/A";
-        session_data.NEV = data.rows[0].NEV || "N/A";
-        session_data.MOST = Date.now();
-        console.log("Bejelentkezett felhasználó: %s (ID_OPERATOR=%s)", session_data.NEV, session_data.ID_OPERATOR);
-    } else {
-        data = { error: 'Sikertelen bejelentkezés: Hibás felhasználónév vagy jelszó' }; // hibaüzenet
-    }
+    var data = error ? error : JSON.parse(json_data);
+    console.log(util.inspect(data, false, null, true)); // Teljes objektum kiírása
 
-    res.set('Content-Type', 'application/json; charset=UTF-8');
-    res.send(data);
+    if (!error && data.count === 1) {
+      // Sikeres bejelentkezés: munkamenet adatok beállítása
+      session_data = req.session;
+      session_data.ID_OPERATOR = data.rows[0].ID_OPERATOR || "N/A";
+      session_data.LOGIN = data.rows[0].LOGIN || "N/A";
+      session_data.NEV = data.rows[0].NEV || "N/A";
+      session_data.MOST = Date.now();
+      console.log("Bejelentkezett felhasználó: %s (ID_OPERATOR=%s)", session_data.NEV, session_data.ID_OPERATOR);
+
+      res.set('Content-Type', 'application/json; charset=UTF-8');
+      res.send(data);
+    } else {
+      // Hibás bejelentkezés
+      data = { error: 'Sikertelen bejelentkezés: Hibás felhasználónév vagy jelszó' };
+      res.set('Content-Type', 'application/json; charset=UTF-8');
+      res.send(data);
+    }
     res.end();
   });
 });
+
+// Kijelentkezés POST kérés kezelése
+app.post('/logout', (req, res) => {
+  session_data = req.session;
+  session_data.destroy(function(err) {
+    res.set('Content-Type', 'application/json; charset=UTF-8');
+    res.json('Sikeres kijelentkezés');
+    res.end();
+  });
+});
+
+// Az oldal újratöltésekor a munkamenet törlése
+app.get('/', (req, res) => {
+  if (req.session) {
+    req.session.destroy(); // Munkamenet törlése, hogy lehessen újra bejelentkezni
+  }
+  res.sendFile('index.html', { root: __dirname + '/public' }); // A főoldal betöltése
+});
+
+// MySQL adatbázisból adatok lekérése és visszaküldése JSON formátumban
+app.get('/getData', (req, res) => {
+  const sql = "SELECT NEV, TAJ, DATE_FORMAT(SZULDATUM, \"%Y.%m.%d\") AS SZULDATUM FROM paciensek";
+
+  DB.query(sql, napló(req), (json_data, error) => {
+    let data = error ? error : JSON.parse(json_data); // MySQL eredmények JSON formátumban
+    res.set('Content-Type', 'application/json; charset=UTF-8');
+    res.send(data); // Adatok küldése a kliensnek
+    res.end();
+  });
+});
+
+
 
 /* --- mysql pool technikával, json formátumban visszaküldi a kliensnek az adathalmazt: restapi ----*/
  
