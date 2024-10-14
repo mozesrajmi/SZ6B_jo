@@ -82,25 +82,23 @@ app.post('/logout', (req, res) => {
   });
 });
 
-// Az oldal újratöltésekor a munkamenet törlése
+// Az oldal újratöltésekor a munkamenetet nem töröljük
 app.get('/', (req, res) => {
-  if (req.session) {
-    req.session.destroy(); // Munkamenet törlése, hogy lehessen újra bejelentkezni
-  }
   res.sendFile('index.html', { root: __dirname + '/public' }); // A főoldal betöltése
 });
 
-// MySQL adatbázisból adatok lekérése és visszaküldése JSON formátumban
-app.get('/getData', (req, res) => {
-  const sql = "SELECT NEV, TAJ, DATE_FORMAT(SZULDATUM, \"%Y.%m.%d\") AS SZULDATUM FROM paciensek";
-
-  DB.query(sql, napló(req), (json_data, error) => {
-    let data = error ? error : JSON.parse(json_data); // MySQL eredmények JSON formátumban
-    res.set('Content-Type', 'application/json; charset=UTF-8');
-    res.send(data); // Adatok küldése a kliensnek
-    res.end();
-  });
+// Új végpont a munkamenet ellenőrzésére
+app.get('/checkSession', (req, res) => {
+  session_data = req.session;
+  if (session_data && session_data.NEV) {
+    // Ha van érvényes munkamenet, visszaküldjük a felhasználó adatait
+    res.json({ NEV: session_data.NEV });
+  } else {
+    // Ha nincs érvényes munkamenet, üres választ küldünk
+    res.json({});
+  }
 });
+
 
 
 

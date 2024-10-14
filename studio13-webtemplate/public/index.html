@@ -222,21 +222,42 @@ function login() {
     }
 
     $(document).ready(function() {
-      disableNavbar();
-
-      // Enable navbar after successful login
-      $("#user1_login_button").click(function() {
-        var login_json = ajax_post("login?" + $("#user1_form").serialize(), 1);
-        if (login_json && login_json.count === 1 && login_json.rows[0].NEV) {
-          enableNavbar();
-        }
-      });
-
-      // Disable navbar after logout
-      $("#user1_logout_button").click(function() {
+  // Ellenőrizzük, hogy van-e érvényes munkamenet
+  $.ajax({
+    url: '/checkSession',
+    method: 'GET',
+    success: function(session_data) {
+      if (session_data && session_data.NEV) {
+        // Ha van érvényes munkamenet, akkor a felhasználót bejelentkezve tartjuk
+        $("#login1_user").html("Bejelentkezve: " + session_data.NEV);
+        enableNavbar(); // Engedélyezzük a navigációt
+      } else {
+        // Ha nincs érvényes munkamenet, tiltjuk a navigációs sávot
         disableNavbar();
-      });
-    });
+        $("#login1_user").html("Bejelentkezés");
+      }
+    }
+  });
+
+  // Kezdetben a navigációs sáv tiltva van
+  disableNavbar();
+
+  // A navigáció engedélyezése sikeres bejelentkezés után
+  $("#user1_login_button").click(function() {
+    var login_json = ajax_post("login?" + $("#user1_form").serialize(), 1);
+    if (login_json && login_json.count === 1 && login_json.rows[0].NEV) {
+      enableNavbar();
+      $("#login1_user").html("Bejelentkezve: " + login_json.rows[0].NEV);
+    }
+  });
+
+  // A navigáció tiltása kijelentkezés után
+  $("#user1_logout_button").click(function() {
+    disableNavbar();
+    $("#login1_user").html("Bejelentkezés");
+  });
+});
+
   </script>
 
 
