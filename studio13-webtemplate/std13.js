@@ -99,7 +99,12 @@ app.get('/checkSession', (req, res) => {
   }
 });
 
-
+app.get('/', (req, res) => {
+  if (req.session) {
+    req.session.destroy(); // Munkamenet törlése újratöltéskor
+  }
+  res.sendFile('index.html', { root: __dirname + '/public' }); // A főoldal betöltése
+});
 
 
 /* --- mysql pool technikával, json formátumban visszaküldi a kliensnek az adathalmazt: restapi ----*/
@@ -128,16 +133,52 @@ app.get('/getData', (req, res) => {
 });
 
 app.get('/presencePage', (req, res) => {
-  res.send(`
-    <h1>Jelenlét Oldal</h1>
-<img src="/images/prev-32.png" alt="Previous" id="prevButton" style="cursor: pointer;">
-<script>
-  document.getElementById('prevButton').addEventListener('click', function() {
-  window.history.back();
-  });
-</script>
-  `);
+  const patientName = req.query.name;
+  res.sendFile(__dirname + '/public/presencePage.html');
 });
+
+
+
+// Új végpont a napok számokkal történő kiírásához
+app.get('/getTreatmentDays', (req, res) => {
+  const name = req.query.name;
+  console.log("Keresett páciens neve:", name);
+
+  // SQL lekérdezés a napok lekérésére
+  const query = `
+      SELECT GROUP_CONCAT(NAPOK SEPARATOR '') AS napok
+      FROM ellatas 
+      WHERE ID_PACIENS IN (SELECT ID_PACIENS FROM paciensek WHERE NEV = ?)
+      GROUP BY ID_PACIENS;
+  `;
+
+  // Lekérdezés futtatása
+  DB.query(query, [name], (err, results) => {
+      if (err) {
+          // Pontos adatbázishiba megjelenítése a konzolban
+          console.error('Adatbázis hiba történt:', err.message); // Hiba üzenet a részletekkel
+          return res.status(500).json({ error: 'Adatbázis hiba', details: err.message });
+      }
+
+      if (results.length === 0) {
+          // Üres találat kezelése
+          console.warn(`Nem található páciens a megadott névvel: ${name}`);
+          return res.status(404).json({ error: `Nem található páciens a megadott névvel: ${name}` });
+      }
+
+      // Sikeres lekérdezés esetén napok visszaküldése
+      const daysString = results[0].napok;
+      console.log(`Kiválasztott napok: ${daysString}`);
+      res.json({ days: daysString });
+  });
+});
+
+
+
+
+
+
+
 
 
 /* ---------------------------- log 'fájl' naplózás ------------------  */

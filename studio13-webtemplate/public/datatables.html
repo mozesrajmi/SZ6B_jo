@@ -36,7 +36,6 @@
                     <p id="modalSzuldatum"></p>
                 </div>
                 <div class="modal-footer">
-                    <!-- New button to go to the "Jelenlét" page within the current window -->
                     <button id="presenceButton" class="btn btn-primary">Tovább a jelenlétre</button>
                 </div>
             </div>
@@ -44,6 +43,8 @@
     </div>
 
     <script type="text/javascript">
+        let selectedName = ''; // Globális változó a kiválasztott név tárolására
+
         $(document).ready(function () {
             // DataTable inicializálása
             var table = $('#myTable').DataTable({
@@ -67,26 +68,28 @@
                     table.draw();
                 }
             });
+
+            // Modal megnyitása a páciens részleteivel
+            function openModal(name, taj, szuldatum) {
+                selectedName = name; // Beállítjuk a kiválasztott nevet
+                $('#modalTitle').text(name + ' adatai');
+                $('#modalName').text('Név: ' + name);
+                $('#modalTaj').text('Tajszám: ' + taj);
+                $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
+                $('#detailsModal').modal('show');
+            }
+
+           // "Tovább a jelenlétre" gomb kattintásra
+                document.getElementById('presenceButton').onclick = function() {
+                    if (selectedName) {
+                // Az AJAX kérés a /presencePage végpontra a kiválasztott névvel
+                window.location.href = '/presencePage?name=' + encodeURIComponent(selectedName);
+            }
+};
+
+
+            // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen
+            window.openModal = openModal;
         });
-
-        // Modal megnyitása a páciens részleteivel
-        function openModal(name, taj, szuldatum) {
-            $('#modalTitle').text(name + ' adatai');
-            $('#modalName').text('Név: ' + name);
-            $('#modalTaj').text('Tajszám: ' + taj);
-            $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
-            $('#detailsModal').modal('show');
-
-            // Add click event to the "Tovább a jelenlétre" button
-            document.getElementById('presenceButton').onclick = function() {
-                window.location.href = '/presencePage';  // Redirects the current window to the new page
-            };
-        }
-
-          // Add click event to the "Tovább a jelenlétre" button
-          document.getElementById('presenceButton').onclick = function() {
-                window.location.href = '/presencePage';  // Redirects the current window to the new page
-            };
-
     </script>
 </body>
