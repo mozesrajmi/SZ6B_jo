@@ -1,0 +1,258 @@
+/* General table styling */
+table.display {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-family: 'Arial', sans-serif;
+    color: #444;
+    border: 1px solid #e0e0e0;
+}
+
+table.display thead th {
+    background-color: #759fcb; /* A blue background */
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+table.display tbody td {
+    text-align: center;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+table.display tbody tr:nth-child(even) {
+    background-color: #f8f8f8; /* Light gray for alternating rows */
+}
+
+table.display tbody tr:hover {
+    background-color: #e6f7ff; /* Light blue on hover */
+    cursor: pointer;
+}
+
+table.display tbody td.dt-type-date {
+    text-align: center;
+}
+
+span.dt-column-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+table.display tbody td.dt-type-numeric {
+    text-align: center;
+}
+
+                                                                       /* Modal window styling */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+}
+
+.modal-header{
+    border-bottom: 0;
+    background-color: #759fcb;
+    color: #fff;
+}
+
+.modal-title {
+    font-weight: bold;
+    font-size: 1.25em;
+}
+
+.modal-body {
+    font-size: 1em;
+    color: #333;
+}
+
+                                                                /* Buttons */
+.btn-primary {
+    background-color: #759fcb; 
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+                                                                /* DataTable adjustments */
+.dataTables_wrapper .dataTables_filter input {
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border: 1px solid transparent;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    color: white !important;
+}
+
+/* Table column and row padding and alignment for a cleaner look */
+th, td {
+    padding: 12px 15px;
+    text-align: center;
+}
+
+/* Adjust modal button styles */
+#presenceButton {
+    color: white;
+    border-radius: 4px;
+    padding: 10px 20px;
+    transition: background-color 0.3s;
+}
+
+#presenceButton:hover {
+    background-color: #0056b3;
+    color: #fff;
+}
+
+h2 {
+    text-align: center;
+    margin-top: 20px;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+}
+
+.modal-body {
+    font-size: 1em;
+    color: #333;
+    font-weight: 500; /* Adjusts to a medium font weight */
+    font-family: 'Arial', sans-serif; /* Consistent with table styling */
+}
+
+/* Adjust search bar and length menu to match table width */
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_length {
+    margin: 0 auto 20px auto;
+}
+
+.dataTables_wrapper .dataTables_filter input,
+.dataTables_wrapper .dataTables_length select {
+    width: 80%;
+    box-sizing: border-box;
+}
+
+/* Adjust the select dropdown to be closer to the table edge and have an oval shape */
+#dt-length-0 {
+    position: relative; /* Ensure it moves with the table */
+    margin-left: 186px; /* Adjust the margin to move it closer to the table edge */
+    border-radius: 20px; /* Make the select dropdown oval-shaped */
+    padding: 5px 10px; /* Add some padding for better appearance */
+    top: 10px; /* Adjust the top position as needed */
+}
+
+
+
+
+/* Style numbers inside table cells */
+table.display tbody td {
+    text-align: center;
+    padding: 10px;
+}
+
+table.display tbody td.number-cell {
+    background-color: #f0f8ff; /* Light blue background for numbers */
+    border-radius: 20px; /* Oval shape */
+    padding: 5px 10px; /* Adjust padding for better appearance */
+    font-weight: bold; /* Make numbers bold */
+}
+
+label[for="dt-length-0"] {
+    display: none;
+}
+
+                                /* Center the search bar and give it an oval shape */
+.dt-search {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.dt-search input.dt-input {
+    width: 30%;
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+
+/* Responsive search bar */
+.dt-search {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    width: 100%;
+    top: 20px;
+}
+
+.dt-search input.dt-input {
+    width: 80%;
+    max-width: 200px;
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    top: 20px;
+}
+
+/* Hide the search label */
+.dt-search label {
+    display: none;
+}
+
+                                                                /* alsogecvi*/
+
+#myTable_info {
+    display: none;
+}
+
+/* Center the pagination and make it responsive */
+.dt-paging, .dt-paging_full_numbers {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.dt-paging-button {
+    border-radius: 20px; /* Make buttons oval */
+    padding: 5px 10px;
+    margin: 0 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.dt-paging-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    color: white;
+}
+
+.dt-paging-button.current {
+    background-color: #759fcb; /* Blue background for current page */
+    color: white;
+    font-weight: bold;
+}
+
+.dt-paging-button.current {
+    border-radius: 20px; /* Make button oval */
+    background-color: #759fcb; /* Blue background for current page */
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.dt-paging-button.current:hover {
+    background-color: #480c0f; /* Darker blue on hover */
+    color: white;
+}
