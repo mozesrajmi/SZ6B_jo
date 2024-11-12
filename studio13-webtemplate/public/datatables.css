@@ -145,16 +145,41 @@ h2 {
 }
 
 /* Adjust the select dropdown to be closer to the table edge and have an oval shape */
+/* Targeting the container holding the table and aligning #dt-length-0 to start with it */
+table#myTable.display {
+    margin: 0 auto;
+    position: relative; /* Needed for absolute positioning of the dropdown */
+    width: 80%; /* Ensure consistent width alignment */
+}
+
 #dt-length-0 {
-    position: relative; /* Ensure it moves with the table */
-    margin-left: 186px; /* Adjust the margin to move it closer to the table edge */
-    border-radius: 20px; /* Make the select dropdown oval-shaped */
-    padding: 5px 10px; /* Add some padding for better appearance */
-    top: 10px; /* Adjust the top position as needed */
+    position: absolute; /* Allows placement at the start of the table */
+    left: 0; /* Aligns it to the start of the table */
+    top: 20px; /* Adjust this value as needed to position above the table */
+    padding: 5px 10px;
+    border-radius: 20px;
+    text-align: center;
+    margin-left: 187PX;
 }
 
 
 
+/* Responsive select dropdown */
+@media (max-width: 768px) {
+    #dt-length-0 {
+        width: 100%;
+        margin-left: 0;
+        border-radius: 20px;
+        padding: 5px 10px;
+        top: 10px;
+    }
+
+    .dt-length {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+}
 
 /* Style numbers inside table cells */
 table.display tbody td {
@@ -174,38 +199,46 @@ label[for="dt-length-0"] {
 }
 
                                 /* Center the search bar and give it an oval shape */
+/* Ovális alakú keresőmező a táblázat jobb szélén */
 .dt-search {
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Igazítás a jobb oldalhoz */
     margin-bottom: 20px;
+    padding-right: 500px; /* Igény szerint módosítható, hogy ne érjen teljesen a széléig */
 }
 
 .dt-search input.dt-input {
-    width: 30%;
+    width: 130px; /* Igény szerint állítható szélesség */
     padding: 10px 15px;
-    border-radius: 20px;
+    border-radius: 20px; /* Ovális alakú keresőmező */
     border: 1px solid #ccc;
     box-sizing: border-box;
 }
+
+/* Mobilnézet beállítások */
+@media (max-width: 768px) {
+    .dt-search {
+        justify-content: center; /* Középre igazítás mobilon */
+        padding-right: 0;
+    }
+
+    .dt-search input.dt-input {
+        width: 100%; /* Teljes szélesség mobilon */
+    }
+}
+
 
 
 /* Responsive search bar */
-.dt-search {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-    width: 100%;
-    top: 20px;
-}
 
-.dt-search input.dt-input {
-    width: 80%;
-    max-width: 200px;
-    padding: 10px 15px;
-    border-radius: 20px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    top: 20px;
+
+
+div.dt-container .dt-search input {
+    border: 1px solid #aaa;
+    padding: 5px;
+    background-color: transparent;
+    color: inherit;
+    margin-left: 3px;
 }
 
 /* Hide the search label */
@@ -252,7 +285,8 @@ label[for="dt-length-0"] {
     transition: background-color 0.3s, color 0.3s;
 }
 
-.dt-paging-button.current:hover {
+.dt-paging-button:hover {
     background-color: #480c0f; /* Darker blue on hover */
     color: white;
 }
+

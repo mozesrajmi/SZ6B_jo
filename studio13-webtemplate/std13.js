@@ -146,14 +146,15 @@ app.get('/getTreatmentDays', (req, res) => {
 
   // SQL lekérdezés a napok lekérésére
   const query = `
-      SELECT GROUP_CONCAT(NAPOK SEPARATOR '') AS napok
+      SELECT GROUP_CONCAT(NAPOK SEPARATOR ',') AS napok
       FROM ellatas 
-      WHERE ID_PACIENS IN (SELECT ID_PACIENS FROM paciensek WHERE NEV = ?)
+      WHERE ID_PACIENS IN (SELECT ID_PACIENS FROM paciensek WHERE NEV = '${name}')
       GROUP BY ID_PACIENS;
   `;
+  console.log("Lekérdezés:", query);
 
   // Lekérdezés futtatása
-  DB.query(query, [name], (err, results) => {
+  DB.query(query, [], (err, results) => {
       if (err) {
           // Pontos adatbázishiba megjelenítése a konzolban
           console.error('Adatbázis hiba történt:', err.message); // Hiba üzenet a részletekkel
@@ -165,7 +166,7 @@ app.get('/getTreatmentDays', (req, res) => {
           console.warn(`Nem található páciens a megadott névvel: ${name}`);
           return res.status(404).json({ error: `Nem található páciens a megadott névvel: ${name}` });
       }
-
+      console.log("Eredmények:", results);
       // Sikeres lekérdezés esetén napok visszaküldése
       const daysString = results[0].napok;
       console.log(`Kiválasztott napok: ${daysString}`);
