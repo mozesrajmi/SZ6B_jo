@@ -5,11 +5,25 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="datatables.css">
 </head>
 
 <body>
     <h2>Páciensek</h2>
+    <div class="bixi">
+        <select name="szortirozas" id="szortirozas" class="bixi">
+            <option value="tiz">10</option>
+            <option value="huszonot">25</option>
+            <option value="otven">50</option>
+            <option value="szaz">100</option>  
+        </select>
+        <div class="box">
+            <input type="text" class="bixi" placeholder="Keresés..." >
+            <!--<i class="fas fa-search"></i>-->
+             <img src="images/eleg.png" class="bixi-image"> 
+        </div>
+    </div>
     <table id="myTable" class="display" style="width:80%">
         <thead>
             <tr>
@@ -22,6 +36,20 @@
             <!-- Az adatokat JavaScript tölti be ide -->
         </tbody>
     </table>
+
+    <div class="boxos">
+        <button type="button" class="prev"><a href="#">Prev</a></button>
+
+        <ul class="ul">
+            <li><a href="#" class="page_number">1</a></li>
+            <li><a href="#" class="page_number">2</a></li>
+            <li><a href="#" class="page_number active_page">3</a></li>
+            <li><a href="#" class="page_number">4</a></li>
+            <li><a href="#" class="page_number">5</a></li>
+        </ul>
+
+        <button type="button" class="next"><a href="#">Next</a></button>
+    </div>
 
     <!-- Modal Structure -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -51,9 +79,10 @@
             var table = $('#myTable').DataTable({
                 searchDelay: 0,
                 autoWidth: false,
-                responsive: true
+                responsive: true,
+                dom: 't',
             });
-
+        
             // Adatok betöltése AJAX segítségével
             $.ajax({
                 url: '/getData',

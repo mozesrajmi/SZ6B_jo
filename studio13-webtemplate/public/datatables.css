@@ -132,161 +132,110 @@ h2 {
     font-family: 'Arial', sans-serif; /* Consistent with table styling */
 }
 
-/* Adjust search bar and length menu to match table width */
-.dataTables_wrapper .dataTables_filter,
-.dataTables_wrapper .dataTables_length {
-    margin: 0 auto 20px auto;
+.box{
+    height: 45px;
+    display: flex;
+    cursor: pointer;
+    padding: 10px 20px;
+    background: rgb(227, 227, 227);
+    border-radius: 30px;
+    float: right;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    margin: 0 0 20px 0;
+    margin-right: 184px;
+
 }
 
-.dataTables_wrapper .dataTables_filter input,
-.dataTables_wrapper .dataTables_length select {
-    width: 80%;
-    box-sizing: border-box;
+.box:hover input{
+    width: 340px;
 }
 
-/* Adjust the select dropdown to be closer to the table edge and have an oval shape */
-/* Targeting the container holding the table and aligning #dt-length-0 to start with it */
-table#myTable.display {
-    margin: 0 auto;
-    position: relative; /* Needed for absolute positioning of the dropdown */
-    width: 80%; /* Ensure consistent width alignment */
-}
-
-#dt-length-0 {
-    position: absolute; /* Allows placement at the start of the table */
-    left: 0; /* Aligns it to the start of the table */
-    top: 20px; /* Adjust this value as needed to position above the table */
-    padding: 5px 10px;
-    border-radius: 20px;
-    text-align: center;
-    margin-left: 187PX;
+.box input{
+    width: 0;
+    outline: none;
+    border: none;
+    font-weight: 500;
+    transition: 0.8s;
+    background: transparent;
 }
 
 
 
-/* Responsive select dropdown */
-@media (max-width: 768px) {
-    #dt-length-0 {
-        width: 100%;
-        margin-left: 0;
-        border-radius: 20px;
-        padding: 5px 10px;
-        top: 10px;
-    }
 
-    .dt-length {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-    }
+#szortirozas {
+    float: left;
+    position: relative; /* Ensure it moves with the table */
+    border-radius: 20px; /* Make the select dropdown oval-shaped */
+    padding: 5px 10px; /* Add some padding for better appearance */
+    top: 10px; /* Adjust the top position as needed */
+    cursor: pointer;
+    margin-left: 187px;
 }
 
-/* Style numbers inside table cells */
-table.display tbody td {
-    text-align: center;
+#szortirozas option {
+    background-color: #f8f8f8; /* Light gray background */
+    color: #444; /* Dark gray text color */
+    cursor: pointer;
+}
+
+#szortirozas onptio:hover {
+    background-color: #759fcb; /* Change background color on hover */
+}
+
+.boxos{
+    background-color: #fff;
     padding: 10px;
-}
-
-table.display tbody td.number-cell {
-    background-color: #f0f8ff; /* Light blue background for numbers */
-    border-radius: 20px; /* Oval shape */
-    padding: 5px 10px; /* Adjust padding for better appearance */
-    font-weight: bold; /* Make numbers bold */
-}
-
-label[for="dt-length-0"] {
-    display: none;
-}
-
-                                /* Center the search bar and give it an oval shape */
-/* Ovális alakú keresőmező a táblázat jobb szélén */
-.dt-search {
+    border-radius: 100px;
+    box-shadow: 0px 10px 30px -15px #000;
     display: flex;
-    justify-content: center; /* Igazítás a jobb oldalhoz */
-    margin-bottom: 20px;
-    padding-right: 500px; /* Igény szerint módosítható, hogy ne érjen teljesen a széléig */
+    align-items: center;
 }
-
-.dt-search input.dt-input {
-    width: 130px; /* Igény szerint állítható szélesség */
-    padding: 10px 15px;
-    border-radius: 20px; /* Ovális alakú keresőmező */
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-}
-
-/* Mobilnézet beállítások */
-@media (max-width: 768px) {
-    .dt-search {
-        justify-content: center; /* Középre igazítás mobilon */
-        padding-right: 0;
-    }
-
-    .dt-search input.dt-input {
-        width: 100%; /* Teljes szélesség mobilon */
-    }
-}
-
-
-
-/* Responsive search bar */
-
-
-
-div.dt-container .dt-search input {
-    border: 1px solid #aaa;
-    padding: 5px;
-    background-color: transparent;
-    color: inherit;
-    margin-left: 3px;
-}
-
-/* Hide the search label */
-.dt-search label {
-    display: none;
-}
-
-                                                                /* alsogecvi*/
-
-#myTable_info {
-    display: none;
-}
-
-/* Center the pagination and make it responsive */
-.dt-paging, .dt-paging_full_numbers {
+.boxos ul{
     display: flex;
-    justify-content: center;
-    margin-top: 20px;
+    margin: 0px 10px;
+}
+.boxos ul li{
+    list-style: none;
+    margin: 0px 5px;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 100px;
+    text-align: center;
+
+}
+.boxos ul li a{
+    font-size: 25px;
+    text-decoration: none;
+    color: #000;
+    display: block;
+    border-radius: 100px;
+    transition: 0.2s;
+}
+.boxos ul li .active_page{
+    background-color: #a05acb;
+    color: #fff;
+}
+.boxos ul li a:hover,
+.boxos button a:hover{
+    background-color: #a05acb;
+    color: #fff;
 }
 
-.dt-paging-button {
-    border-radius: 20px; /* Make buttons oval */
-    padding: 5px 10px;
-    margin: 0 5px;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-.dt-paging-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-    color: white;
-}
-
-.dt-paging-button.current {
-    background-color: #759fcb; /* Blue background for current page */
-    color: white;
+/* ---------- Buttons ---------- */
+.boxos button{
+    font-size: 20px;
     font-weight: bold;
+    background-color: #f1f1f1;
+    border: none;
+    cursor: pointer;
+    border-radius: 100px;
+    overflow: hidden;
 }
-
-.dt-paging-button.current {
-    border-radius: 20px; /* Make button oval */
-    background-color: #759fcb; /* Blue background for current page */
-    color: white;
-    font-weight: bold;
-    transition: background-color 0.3s, color 0.3s;
+.boxos button a{
+    text-decoration: none;
+    padding: 10px 20px;
+    display: block;
+    color: #000;
+    transition: 0.2s;
 }
-
-.dt-paging-button:hover {
-    background-color: #480c0f; /* Darker blue on hover */
-    color: white;
-}
-
