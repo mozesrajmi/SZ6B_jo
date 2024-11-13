@@ -121,7 +121,10 @@ th, td {
 h2 {
     text-align: center;
     margin-top: 20px;
+    margin-left: -50px;
     font-family: 'Arial', sans-serif;
+    font-style: Arial, sans-serif;
+    font-weight: bold;
     color: #333;
 }
 
