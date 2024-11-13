@@ -1,0 +1,46 @@
+
+table.display {
+    width: 60%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-family: 'Arial', sans-serif;
+    color: #444;
+    border: 1px solid #e0e0e0;
+}
+
+table.display thead th {
+    background-color: #759fcb; /* A blue background */
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+table.display tbody td {
+    text-align: center;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+
+
+
+table.display tbody td.dt-type-date {
+    text-align: center;
+}
+
+span.dt-column-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+table.display tbody td.dt-type-numeric {
+    text-align: center;
+}
+
+table.display tbody tr:hover {
+    background-color: #e6f7ff; /* Light blue on hover */
+    cursor: pointer;
+}
