@@ -125,7 +125,7 @@ h2 {
     font-family: 'Arial', sans-serif;
     font-style: Arial, sans-serif;
     font-weight: bold;
-    color: #759fcb;
+    color: #333;
 }
 
 .modal-body {
@@ -149,8 +149,9 @@ h2 {
 
 }
 
-.box:hover input{
-    width: 340px;
+.box input:focus,
+.box:hover input {
+    width: 340px; /* Keeps the input expanded on focus */
 }
 
 .box input{
@@ -158,7 +159,7 @@ h2 {
     outline: none;
     border: none;
     font-weight: 500;
-    transition: 0.8s;
+    transition: 0.2s;
     background: transparent;
 }
 
@@ -192,6 +193,8 @@ h2 {
     box-shadow: 0px 10px 30px -15px #000;
     display: flex;
     align-items: center;
+    width: 30px;
+    justify-content: center;
 }
 .boxos ul{
     display: flex;
@@ -232,7 +235,7 @@ h2 {
     background-color: #f1f1f1;
     border: none;
     cursor: pointer;
-    border-radius: 100px;
+    border-radius: 10px;
     overflow: hidden;
 }
 .boxos button a{
@@ -243,3 +246,73 @@ h2 {
     transition: 0.2s;
 }
 
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+.conti,
+.button,
+.links,
+.link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.conti {
+    padding: 20px;
+    border-radius: 8px;
+    column-gap: 12px;
+    background-color: #fff;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.button {
+    border: none;
+}
+
+.button i {
+    pointer-events: none;
+}
+
+.buttton:disabled {
+    color: #b3b3b3;
+    pointer-events: none;
+    
+}
+
+.button,
+.link {
+    height: 45px;
+    width: 45px;
+    font-size: 20px;
+    color: #666666;
+    background-color: #f2f2f2;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.links {
+    column-gap: 12px;
+}
+
+.link {
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.button:hover,
+.link:hover {
+    color: #fff;
+    background: #759fcb;
+}
+
+.link.active {
+    color: #fff;
+    background: #759fcb;
+}

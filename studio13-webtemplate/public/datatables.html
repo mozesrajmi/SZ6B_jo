@@ -6,6 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
     <link rel="stylesheet" href="datatables.css">
 </head>
 
@@ -13,15 +14,14 @@
     <h2>Páciensek</h2>
     <div class="bixi">
         <select name="szortirozas" id="szortirozas" class="bixi">
-            <option value="tiz">10</option>
-            <option value="huszonot">25</option>
-            <option value="otven">50</option>
-            <option value="szaz">100</option>  
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>  
         </select>
-        <div class="box">
-            <input type="text" class="bixi" placeholder="Keresés..." >
-            <!--<i class="fas fa-search"></i>-->
-             <img src="images/eleg.png" class="bixi-image"> 
+        <div class="box"> 
+            <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." />
+            <img src="images/eleg.png" class="bixi-image"> 
         </div>
     </div>
     <table id="myTable" class="display" style="width:80%">
@@ -37,18 +37,28 @@
         </tbody>
     </table>
 
-    <div class="boxos">
-        <button type="button" class="prev"><a href="#">Prev</a></button>
+    <div class="conti">
+        <button class="button" id="startBtn" disabled>
+            <i class="fa-solid fa-angles-left"></i>
+        </button>
+        <button class="button prevNext" id="prev" disabled>
+            <i class="fa-solid fa-angle-left"></i>
+        </button>
 
-        <ul class="ul">
-            <li><a href="#" class="page_number">1</a></li>
-            <li><a href="#" class="page_number">2</a></li>
-            <li><a href="#" class="page_number active_page">3</a></li>
-            <li><a href="#" class="page_number">4</a></li>
-            <li><a href="#" class="page_number">5</a></li>
-        </ul>
+        <div class="links">
+            <a href="#" class="link active">1</a>
+            <a href="#" class="link">2</a>
+            <a href="#" class="link">3</a>
+            <a href="#" class="link">4</a>
+            <a href="#" class="link">5</a>
+        </div>
 
-        <button type="button" class="next"><a href="#">Next</a></button>
+        <button class="button prevNext" id="next">
+            <i class="fa-solid fa-angle-right"></i>
+        </button>
+        <button class="button" id="endBtn">
+            <i class="fa-solid fa-angles-right"></i>
+
     </div>
 
     <!-- Modal Structure -->
@@ -72,18 +82,16 @@
     </div>
 
     <script type="text/javascript">
-        let selectedName = ''; // Globális változó a kiválasztott név tárolására
-
         $(document).ready(function () {
-            // DataTable inicializálása
+            // Initialize DataTable
             var table = $('#myTable').DataTable({
                 searchDelay: 0,
                 autoWidth: false,
                 responsive: true,
-                dom: 't',
+                dom: 't' // Only show table, no extra elements
             });
-        
-            // Adatok betöltése AJAX segítségével
+    
+            // Load data via AJAX
             $.ajax({
                 url: '/getData',
                 method: 'GET',
@@ -98,7 +106,7 @@
                     table.draw();
                 }
             });
-
+            
             // Modal megnyitása a páciens részleteivel
             function openModal(name, taj, szuldatum) {
                 selectedName = name; // Beállítjuk a kiválasztott nevet
@@ -109,86 +117,108 @@
                 $('#detailsModal').modal('show');
             }
 
-           // "Tovább a jelenlétre" gomb kattintásra
-                document.getElementById('presenceButton').onclick = function() {
+            $('#szortirozas').on('change', function () {
+                var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
+                table.page.len(pageLength).draw(); // Set DataTable page length
+            });
+
+            // Reactive search across name, TAJ, and birth date
+            $('#searchBox').on('input', function () {
+            // Check and limit the input length to 50 characters
+            if (this.value.length > 50) {
+                this.value = this.value.slice(0, 50); // Enforce character limit
+            }
+            table.search(this.value).draw(); // DataTable's search method filters on all columns
+         });
+
+            // "Tovább a jelenlétre" gomb kattintásra
+            document.getElementById('presenceButton').onclick = function() {
                     if (selectedName) {
                 // Az AJAX kérés a /presencePage végpontra a kiválasztott névvel
                 window.location.href = '/presencePage?name=' + encodeURIComponent(selectedName);
-            }
-         };
-
+            }};
 
             // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen
             window.openModal = openModal;
+
         });
 
-    let ul = document.querySelector(".ul");
-    let prev = document.querySelector(".prev");
-    let next = document.querySelector(".next");
-    let current_page = 5;
-    let total_page = 10;
-    let active_page = "";
+        //paging
+        const startBtn = deccument.querySelector("#startBtn"),
+        endBtn = document.querySelector("#endBtn"),
+        prevNext = document.querySelectorAll(".prevNext"),
+        numbers = document.querySelectorAll(".link");
 
-    create_pages(current_page);
+        //setting an inital step
+        let currentStep = 0;
 
-    function create_pages(current_page) {
-        // further code will be starts from here.
-        function create_pages(current_page) {
-        ul.innerHTML = "";
-
-        let before_page = current_page - 2;
-        let after_page = current_page + 2;
-
-        if(current_page == 2){
-            before_page = current_page - 1;
-        }
-        if(current_page == 1){
-            before_page = current_page;
-        }
-
-        if(current_page == total_page - 1){
-            after_page = current_page + 1;
-        }
-        if(current_page == total_page){
-            after_page = current_page;
-        }
-
-        for (let i = before_page; i <= after_page; i++) {
-            if (current_page == i) {
-                active_page = "active_page";
-            } else {
-                active_page = "";
-
+        //function to update the button states
+        const updateBtn = () => {
+            //if we are at the last step
+            if (currentStep === 4){
+                endBtn.disabled = true;
+                prevNext[1].disabled = true;
+            }else if(currentStep === 0){
+                //if we are at the first step
+                startBtn.disabled = true;
+                prevNext[0].disabled = true;
+            }else{
+                endBtn.disabled = false;
+                prevNext[1].disabled = false;
+                startBtn.disabled = false;
+                prevNext[0].disabled = false;
             }
-            ul.innerHTML += `<li onclick="create_pages(` + i + `)"><a href="#" class="page_number ` + active_page + `">` + i + `</a></li>`;
-
         }
+        //Add event listeners to the number links
+        numbers.forEach((number, numIndex) => {
+            number.addEventListener('click', (e) => {
+                e.preventDefault();
+                //set the current step to the index of the clicked number
+                currentStep = numIndex;
+                //remove the active class from all numbers
+                document.querySelector('active').classList.remove('active');
+                //add the active class to the clicked number
+                number.classList.add('active');
+                updateBtn(); //update the button states
+            });
+        });
 
-        // Next and Previous Button Functionality.
+        //Add event listeners to the previous and next buttons
+        prevNext.forEach(button =>{
+            button.addEventListener("click", (e) =>{
+                //inrement or decrement the current step based on the button clicked
+                currentStep += e.target.id === "next" ? 1 : -1;
+                numbers.forEach((number, numIndex)=>{
+                    //toggle the active class on the number based on the current step
+                    number.classList.toggle('active', numIndex === currentStep);
+                    updateBtn(); //update the button states
+                });
+            });
+        });
 
-        prev.onclick = function () {
-            current_page--;
-            create_pages(current_page);
-        }
-        if(current_page <= 1){
-            prev.style.display = "none";
-        }else{
-            prev.style.display = "block";
-        }
-
-        next.onclick = function () {
-            current_page++;
-            create_pages(current_page);
-        }
-        if(current_page >= total_page){
-            next.style.display = "none";
-        }else{
-            next.style.display = "block";
-        }
-
-
-    }
-    }
-
+        //Add event listeners to the start and end buttons
+        startBtn.addEventListener('click', () =>{
+         //remove the acive class from the previously active number
+         document.querySelector('.active').classList.remove('active');
+         //add the active class to the first number link
+        numbers[0].classList.add('active');
+        currentStep = 0; 
+        updateBtn(); //update the button states
+        endBtn.disabled = false;
+        prevNext[1].disabled = false;
+        });
+        
+         //Add event listeners to the  end buttons
+         endBtn.addEventListener('click', () =>{
+         //remove the acive class from the previously active number
+         document.querySelector('.active').classList.remove('active');
+         //add the active class to the last number link
+        numbers[4].classList.add('active');
+        currentStep = 4; 
+        updateBtn(); //update the button states
+        startBtn.disabled = false;
+        prevNext[0].disabled = false;
+        });
     </script>
+    
 </body>
