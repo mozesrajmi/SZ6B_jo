@@ -46,11 +46,7 @@
         </button>
 
         <div class="links">
-            <a href="#" class="link active">1</a>
-            <a href="#" class="link">2</a>
-            <a href="#" class="link">3</a>
-            <a href="#" class="link">4</a>
-            <a href="#" class="link">5</a>
+
         </div>
 
         <button class="button prevNext" id="next">
@@ -82,6 +78,8 @@
     </div>
 
     <script type="text/javascript">
+        let db = 0;
+        let rows;
         $(document).ready(function () {
             // Initialize DataTable
             var table = $('#myTable').DataTable({
@@ -90,23 +88,48 @@
                 responsive: true,
                 dom: 't' // Only show table, no extra elements
             });
-    
             // Load data via AJAX
             $.ajax({
                 url: '/getData',
                 method: 'GET',
                 success: function (data) {
+                    db = 0;
                     data.rows.forEach(function (row) {
                         table.row.add([
                             `<span class="name" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
                             row.TAJ,
                             row.SZULDATUM
                         ]).draw(false);
+                        db++;
+                        //console.log("db -1", db)
                     });
                     table.draw();
                 }
             });
-            
+            function getDB(){
+                console.log("getDB", db)
+                row = [];
+                let value = document.getElementById("szortirozas").value;
+                document.querySelector(".links").innerHTML = "";
+                for(var i = 0; i < Math.ceil(db/value); i++){
+
+                    console.log("create", db);
+                    var link = document.createElement("a");
+                    link.href = "#";
+                    link.className = "link" + (i === 0 ? " active" : "");
+                    link.innerHTML = i + 1;
+                    console.log("link", i, i+1)
+                    link.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        ChangePage(this);
+                    });
+                    document.querySelector(".links").appendChild(link);
+                }
+                row = table.rows().data().toArray();
+                console.log("row--1", row)
+            }
+            getDB();
+            console.log("db", db)
             // Modal megnyitása a páciens részleteivel
             function openModal(name, taj, szuldatum) {
                 selectedName = name; // Beállítjuk a kiválasztott nevet
@@ -116,10 +139,20 @@
                 $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
                 $('#detailsModal').modal('show');
             }
-
+            // Handle page link click
+/*            $('.link').on('click', function (e) {
+                e.preventDefault();
+                var pageIndex = $(this).index();
+                table.page(pageIndex).draw(false);
+                $('.link').removeClass('active');
+                $(this).addClass('active');
+                currentStep = pageIndex;
+                ChangePage(pageIndex+1);
+            });*/
             $('#szortirozas').on('change', function () {
                 var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
-                table.page.len(pageLength).draw(); // Set DataTable page length
+                table.page.len(pageLength)
+                getDB();
             });
 
             // Reactive search across name, TAJ, and birth date
@@ -140,9 +173,27 @@
 
             // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen
             window.openModal = openModal;
+            function ChangePage(adatok) {
+                var pageIndex = $(adatok).index();
+                console.log("pageIndex", pageIndex)
+                table.page(pageIndex).draw(false);
+                $('.link').removeClass('active');
+                $(adatok).addClass('active');
+                currentStep = pageIndex;
+                let value = document.getElementById("szortirozas").value;
+                var pageLength = parseInt(value, 10); // Get selected value and convert to integer
+                var start = pageIndex * pageLength; // Calculate the starting index
+                var end = start + pageLength > db ? db : start + pageLength; // Calculate the ending index
+                let array = [];
+                console.log("r", row)
+                for (var x = start; x < end; x++) {
+                    array.push(row[x]);
+                }
 
+                console.log("start", start, "end", end)
+                table.clear().rows.add(array).draw(); // Clear the table and add the new rows
+            }
         });
-
         //paging
         const startBtn = document.querySelector("#startBtn"),
         endBtn = document.querySelector("#endBtn"),
