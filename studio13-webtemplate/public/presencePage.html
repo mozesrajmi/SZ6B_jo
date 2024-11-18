@@ -24,6 +24,9 @@
                 <!-- Dinamikusan generált sorok (NAPOK rekordok) -->
             </tbody>
         </table>
+        <div id="gombos">
+            <input type="button" value="Jelenlegi hó szerkesztése">
+        </div>
     </div>
 
     <script type="text/javascript">
@@ -73,6 +76,41 @@
                 }
             });
         });
+
+        // Modal létrehozása
+        const modalHtml = `
+            <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Megerősítés</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Biztosan szerkeszteni akarja a jelenlegi hónapot?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-primary" id="confirmEdit">Igen</button>
+                </div>
+                </div>
+            </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Gomb esemény kezelése
+        document.querySelector('#gombos input').addEventListener('click', function() {
+            const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+            confirmationModal.show();
+        });
+
+        // Modal megerősítés gomb esemény kezelése
+        document.getElementById('confirmEdit').addEventListener('click', function() {
+            window.location.href = 'editCurrentMonth.html';
+        });
+
+
     </script>
 </body>
 </html>
