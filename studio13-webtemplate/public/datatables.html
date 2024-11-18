@@ -78,8 +78,17 @@
     </div>
 
     <script type="text/javascript">
-        let db = 0;
-        let rows;
+        this.db = 0;
+        function getDBValue(){
+            return this.db;
+        }
+        function setDBValue(reset){
+            if(reset){
+                this.db = 0;
+            }else{
+                this.db++;
+            }
+        }
         $(document).ready(function () {
             // Initialize DataTable
             var table = $('#myTable').DataTable({
@@ -93,27 +102,26 @@
                 url: '/getData',
                 method: 'GET',
                 success: function (data) {
-                    db = 0;
+                    setDBValue(true);
                     data.rows.forEach(function (row) {
                         table.row.add([
                             `<span class="name" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
                             row.TAJ,
                             row.SZULDATUM
                         ]).draw(false);
-                        db++;
-                        //console.log("db -1", db)
+                        setDBValue(false);
                     });
+                    rows = table.rows().data().toArray();
                     table.draw();
+                    getDB();
                 }
             });
             function getDB(){
-                console.log("getDB", db)
-                row = [];
                 let value = document.getElementById("szortirozas").value;
                 document.querySelector(".links").innerHTML = "";
-                for(var i = 0; i < Math.ceil(db/value); i++){
+                for(var i = 0; i < Math.ceil(getDBValue()/value); i++){
 
-                    console.log("create", db);
+                    console.log("create", getDBValue());
                     var link = document.createElement("a");
                     link.href = "#";
                     link.className = "link" + (i === 0 ? " active" : "");
@@ -125,11 +133,7 @@
                     });
                     document.querySelector(".links").appendChild(link);
                 }
-                row = table.rows().data().toArray();
-                console.log("row--1", row)
             }
-            getDB();
-            console.log("db", db)
             // Modal megnyitása a páciens részleteivel
             function openModal(name, taj, szuldatum) {
                 selectedName = name; // Beállítjuk a kiválasztott nevet
@@ -151,7 +155,7 @@
             });*/
             $('#szortirozas').on('change', function () {
                 var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
-                table.page.len(pageLength)
+                table.page.len(pageLength).draw(); // Set the page length and redraw the table
                 getDB();
             });
 
@@ -175,7 +179,6 @@
             window.openModal = openModal;
             function ChangePage(adatok) {
                 var pageIndex = $(adatok).index();
-                console.log("pageIndex", pageIndex)
                 table.page(pageIndex).draw(false);
                 $('.link').removeClass('active');
                 $(adatok).addClass('active');
@@ -185,12 +188,9 @@
                 var start = pageIndex * pageLength; // Calculate the starting index
                 var end = start + pageLength > db ? db : start + pageLength; // Calculate the ending index
                 let array = [];
-                console.log("r", row)
                 for (var x = start; x < end; x++) {
-                    array.push(row[x]);
+                    array.push(rows[x]);
                 }
-
-                console.log("start", start, "end", end)
                 table.clear().rows.add(array).draw(); // Clear the table and add the new rows
             }
         });
