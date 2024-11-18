@@ -26,6 +26,9 @@ table.display tbody td {
 
 
 
+
+
+
 table.display tbody td.dt-type-date {
     text-align: center;
 }
@@ -43,4 +46,68 @@ table.display tbody td.dt-type-numeric {
 table.display tbody tr:hover {
     background-color: #e6f7ff; /* Light blue on hover */
     cursor: pointer;
+}
+
+.modal-header {
+    background-color: #759fcb;
+    color: white
+}
+
+
+.btn-primary {
+    background-color: #759fcb;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.btn-secondary {
+    background-color: rgb(245, 182, 182);
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.btn-secondary:hover {
+    background-color: rgb(255, 0, 0);
+    color: white;
+}
+
+#gombos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.gyasz {
+    background-color: #759fcb;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 20px;
+}
+.gyasz:hover {
+    background-color: blue;
+    color: white;
+    transition: 0.5s;
 }
