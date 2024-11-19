@@ -79,6 +79,7 @@ function login() {
   if (login_json && login_json.count === 1 && login_json.rows[0].NEV) {
     // Siker: Felhasználó bejelentkezett
     $("#login1_user").html("Bejelentkezve: " + login_json.rows[0].NEV);
+    sessionStorage.setItem('username', login_json.rows[0].NEV); // Felhasználónév mentése
     $('#login1_modal').modal('hide');
     mySend({ text: `Bejelentkezett: ${login_json.rows[0].NEV}!`, tip: "success", mp: 3 });
     enableNavbar();
@@ -92,18 +93,32 @@ function login() {
 }
 
 
-  /* ---- felhasználó kijelentkezik. Az id=login1_user TAG-ben "...senki ..." ---- */ 
-  function logout() 
-  {
-    myQuestion({text: `Kijelentkezés megerősítése...? `});
-      $("#myQuestion").on("click",".ok", function() {
-          var session_response = ajax_post("logout", 1) ;  
-          mySend({text:session_response, tip:"info", mp:3});
-          $("#login1_user").html("Bejelentkezés..." );
-          $('#login1_user').prop('title', "[...]");
-          $('#login1_modal').modal('hide');
-      });  
-  }
+/* ---- felhasználó kijelentkezik, de megerősítést kérünk előtte ---- */ 
+function logout() {
+  // Felhasználói megerősítés kérése
+  myQuestion({ text: `Biztosan ki szeretne jelentkezni?` });
+  
+  // Ha a felhasználó az "OK" gombra kattint
+  $("#myQuestion").on("click", ".ok", function () {
+    var session_response = ajax_post("logout", 1);
+    mySend({ text: session_response, tip: "info", mp: 3 });
+    $("#login1_user").html("Bejelentkezés");
+    $('#login1_user').prop('title', "[...]");
+    $('#login1_modal').modal('hide');
+    disableNavbar(); // Navigációs sáv tiltása kijelentkezés után
+  });
+
+  // Ha a felhasználó a "Mégse" gombra kattint
+  $("#myQuestion").on("click", ".cancel", function () {
+    // Megerősítés, hogy a felhasználó bejelentkezve marad
+    mySend({ text: `Kijelentkezés megszakítva.`, tip: "warning", mp: 3 });
+    $('#login1_user').html(`Bejelentkezve: ${sessionStorage.getItem('username')}`); // Frissíti a kijelentkezési szöveget
+    $('#login1_modal').modal('hide'); // Modal bezárása
+    enableNavbar(); // Navigációs sáv újbóli engedélyezése
+  });
+}
+
+
 
 
 
@@ -202,17 +217,18 @@ function login() {
   <!-- --------------------------G O M B T I L T Á S / E N G E D É L Y E Z É S  ---------------------------------- -->
 
   <script type="text/javascript">
-    function disableNavbar() {
-      $("#menu1_button").prop("disabled", true);
-      $("#search1_field").prop("disabled", true);
-      $("#search1_button").prop("disabled", true);
-    }
+   function disableNavbar() {
+  $("#menu1_button").prop("disabled", true);
+  $("#search1_field").prop("disabled", true);
+  $("#search1_button").prop("disabled", true);
+}
 
-    function enableNavbar() {
-      $("#menu1_button").prop("disabled", false);
-      $("#search1_field").prop("disabled", false);
-      $("#search1_button").prop("disabled", false);
-    }
+function enableNavbar() {
+  $("#menu1_button").prop("disabled", false);
+  $("#search1_field").prop("disabled", false);
+  $("#search1_button").prop("disabled", false);
+}
+
 
     $(document).ready(function() {
   // Ellenőrizzük, hogy van-e érvényes munkamenet
@@ -251,9 +267,12 @@ function login() {
   });
 });
 
+// Logout button click event
+$("#user1_logout_button").click(function () {
+  $('#logoutConfirmationModal').modal('show'); // Open the confirmation modal
+});
+
   </script>
-
-
 
 
 

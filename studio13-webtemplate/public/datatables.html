@@ -46,7 +46,7 @@
         </button>
 
         <div class="links">
-
+            <!-- Dinamikusan generált oldalszámok -->
         </div>
 
         <button class="button prevNext" id="next">
@@ -56,6 +56,7 @@
             <i class="fa-solid fa-angles-right"></i>
         </button>
     </div>
+
 
     <!-- Modal Structure -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -78,17 +79,6 @@
     </div>
 
     <script type="text/javascript">
-        this.db = 0;
-        function getDBValue(){
-            return this.db;
-        }
-        function setDBValue(reset){
-            if(reset){
-                this.db = 0;
-            }else{
-                this.db++;
-            }
-        }
         $(document).ready(function () {
             // Initialize DataTable
             var table = $('#myTable').DataTable({
@@ -102,38 +92,18 @@
                 url: '/getData',
                 method: 'GET',
                 success: function (data) {
-                    setDBValue(true);
                     data.rows.forEach(function (row) {
                         table.row.add([
                             `<span class="name" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
                             row.TAJ,
                             row.SZULDATUM
                         ]).draw(false);
-                        setDBValue(false);
                     });
                     rows = table.rows().data().toArray();
                     table.draw();
-                    getDB();
                 }
             });
-            function getDB(){
-                let value = document.getElementById("szortirozas").value;
-                document.querySelector(".links").innerHTML = "";
-                for(var i = 0; i < Math.ceil(getDBValue()/value); i++){
-
-                    console.log("create", getDBValue());
-                    var link = document.createElement("a");
-                    link.href = "#";
-                    link.className = "link" + (i === 0 ? " active" : "");
-                    link.innerHTML = i + 1;
-                    console.log("link", i, i+1)
-                    link.addEventListener("click", function (e) {
-                        e.preventDefault();
-                        ChangePage(this);
-                    });
-                    document.querySelector(".links").appendChild(link);
-                }
-            }
+           
             // Modal megnyitása a páciens részleteivel
             function openModal(name, taj, szuldatum) {
                 selectedName = name; // Beállítjuk a kiválasztott nevet
@@ -143,16 +113,7 @@
                 $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
                 $('#detailsModal').modal('show');
             }
-            // Handle page link click
-/*            $('.link').on('click', function (e) {
-                e.preventDefault();
-                var pageIndex = $(this).index();
-                table.page(pageIndex).draw(false);
-                $('.link').removeClass('active');
-                $(this).addClass('active');
-                currentStep = pageIndex;
-                ChangePage(pageIndex+1);
-            });*/
+
             $('#szortirozas').on('change', function () {
                 var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
                 table.page.len(pageLength).draw(); // Set the page length and redraw the table
@@ -193,85 +154,86 @@
                 }
                 table.clear().rows.add(array).draw(); // Clear the table and add the new rows
             }
-        });
-        //paging
-        const startBtn = document.querySelector("#startBtn"),
-        endBtn = document.querySelector("#endBtn"),
-        prevNext = document.querySelectorAll(".prevNext"),
-        numbers = document.querySelectorAll(".link");
-
-        //setting an inital step
-        let currentStep = 0;
-
-        //function to update the button states
-        const updateBtn = () => {
-            //if we are at the last step
-            if (currentStep === 4){
-                endBtn.disabled = true;
-                prevNext[1].disabled = true;
-            }else if(currentStep === 0){
-                //if we are at the first step
-                startBtn.disabled = true;
-                prevNext[0].disabled = true;
-            }else{
-                endBtn.disabled = false;
-                prevNext[1].disabled = false;
-                startBtn.disabled = false;
-                prevNext[0].disabled = false;
-            }
-        }
-
-            //Add event listeners to the number links
-            numbers.forEach((number, numIndex) => {
-            number.addEventListener("click", (e) => {
-                e.preventDefault();
-            //set the current step to the index of the clicked number
-            currentStep = numIndex;
-            //remove the active class from all numbers
-            document.querySelector(".active").classList.remove("active");
-            //add the active class to the clicked number
-            number.classList.add("active");
-            updateBtn(); //update the button states
-            });
-        });
-
-            //Add event listeners to the previous and next buttons
-            prevNext.forEach(button => {
-            button.addEventListener("click", (e) =>{
-            //inrement or decrement the current step based on the button clicked
-            currentStep += e.target.id === "next" ? 1 : -1;
-            numbers.forEach((number, numIndex) =>{
-                //toggle the active class on the number based on the current step
-                number.classList.toggle("active", numIndex === currentStep);
-                updateBtn(); //update the button states
-                });
-            });
-          
-        });
-
-        //Add event listeners to the start and end buttons
-        startBtn.addEventListener("click", () =>{
-            //remove the acive class from the previously active number
-            document.querySelector(".active").classList.remove("active");
-            //add the active class to the first number link
-            numbers[0].classList.add("active");
-            currentStep = 0; 
-            updateBtn(); //update the button states
-            endBtn.disabled = false;
-            prevNext[1].disabled = false;
-        });
         
-         //Add event listeners to the  end buttons
-         endBtn.addEventListener("click", () =>{
-         //remove the acive class from the previously active number
-         document.querySelector('.active').classList.remove("active");
-         //add the active class to the last number link
-         numbers[4].classList.add("active");
-         currentStep = 4; 
-         updateBtn(); //update the button states
-         startBtn.disabled = false;
-         prevNext[0].disabled = false;
-         });
+        
+
+          // HTML elements
+          const startBtn = document.querySelector("#startBtn");
+            const endBtn = document.querySelector("#endBtn");
+            const prevBtn = document.querySelector("#prev");
+            const nextBtn = document.querySelector("#next");
+            const pageLinks = document.querySelector(".links");
+            const searchBox = document.querySelector("#searchBox");
+            const sortDropdown = document.querySelector("#szortirozas");
+
+            // Update navigation button states
+            function updateNavButtons() {
+                const currentPage = table.page.info().page;
+                const totalPages = table.page.info().pages;
+
+                startBtn.disabled = currentPage === 0;
+                prevBtn.disabled = currentPage === 0;
+                nextBtn.disabled = currentPage === totalPages - 1;
+                endBtn.disabled = currentPage === totalPages - 1;
+
+                // Generate page links dynamically
+                pageLinks.innerHTML = "";
+                for (let i = 0; i < totalPages; i++) {
+                    const link = document.createElement("a");
+                    link.href = "#";
+                    link.textContent = i + 1;
+                    link.className = "link" + (i === currentPage ? " active" : "");
+                    link.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        table.page(i).draw(false);
+                        updateNavButtons();
+                    });
+                    pageLinks.appendChild(link);
+                }
+            }
+
+            // Navigation button event listeners
+            startBtn.addEventListener("click", function () {
+                table.page('first').draw(false);
+                updateNavButtons();
+            });
+
+            prevBtn.addEventListener("click", function () {
+                table.page('previous').draw(false);
+                updateNavButtons();
+            });
+
+            nextBtn.addEventListener("click", function () {
+                table.page('next').draw(false);
+                updateNavButtons();
+            });
+
+            endBtn.addEventListener("click", function () {
+                table.page('last').draw(false);
+                updateNavButtons();
+            });
+
+            // Change rows per page
+            sortDropdown.addEventListener("change", function () {
+                const pageLength = parseInt(this.value, 10);
+                table.page.len(pageLength).draw();
+                updateNavButtons();
+            });
+
+            // Search functionality
+            searchBox.addEventListener("input", function () {
+                table.search(this.value).draw();
+                updateNavButtons();
+            });
+
+            // Update buttons after table redraw
+            table.on('draw', function () {
+                updateNavButtons();
+            });
+
+            // Initial button update
+            updateNavButtons();
+        });
 
     </script>
     

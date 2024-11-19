@@ -18,13 +18,13 @@ app.use(express.static('public'));    // frontend root mappa (index.html)
 
 
 
-app.post('/logout',   (req, res) => {  
+app.post('/logout', (req, res) => {
   session_data = req.session;
-  session_data.destroy(function(err) {
-      res.set('Content-Type', 'application/json; charset=UTF-8');
-      res.json('Sikres kijelentkezés');
-      res.end();
-    }); 
+  session_data.destroy(function (err) {
+    res.set('Content-Type', 'application/json; charset=UTF-8');
+    res.json('Sikeres kijelentkezés');
+    res.end();
+  });
 });
 
 // Bejelentkezés POST kérés kezelése
