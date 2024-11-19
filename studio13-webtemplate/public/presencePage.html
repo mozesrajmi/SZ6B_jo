@@ -24,132 +24,95 @@
                 <!-- Dinamikusan generált sorok (NAPOK rekordok) -->
             </tbody>
         </table>
-         
-        <div id="gombos">
-            <input type="button" value="Jelenlegi hó szerkesztése" class="gyasz">
-        </div>
 
+    </div>
+    
+    <div id="gombos">
+        <input type="button" value="Jelenlegi hó szerkesztése" class="gyasz">
     </div>
 
     <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const patientName = urlParams.get('name');
-    let lastButtonClickTime = Date.now(); // Az utolsó gombnyomás ideje
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const patientName = urlParams.get('name');
 
-    if (patientName) {
-        document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
+            // Naplózzuk ki a nevet, hogy megbizonyosodjunk róla
+            console.log("Keresett páciens neve:", patientName);
 
-        // Betöltjük az adatokat
-        loadTreatmentDays(patientName);
-    }
+            if (patientName) {
+                document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
+            } else {
+                console.error("Nem sikerült kiolvasni a páciens nevét az URL-ből.");
+            }
 
-    function loadTreatmentDays(name) {
-        $.ajax({
-            url: 'http://localhost:3000/getTreatmentDays',
-            method: 'GET',
-            data: { name },
-            success: function (response) {
-                if (response && response.days) {
-                    const tableBody = $('#daysTable tbody');
-                    tableBody.empty(); // Tisztítjuk a táblázatot
-
-                    response.days.forEach(day => {
-                        const row = $('<tr></tr>');
-                        row.append(`<td class='sajt'>${day.hónap}</td>`);
-                        row.append(`<td class='sajt'>${day.NAPOK}</td>`);
-                        tableBody.append(row);
-                    });
-
-                    $('#daysTable').DataTable({
-                        searching: false,
-                        paging: false,
-                        info: false,
-                        ordering: false,
-                    });
-
-                    // Ellenőrizzük az utolsó hónapot és számjegyet
-                    checkLastRowDetails();
+            // Az AJAX kérés a kezelés napjainak lekérésére
+            $.ajax({
+                url: 'http://localhost:3000/getTreatmentDays',
+                method: 'GET',
+                data: { name: patientName },
+                success: function(response) {
+                    console.log("Visszakapott napok adatok:", response);
+            
+                    if (response && response.days) {
+                        const tableBody = $('#daysTable tbody');
+            
+                        response.days.forEach(day => {
+                            const row = $('<tr></tr>');
+                            row.append(`<td class='sajt'>${day.hónap}</td>`);
+                            row.append(`<td class='sajt'>${day.NAPOK}</td>`);
+                            tableBody.append(row);
+                        });
+            
+                        $('#daysTable').DataTable({
+                            searching: false,
+                            paging: false,
+                            info: false,
+                            ordering: false,
+                        });
+                    } else {
+                        console.error("Nem található 'napok' adat a válaszban.");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Hiba történt az AJAX kérés során:", status, error);
                 }
-            },
-            error: function (xhr, status, error) {
-                console.error("Hiba történt az adatok betöltése során:", status, error);
-            }
+            });
         });
-    }
 
-    function checkLastRowDetails() {
-        const table = document.getElementById('daysTable');
-        const lastRow = table.querySelector('tbody tr:last-child'); // Táblázat utolsó sora
-        if (lastRow) {
-            // Utolsó hónap kivonása
-            const lastMonthCell = lastRow.querySelector('td:first-child'); // Első cella (hónap)
-            const lastMonth = lastMonthCell ? lastMonthCell.textContent.trim() : null;
+        // Modal létrehozása
+        const modalHtml = `
+            <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Megerősítés</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Biztosan szerkeszteni akarja a jelenlegi hónapot?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-primary" id="confirmEdit">Igen</button>
+                </div>
+                </div>
+            </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-            // Utolsó nap kivonása
-            const lastDayCell = lastRow.querySelector('td:last-child'); // Utolsó cella (napok)
-            const lastDayValue = lastDayCell ? parseInt(lastDayCell.textContent.trim(), 10) : null;
-            const lastDigit = !isNaN(lastDayValue) ? lastDayValue % 10 : null;
-
-            // Tároljuk a lekérdezett értékeket
-            scheduleAutomaticUpdate(lastMonth, lastDigit);
-        } else {
-            console.warn('A táblázat üres.');
-        }
-    }
-
-    // Gomb esemény figyelése
-    document.querySelector('#gombos input').addEventListener('click', function () {
-        lastButtonClickTime = Date.now(); // Frissítjük az utolsó kattintás idejét
-        console.log('Gomb megnyomva. Az automatikus frissítés leállítva.');
-    });
-
-    // Automatikus frissítés ütemezése
-    function scheduleAutomaticUpdate(lastMonth, lastDigit) {
-        setInterval(() => {
-            const currentTime = Date.now();
-            if (currentTime - lastButtonClickTime >= 60 * 1000) { // 1 perc eltelt
-                console.log('1 perc eltelt, automatikusan frissítjük az adatbázist.');
-                const nextMonth = incrementMonth(lastMonth);
-                if (lastDigit !== null) {
-                    updateDatabase(patientName, nextMonth, lastDigit);
-                }
-            }
-        }, 60 * 1000); // Ellenőrzés percenként
-    }
-
-    // Hónap növelése
-    function incrementMonth(currentMonth) {
-        const [year, month] = currentMonth.split('-').map(Number);
-        const newMonth = month === 12 ? 1 : month + 1;
-        const newYear = month === 12 ? year + 1 : year;
-        return `${newYear}-${newMonth.toString().padStart(2, '0')}`;
-    }
-
-    // Adatbázis frissítése
-    function updateDatabase(name, nextMonth, dayDigit) {
-        $.ajax({
-            url: 'http://localhost:3000/addTreatmentDays',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                name,
-                hónap: nextMonth,
-                napok: dayDigit,
-            }),
-            success: function (response) {
-                console.log('Adatbázis sikeresen frissítve:', response);
-                loadTreatmentDays(name); // Táblázat újratöltése
-            },
-            error: function (xhr, status, error) {
-                console.error('Hiba történt az adatbázis frissítése során:', status, error);
-            }
+        // Gomb esemény kezelése
+        document.querySelector('#gombos input').addEventListener('click', function() {
+            const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+            confirmationModal.show();
         });
-    }
-});
+
+        // Modal megerősítés gomb esemény kezelése
+        document.getElementById('confirmEdit').addEventListener('click', function() {
+            window.location.href = 'editCurrentMonth.html';
+        });
+
 
     </script>
-    
-    
 </body>
 </html>
