@@ -184,6 +184,29 @@ app.get('/getTreatmentDays', (req, res) => {
 
 
 
+app.post('/addTreatmentDays', (req, res) => {
+  const { name, hónap, napok } = req.body;
+
+  if (!name || !hónap || !napok) {
+      return res.status(400).json({ success: false, message: 'Hiányzó paraméterek!' });
+  }
+
+  const query = `
+      INSERT INTO ellatas (ID_PACIENS, HO, NAPOK)
+      SELECT ID_PACIENS, '${hónap}', ${napok}
+      FROM paciensek
+      WHERE NEV = '${name}';
+  `;
+
+  DB.query(query, (error) => {
+      if (error) {
+          console.error('Adatbázis hiba:', error);
+          return res.status(500).json({ success: false, message: 'Adatbázis hiba!' });
+      }
+
+      res.json({ success: true, message: 'Új hónap sikeresen hozzáadva!' });
+  });
+});
 
 
 
