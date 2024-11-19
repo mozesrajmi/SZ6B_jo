@@ -45,6 +45,10 @@ input { font-family: Verdana, Tahoma; }
   box-shadow: 11px 12px 21px 1px rgba(0,0,0,0.79);
 }
 
+#menu1_button {
+  color: white;
+}
+
 ul.xmenu {list-style-type: none;
           line-height: 150%;
           font-family : Verdana, tahoma;
@@ -72,6 +76,16 @@ li.xmenu:hover{ cursor: pointer;
 }
 
 #footer a { color: beige; text-decoration: none;}
+
+#semmi {
+    background-color: #759fcb;
+    color: white;
+    padding: 10px;
+    margin: 0px;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
 
 div.button  { 
   box-sizing: border-box; float:left; display: table-cell;
@@ -177,4 +191,19 @@ div.button.logout   { background-image: url(images/userdel-32.png); }
     border: 20px solid white;  
     width: auto; 
     height: auto;
+  }
+
+  #joisten {
+    background-color: #759fcb;
+    color: white;
+    padding: 10px;
+    margin: 0px;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+
+  .modal-header.bg-secondary.text-white {
+    background-color: #759fcb !important;
+    color: white !important;
   }
