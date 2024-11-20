@@ -95,7 +95,7 @@ table.display tbody tr:hover {
 
 .gyasz {
     background-color: #759fcb;
-    color: black;
+    color: white;
     border: none;
     padding: 10px 20px;
     text-align: center;
@@ -110,4 +110,13 @@ table.display tbody tr:hover {
     background-color: blue;
     color: white;
     transition: 0.5s;
+}
+
+#patientNameTitle {
+    text-decoration: underline;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    margin-top: 20px;
 }
