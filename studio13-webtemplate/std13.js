@@ -182,7 +182,7 @@ app.get('/getTreatmentDays', (req, res) => {
   });
 });
 
-
+/*
 // Új végpont a napok számokkal történő kiírásához
 app.post('/addTreatmentDays', (req, res) => {
   const { name, hónap, napok } = req.body;
@@ -208,8 +208,7 @@ app.post('/addTreatmentDays', (req, res) => {
   });
 });
 
-
-
+*/
 
 
 
