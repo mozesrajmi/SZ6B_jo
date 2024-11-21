@@ -135,116 +135,7 @@ h2 {
     font-family: 'Arial', sans-serif; /* Consistent with table styling */
 }
 
-.box{
-    height: 45px;
-    display: flex;
-    cursor: pointer;
-    padding: 10px 20px;
-    background: rgb(227, 227, 227);
-    border-radius: 30px;
-    float: right;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    margin: 0 0 20px 0;
-    margin-right: 184px;
 
-}
-
-.box input:focus,
-.box:hover input {
-    width: 340px; /* Keeps the input expanded on focus */
-}
-
-.box input{
-    width: 0;
-    outline: none;
-    border: none;
-    font-weight: 500;
-    transition: 0.2s;
-    background: transparent;
-}
-
-
-
-
-#szortirozas {
-    float: left;
-    position: relative; /* Ensure it moves with the table */
-    border-radius: 20px; /* Make the select dropdown oval-shaped */
-    padding: 5px 10px; /* Add some padding for better appearance */
-    top: 10px; /* Adjust the top position as needed */
-    cursor: pointer;
-    margin-left: 187px;
-}
-
-#szortirozas option {
-    background-color: #f8f8f8; /* Light gray background */
-    color: #444; /* Dark gray text color */
-    cursor: pointer;
-}
-
-#szortirozas onptio:hover {
-    background-color: #759fcb; /* Change background color on hover */
-}
-
-.boxos{
-    background-color: #fff;
-    padding: 10px;
-    border-radius: 100px;
-    box-shadow: 0px 10px 30px -15px #000;
-    display: flex;
-    align-items: center;
-    width: 30px;
-    justify-content: center;
-}
-.boxos ul{
-    display: flex;
-    margin: 0px 10px;
-}
-.boxos ul li{
-    list-style: none;
-    margin: 0px 5px;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    border-radius: 100px;
-    text-align: center;
-
-}
-.boxos ul li a{
-    font-size: 25px;
-    text-decoration: none;
-    color: #000;
-    display: block;
-    border-radius: 100px;
-    transition: 0.2s;
-}
-.boxos ul li .active_page{
-    background-color: #a05acb;
-    color: #fff;
-}
-.boxos ul li a:hover,
-.boxos button a:hover{
-    background-color: #a05acb;
-    color: #fff;
-}
-
-/* ---------- Buttons ---------- */
-.boxos button{
-    font-size: 20px;
-    font-weight: bold;
-    background-color: #f1f1f1;
-    border: none;
-    cursor: pointer;
-    border-radius: 10px;
-    overflow: hidden;
-}
-.boxos button a{
-    text-decoration: none;
-    padding: 10px 20px;
-    display: block;
-    color: #000;
-    transition: 0.2s;
-}
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
 
@@ -269,23 +160,37 @@ h2 {
     padding: 20px;
     border-radius: 8px;
     column-gap: 12px;
-    background-color: #fff;
+    background-color: none;
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     border-radius: 20px;
+    display: flex;
+    justify-content: center; /* Középre igazítás vízszintesen */
+    align-items: center; /* Középre igazítás függőlegesen */
+    gap: 10px; /* Távolság a gombok között */
+    margin-top: 20px; /* Távolság a táblázattól */
+    flex-wrap: wrap; /* Kisebb képernyőn tördelés engedélyezése */
+
 }
 
 .button {
-    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid;
+    border-radius: 50%; /* Kerek gombok */
+    cursor: pointer;
 }
 
 .button i {
     pointer-events: none;
+    display: inline-flex;
 }
 
 .buttton:disabled {
     color: #b3b3b3;
-    pointer-events: none;
-    
+    pointer-events: none;  
 }
 
 .button,
@@ -302,6 +207,9 @@ h2 {
 
 .links {
     column-gap: 12px;
+    display: flex;
+    flex-wrap: wrap; /* Kisebb képernyőn tördelés */
+
 }
 
 .link {
@@ -319,4 +227,113 @@ h2 {
     color: #fff;
     background: #759fcb;
 }
+
+.prevNext {
+    width: 50px;
+    height: 40px;
+    border-radius: 20px; /* Lekerekített téglalap forma */
+}
+
+/* Reszponzív stílusok */
+@media (max-width: 600px) {
+    .conti {
+        flex-direction: column; /* Gombok egymás alatt */
+        gap: 15px; /* Távolság a gombok között */
+    }
+
+    .links {
+        justify-content: center;
+    }
+
+    .button {
+        width: 50px; /* Nagyobb gombok mobilon */
+        height: 50px;
+    }
+
+    .prevNext {
+        width: 60px; /* Nagyobb prev/next gombok mobilon */
+        height: 50px;
+    }
+
+    .links a {
+        padding: 10px 15px; /* Nagyobb oldalszámok */
+    }
+}
+
+/* bixi stílusa */
+.bixi {
+    width: 80%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; /* Elején és végén helyezkedjenek el */
+    align-items: center; /* Vertikálisan középre igazítva */
+    margin: 10px auto;
+    padding: 10px; /* Egyenlő belső térköz */
+    border-radius: 20px; /* Lekerekített sarkok */
+}
+
+/* Szortírozó stílusa */
+.bixi select {
+    text-align: center;
+    border-radius: 20px;
+    padding: 10px 20px; /* Egyező belső térköz a .box-szal */
+    border: 1px solid #ccc;
+    margin: 0; /* Margó eltávolítása */
+    width: 100%;
+    max-width: 150px; /* Maximális szélesség */
+    box-sizing: border-box;
+    height: 40px; /* Ugyanakkora magasság, mint a .box */
+    background: #ffffff;
+}
+
+/* Keresősávot tartalmazó doboz */
+.box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 300px;
+    height: 45px; /* Ugyanakkora magasság, mint a szortírozó */
+    padding: 10px 20px; /* Egyező belső térköz */
+    cursor: pointer;
+    background: rgb(227, 227, 227);
+    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Keresőmező */
+.box input {
+    width: 0;
+    outline: none;
+    border: none;
+    font-weight: 500;
+    transition: 0.2s;
+    background: transparent;
+}
+
+.box input:focus,
+.box:hover input {
+    width: 100%; /* Kitágul a rendelkezésre álló helyre */
+}
+
+/* Kép a keresősávban */
+.bixi-image {
+    width: 24px;
+    height: 24px;
+}
+
+/* Reszponzív dizájn */
+@media (max-width: 600px) {
+    .bixi {
+        flex-direction: column; /* Kisebb képernyőn egymás alá kerülnek */
+        gap: 10px; /* Távolság az elemek között */
+    }
+
+    .bixi select,
+    .box {
+        width: 90%; /* Teljes szélesség kisebb képernyőkön */
+    }
+}
+
+
 

@@ -87,7 +87,7 @@
                 responsive: true,
                 dom: 't' // Only show table, no extra elements
             });
-            // Load data via AJAX
+            // Adatok betöltése AJAX segítségével
             $.ajax({
                 url: '/getData',
                 method: 'GET',
@@ -96,11 +96,13 @@
                         table.row.add([
                             `<span class="name" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
                             row.TAJ,
-                            row.SZULDATUM
+                            row.SZULDATUM,
                         ]).draw(false);
                     });
-                    rows = table.rows().data().toArray();
                     table.draw();
+                },
+                error: function (xhr, status, error) {
+                    console.error("Hiba történt az adatok betöltése során:", status, error);
                 }
             });
            
@@ -129,14 +131,66 @@
             table.search(this.value).draw(); // DataTable's search method filters on all columns
          });
 
-            // "Tovább a jelenlétre" gomb kattintásra
-            document.getElementById('presenceButton').onclick = function() {
-                    if (selectedName) {
-                // Az AJAX kérés a /presencePage végpontra a kiválasztott névvel
-                window.location.href = '/presencePage?name=' + encodeURIComponent(selectedName);
-            }};
+          // A modal gombjára kattintva továbblépés a jelenlét oldalra
+    $('#presenceButton').on('click', function () {
+        if (selectedName) {
+            // AJAX kérés a hónap ellenőrzéséhez és kitöltéséhez
+            $.ajax({
+                url: '/checkAndFillMonth',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ name: selectedName }),
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message);
+                        alert(`Az új hónap (${response.hónap}) sikeresen hozzáadva ${response.napok} nappal.`);
+                        loadTreatmentDays(selectedName); // Frissítsük a táblázatot
+                        window.location.href = '/presencePage?name=' + encodeURIComponent(selectedName);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Hiba történt az ellenőrzés során:', status, error);
+                    alert('Hiba történt a hónap ellenőrzése/feltöltése során.');
+                }
+            });
+        }
+    });
 
-            // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen
+    // A kezelés napjainak betöltése
+    function loadTreatmentDays(name) {
+        $.ajax({
+            url: '/getTreatmentDays',
+            method: 'GET',
+            data: { name },
+            success: function (response) {
+                if (response && response.days) {
+                    const tableBody = $('#daysTable tbody');
+                    tableBody.empty(); // Tisztítjuk a táblázatot
+                    response.days.forEach(day => {
+                        const row = $('<tr></tr>');
+                        row.append(`<td>${day.hónap}</td>`); // Csak a hónap jelenik meg
+                        row.append(`<td>${day.NAPOK}</td>`);
+                        tableBody.append(row);
+                    });
+
+                    $('#daysTable').DataTable({
+                        searching: false,
+                        paging: false,
+                        info: false,
+                        ordering: false,
+                        responsive: true,
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Hiba történt az adatok betöltése során:", status, error);
+            }
+        });
+        }
+
+                // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen
             window.openModal = openModal;
             function ChangePage(adatok) {
                 var pageIndex = $(adatok).index();

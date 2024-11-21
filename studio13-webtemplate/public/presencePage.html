@@ -73,7 +73,7 @@
 
             function loadTreatmentDays(name) {
                 $.ajax({
-                    url: 'http://localhost:3000/getTreatmentDays',
+                    url: '/getTreatmentDays',
                     method: 'GET',
                     data: { name },
                     success: function (response) {
@@ -116,7 +116,7 @@
                 }
 
                 $.ajax({
-                    url: 'http://localhost:3000/updateMonth',
+                    url: '/updateMonth',
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({ month, days }),
@@ -134,7 +134,7 @@
             
             function updateDatabase(name, nextMonth, dayDigit) {
                 $.ajax({
-                    url: 'http://localhost:3000/addTreatmentDays',
+                    url: '/addTreatmentDays',
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
