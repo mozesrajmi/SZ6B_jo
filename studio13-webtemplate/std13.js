@@ -212,84 +212,85 @@ app.post('/addTreatmentDays', (req, res) => {
 
 */
 
-app.post('/checkAndFillMonth', (req, res) => {
-  const { taj } = req.body;
+app.post('/fillMissingMonths', (req, res) => {
+  const {id} = req.body;
+  console.log('*************************************'+ id);
 
-  if (!taj) {
-      console.error('Nincs TAJ szám a kérésben!');
-      return res.status(400).json({ success: false, message: 'TAJ szám szükséges!' });
+  if (!id) {
+      console.error('Nincs ID a kérésben!');
+      return res.status(400).json({ success: false, message: 'Páciens ID szükséges!' });
   }
 
-  console.log('Kapott TAJ:', taj);
+  console.log('Kapott ID:', id);
 
-  // SQL lekérdezés
   const getLastMonthQuery = `
-      SELECT ellatas.HO AS hónap, ellatas.NAPOK
+      SELECT HO AS hónap, NAPOK
       FROM ellatas
-      JOIN paciensek ON ellatas.ID_PACIENS = paciensek.ID_PACIENS
-      WHERE paciensek.TAJ = '${taj}'
-      ORDER BY ellatas.HO DESC
+      WHERE ID_PACIENS = '${id}'
+      ORDER BY HO DESC
       LIMIT 1;
   `;
 
-  // Adatbázis lekérdezés
   DB.query(getLastMonthQuery, [], (results, err) => {
       if (err) {
           console.error('Adatbázis hiba a legutolsó hónap lekérdezésénél:', err);
           return res.status(500).json({ success: false, message: 'Adatbázis hiba!' });
       }
 
-      console.log('Legutolsó hónap eredménye:', results);
+      console.log('Adatbázis válasz:', JSON.stringify(results, null, 2));
 
-      const rows = results.rows || results.rows || results; // Támogatás több formátumhoz
-
-      // Ellenőrzés, hogy vannak-e adatok
-      if (!rows || rows.length === 0 || !rows[0].NAPOK) {
-          console.warn('Nincs adat vagy NAPOK mező hiányzik a TAJ számhoz:', taj);
-          return res.status(404).json({ success: false, message: 'Nincs adat vagy hiányos adatok!' });
+      const rows = results.rows || [];
+      if (rows.length === 0) {
+          console.warn('Nincs ellátási adat ehhez az ID-hez:', id);
+          return res.status(404).json({ success: false, message: 'Nincs ellátási adat ehhez az ID-hez.' });
       }
 
-      // Adatok feldolgozása
-      const lastMonth = rows[0].hónap;
+      const lastMonth = parseInt(rows[0].hónap, 10);
       const lastDays = rows[0].NAPOK;
-      console.log(rows[0].NAPOK);
 
-      console.log('Legutolsó hónap:', lastMonth, 'NAPOK:', lastDays);
-
-      // Ellenőrzés az NAPOK mezőre
       if (typeof lastDays !== 'string') {
           console.error('NAPOK mező nem szöveges formátum:', lastDays);
           return res.status(500).json({ success: false, message: 'Hibás adatformátum!' });
       }
 
-      const lastDigit = lastDays.slice(-1); // Utolsó nap számjegye
+      console.log('Legutolsó hónap:', lastMonth, 'NAPOK:', lastDays);
+
       const today = new Date();
+      const currentMonth = today.getMonth() + 1; // Hónapok 0-tól indexeltek
       const todayDay = today.getDate();
 
-      const nextMonth = parseInt(lastMonth) + 1; // Következő hónap kiszámítása
-      const newMonth = nextMonth.toString().padStart(2, '0');
-      const newDays = lastDigit.repeat(todayDay);
+      // Ha nincsenek hiányzó hónapok, nincs teendő
+      if (lastMonth >= currentMonth) {
+          return res.json({ success: true, message: 'Nincs hiányzó hónap.' });
+      }
 
-      console.log('Új hónap:', newMonth, 'Új napok:', newDays);
+      const newRecords = [];
+      for (let month = lastMonth + 1; month <= currentMonth; month++) {
+          const monthStr = month.toString().padStart(2, '0');
+          const daysStr = lastDays.slice(-1) === '0' ? '0'.repeat(todayDay) : lastDays.slice(-1).repeat(todayDay);
 
-      // Új hónap beszúrása
-      const insertNewMonthQuery = `
+          newRecords.push([id, monthStr, daysStr]);
+      }
+
+      console.log('Új rekordok:', newRecords);
+
+      // Tömeges beszúrás az új hónapokra
+      const insertQuery = `
           INSERT INTO ellatas (ID_PACIENS, HO, NAPOK)
-          SELECT ID_PACIENS, '${newMonth}', '${newDays}'
-          FROM paciensek
-          WHERE TAJ = '${taj}';
+          VALUES ${newRecords.map(record => `('${record[0]}', '${record[1]}', '${record[2]}')`).join(', ')};
       `;
 
-      DB.query(insertNewMonthQuery, [], (insertErr) => {
+      DB.query(insertQuery, [], (insertErr) => {
           if (insertErr) {
-              console.error('Hiba az új hónap hozzáadása során:', insertErr);
-              return res.status(500).json({ success: false, message: 'Hiba történt a hónap hozzáadása során.' });
+              console.error('Hiba az új hónap(ok) hozzáadása során:', insertErr);
+              return res.status(500).json({ success: false, message: 'Hiba történt a hónap(ok) hozzáadása során.' });
           }
 
-          res.json({ success: true, message: `Új hónap (${newMonth}) sikeresen hozzáadva ${todayDay} nappal.` });
+          res.json({ success: true, message: `Hiányzó hónapok sikeresen létrehozva (${lastMonth + 1} - ${currentMonth}).` });
       });
   });
 });
+
 
 
 

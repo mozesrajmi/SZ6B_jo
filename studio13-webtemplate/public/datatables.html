@@ -59,7 +59,7 @@
 
 
     <!-- Modal Structure -->
-    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -78,42 +78,48 @@
         </div>
     </div>
 
+    
     <script type="text/javascript">
-     let selectedTaj = null; // TAJ szám tárolása
-     $(document).ready(function () {
-        const table = $('#myTable').DataTable({
-            autoWidth: false,
-            responsive: true,
-            dom: 't',
-        });
+        let selectedId = null; // ID tárolása
+        let selectedName = null; // Név tárolása
 
-        // Adatok betöltése a táblázatba
-        $.ajax({
-    url: '/getData',
-    method: 'GET',
-    success: function (data) {
-        console.log('Betöltött adatok:', data); // Debug: Az adatokat ellenőrizzük
-        data.rows.forEach(function (row) {
-    table.row.add([
-        `<span class="name" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
-        row.TAJ,
-        row.SZULDATUM,
-    ]).draw(false);
-});
-    },
-    error: function (xhr, status, error) {
-        console.error("Hiba történt az adatok betöltése során:", status, error);
-    }
-});
+        $(document).ready(function () {
+            const table = $('#myTable').DataTable({
+                autoWidth: false,
+                responsive: true,
+                dom: 't',
+            });
+
+         // Adatok betöltése a táblázatba
+         $.ajax({
+                url: '/getData',
+                method: 'GET',
+                success: function (data) {
+                    console.log('Betöltött adatok:', data);
+                    data.rows.forEach(function (row) {
+                        table.row.add([
+                            `<span class="name" onclick="openModal('${row.NEV}', '${row.ID_PACIENS}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
+                            row.TAJ,
+                            row.SZULDATUM,
+                        ]).draw(false);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error("Hiba történt az adatok betöltése során:", status, error);
+                }
+            });
             
-        window.openModal = function (name, taj, szuldatum) {
-            console.log('*************'+ taj); // Ellenőrizzük, hogy a TAJ értéke helyesen érkezik-e
-            selectedTaj = taj; // TAJ szám mentése
-            $('#modalName').text('Név: ' + name);
-            $('#modalTaj').text('TAJ szám: ' + taj);
-            $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
-            $('#detailsModal').modal('show');
-        };
+         // Modal megnyitása
+         window.openModal = function (name, id, taj, szuldatum) {
+                console.log('Kiválasztott ID:', id);
+                selectedId = id; // ID mentése
+                selectedName = name; // Név mentése
+                $('#modalName').text('Név: ' + name);
+                $('#modalTaj').text('TAJ szám: ' + taj);
+                $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
+                $('#detailsModal').modal('show');
+            };
+
 
 
             $('#szortirozas').on('change', function () {
@@ -130,66 +136,32 @@
             }
             table.search(this.value).draw(); // DataTable's search method filters on all columns
          });
+            // "Tovább a jelenlétre" gomb kattintás
+            $('#presenceButton').on('click', function () {
+                console.log('Küldött ID:', selectedId); // Debug: Ellenőrizzük az ID-t
+                if (selectedId) {
+                    $.ajax({
+                        url: '/fillMissingMonths',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ id: selectedId }),
+                        success: function (response) {
+                            alert(response.message);
+                            window.location.href = `/presencePage?name=${encodeURIComponent(selectedName)}`;
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Hiba történt az API hívás során:', status, error);
+                            alert('Hiba történt a hónap(ok) hozzáadása során.');
+                        }
+                    });
+                } else {
+                    alert('Nincs kiválasztott páciens!');
+                }
+            });
 
-          // "Tovább a jelenlétre" gomb kattintás
-          $('#presenceButton').on('click', function () {
-    console.log('Küldött TAJ szám:', selectedTaj); // Debug: Ellenőrizzük a TAJ számot
-    if (selectedTaj) {
-        $.ajax({
-            url: '/checkAndFillMonth',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({ taj: selectedTaj }),
-            success: function (response) {
-                alert(response.message);
-                window.location.href = '/presencePage?taj=' + encodeURIComponent(selectedTaj);
-            },
-            error: function (xhr, status, error) {
-                console.error('Hiba történt az API hívás során:', status, error);
-                alert('Hiba történt a hónap hozzáadása során.');
-            }
-        });
-    } else {
-        alert('Nincs kiválasztott TAJ!');
-    }
-});
-
-    // A kezelés napjainak betöltése
-    function loadTreatmentDays(id) {
-    $.ajax({
-        url: '/getTreatmentDays',
-        method: 'GET',
-        data: { id },
-        success: function (response) {
-            if (response && response.days) {
-                const tableBody = $('#daysTable tbody');
-                tableBody.empty();
-                response.days.forEach(day => {
-                    const monthWithoutYear = day.hónap.split('-')[1]; // Csak a hónap jelenik meg
-                    const row = $('<tr></tr>');
-                    row.append(`<td>${monthWithoutYear}</td>`);
-                    row.append(`<td>${day.NAPOK}</td>`);
-                    tableBody.append(row);
-                });
-
-                $('#daysTable').DataTable({
-                    searching: false,
-                    paging: false,
-                    info: false,
-                    ordering: false,
-                    responsive: true,
-                });
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error("Hiba történt az adatok betöltése során:", status, error);
-        }
-    });
-        }
-
-             // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen
+            // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen
             window.openModal = openModal;
-            function ChangePage(adatok) {
+                function ChangePage(adatok) {
                 var pageIndex = $(adatok).index();
                 table.page(pageIndex).draw(false);
                 $('.link').removeClass('active');
