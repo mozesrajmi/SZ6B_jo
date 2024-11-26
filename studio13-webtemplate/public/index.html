@@ -102,10 +102,18 @@ function logout() {
   $("#myQuestion").on("click", ".ok", function () {
     var session_response = ajax_post("logout", 1);
     mySend({ text: session_response, tip: "info", mp: 3 });
+
+    // Navigációs sáv letiltása
+    disableNavbar();
+
+    // Bejelentkezési szöveg visszaállítása
     $("#login1_user").html("Bejelentkezés");
-    $('#login1_user').prop('title', "[...]");
+
+    // Modal bezárása
     $('#login1_modal').modal('hide');
-    disableNavbar(); // Navigációs sáv tiltása kijelentkezés után
+
+    // Átirányítás a főoldalra
+    window.location.href = '/';
   });
 
   // Ha a felhasználó a "Mégse" gombra kattint
@@ -270,6 +278,25 @@ function enableNavbar() {
 // Logout button click event
 $("#user1_logout_button").click(function () {
   $('#logoutConfirmationModal').modal('show'); // Open the confirmation modal
+});
+
+
+
+$(document).ready(function () {
+  // Munkamenet-ellenőrzés 5 másodpercenként
+  setInterval(function () {
+    $.ajax({
+      url: '/checkSession',
+      method: 'GET',
+      success: function (session_data) {
+        if (!session_data || !session_data.NEV) {
+          // Ha nincs érvényes munkamenet, átirányítjuk a főoldalra
+          alert('Nincs érvényes munkamenet! Kérjük, jelentkezzen be újra.');
+          window.location.href = '/';
+        }
+      }
+    });
+  }, 5000); // 5 másodpercenkénti ellenőrzés
 });
 
   </script>
