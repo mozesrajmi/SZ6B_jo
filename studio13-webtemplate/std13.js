@@ -398,6 +398,8 @@ app.get('/getLastMonthAndDays', (req, res) => {
 
 
 
+
+
 /* ---------------------------- log 'fájl' naplózás ------------------  */
 function napló (req) {
   var userx = "- no login -";

@@ -76,11 +76,9 @@ var DB = (function () {
                 }
 
                 /*  ------------  napló konzolra és "napló" táblába -----------------*/
-                console.log(util.inspect("SQL: " + sql + "---" + params[0] + " " + params[1], false, null, false)); 
                 var text_naplo = "";
                 if (js.text) { 
                     text_naplo = "TEXT:"+js.text;
-                    console.log(util.inspect( js.text, false, null, false)); 
                 } 
                 var sql_naplo = `insert into naplo (USER, URL, SQLX) values ("${params[0]}","${params[1]}","${sql.replaceAll("\"","'")} ${text_naplo}");`;  // fields=USER, URL, SQLX, DATETIME (timestamp)
                 connection.query(sql_naplo, null, function (errx, rowsx) {  });

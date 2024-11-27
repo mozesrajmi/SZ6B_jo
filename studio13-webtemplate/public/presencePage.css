@@ -112,6 +112,7 @@ table.display tbody tr:hover {
     transition: 0.5s;
 }
 
+
 #patientNameTitle {
     text-decoration: underline;
     display: flex;
@@ -119,4 +120,25 @@ table.display tbody tr:hover {
     align-items: center;
     font-size: 30px;
     margin-top: 20px;
+}
+
+
+
+
+
+
+
+/* Egyedi tooltip stílus */
+.custom-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.75); /* Tooltip háttérszíne */
+    color: #fff; /* Szöveg színe */
+    padding: 5px 10px; /* Tooltip belső térköz */
+    border-radius: 5px; /* Lekerekített sarkok */
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+    z-index: 1000; /* Legfelső réteg */
+    pointer-events: none; /* Az egérmutató ne zavarja */
+    white-space: nowrap; /* Ne törje meg a szöveget */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
