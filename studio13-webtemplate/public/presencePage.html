@@ -57,43 +57,39 @@
 
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const patientTaj = urlParams.get('taj'); // TAJ-szám kinyerése az URL-ből
-    let patientId = null; // Globális változó a páciens ID tárolására
+            const urlParams = new URLSearchParams(window.location.search);
+            const patientName = urlParams.get('name');
 
-    // Hónapnevek objektum
-    const monthNames = {
-        "1": "Január",
-        "2": "Február",
-        "3": "Március",
-        "4": "Április",
-        "5": "Május",
-        "6": "Június",
-        "7": "Július",
-        "8": "Augusztus",
-        "9": "Szeptember",
-        "10": "Október",
-        "11": "November",
-        "12": "December"
-    };
+            // Hónapnevek objektum
+            const monthNames = {
+                "1": "Január",
+                "2": "Február",
+                "3": "Március",
+                "4": "Április",
+                "5": "Május",
+                "6": "Június",
+                "7": "Július",
+                "8": "Augusztus",
+                "9": "Szeptember",
+                "10": "Október",
+                "11": "November",
+                "12": "December"
+            };
 
-    // Számok jelentése
-    const statusDescriptions = {
-        "0": "Nincs",
-        "1": "Jelen van",
-        "2": "Kórházban van",
-        "3": "Állományban van, de otthonában tartózkodik"
-    };
+            // Számok jelentése
+            const statusDescriptions = {
+                "0": "Nincs",
+                "1": "Jelen van",
+                "2": "Kórházban van",
+                "3": "Állományban van, de otthonában tartózkodik"
+            };
 
-    if (patientTaj) {
-        document.getElementById('patientNameTitle').innerText = `Kezelési napok TAJ: ${patientTaj}`;
+            if (patientName) {
+                document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
 
-        // Páciens ID lekérdezése a TAJ-szám alapján
-        getPatientIdByTaj(patientTaj).then(id => {
-            patientId = id; // Beállítjuk a páciens ID-t
-            loadTreatmentDays(patientTaj); // Betöltjük a kezelési napokat
-        });
-    }
+                // Betöltjük az adatokat
+                loadTreatmentDays(patientName);
+            }
 
             function loadTreatmentDays(name) {
                 $.ajax({
