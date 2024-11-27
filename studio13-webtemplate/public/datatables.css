@@ -217,17 +217,6 @@ h2 {
     text-decoration: none;
 }
 
-.button:hover,
-.link:hover {
-    color: #fff;
-    background: #759fcb;
-}
-
-.link.active {
-    color: #fff;
-    background: #759fcb;
-}
-
 .prevNext {
     width: 50px;
     height: 40px;
@@ -334,6 +323,3 @@ h2 {
         width: 90%; /* Teljes szélesség kisebb képernyőkön */
     }
 }
-
-
-
