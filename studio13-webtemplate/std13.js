@@ -51,7 +51,6 @@ app.post('/login', (req, res) => {
   // SQL lekérdezés futtatása és adatok kezelése
   DB.query(sql, napló(req), (json_data, error) => {
     var data = error ? error : JSON.parse(json_data);
-    console.log(util.inspect(data, false, null, true)); // Teljes objektum kiírása
 
     if (!error && data.count === 1) {
       // Sikeres bejelentkezés: munkamenet adatok beállítása
@@ -60,7 +59,6 @@ app.post('/login', (req, res) => {
       session_data.LOGIN = data.rows[0].LOGIN || "N/A";
       session_data.NEV = data.rows[0].NEV || "N/A";
       session_data.MOST = Date.now();
-      console.log("Bejelentkezett felhasználó: %s (ID_OPERATOR=%s)", session_data.NEV, session_data.ID_OPERATOR);
 
       res.set('Content-Type', 'application/json; charset=UTF-8');
       res.send(data);
@@ -144,7 +142,6 @@ app.get('/presencePage', (req, res) => {
 // Új végpont a napok számokkal történő kiírásához
 app.get('/getTreatmentDays', (req, res) => {
   const name = req.query.name;
-  console.log("Keresett páciens neve:", name);
 
   // SQL lekérdezés a napok lekérésére
   const query = `
@@ -159,12 +156,9 @@ app.get('/getTreatmentDays', (req, res) => {
         paciensek.NEV = '${name}';
 
   `;
-  console.log("Lekérdezés:", query);
 
   // Lekérdezés futtatása
   DB.query(query, [], (results, err) => {
-    //console.log(err);
-    //console.log(results); 
       if (err) {
           // Pontos adatbázishiba megjelenítése a konzolban
           //console.error('Adatbázis hiba történt:', err.message); // Hiba üzenet a részletekkel
@@ -177,7 +171,6 @@ app.get('/getTreatmentDays', (req, res) => {
           return res.status(404).json({ error: `Nem található páciens a megadott névvel: ${name}` });
       }
       var anyad11 = JSON.parse(results);
-     console.log(anyad11.rows);
       // Sikeres lekérdezés esetén napok visszaküldése
       const daysString = anyad11.rows[0].napok;
       res.json({ days: anyad11.rows});
@@ -324,7 +317,6 @@ app.post('/fillMissingMonths', (req, res) => {
       const currentMonth = today.getMonth() + 1; // JavaScript hónapok 0-tól indexeltek
       const todayDay = today.getDate();
 
-      console.log(`Legutolsó hónap: ${lastMonth}, Napok utolsó számjegye: ${lastDigit}, Jelenlegi hónap: ${currentMonth}`);
 
       // Ha nincsenek hiányzó hónapok, nincs teendő
       if (lastMonth >= currentMonth) {
@@ -344,7 +336,6 @@ app.post('/fillMissingMonths', (req, res) => {
           newRecords.push([id, monthStr, daysStr]);
       }
 
-      console.log('Új rekordok:', newRecords);
 
       // Tömeges beszúrás az új hónapokra
       const insertQuery = `
@@ -360,7 +351,6 @@ app.post('/fillMissingMonths', (req, res) => {
     
         // Ellenőrizzük a beszúrás eredményét
         if (insertResult.affectedRows > 0) {
-            console.log(`Bevitel: ${insertResult.affectedRows} rekord.`);
             res.json({ success: true, message: `Hiányzó hónapok sikeresen létrehozva (${lastMonth + 1} - ${currentMonth}).` });
         } else {
             console.warn('Nem történt beszúrás. Lehet, hogy a hónapok már léteztek.');

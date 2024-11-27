@@ -95,7 +95,6 @@
                 url: '/getData',
                 method: 'GET',
                 success: function (data) {
-                    console.log('Betöltött adatok:', data);
                     data.rows.forEach(function (row) {
                         table.row.add([
                             `<span class="name" onclick="openModal('${row.NEV}', '${row.ID_PACIENS}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
@@ -110,15 +109,12 @@
             });
             
             window.openModal = function (name, id, taj, szuldatum) {
-            console.log('Kiválasztott TAJ:', taj);
-
         // ID lekérése a szervertől TAJ alapján
         $.ajax({
             url: '/getPatientIdByTaj',
             method: 'GET',
             data: { taj },
             success: function (response) {
-                console.log('Kapott ID:', response.id);
                 selectedId = response.id; // ID mentése globális változóba
             },
             error: function (xhr, status, error) {
@@ -153,29 +149,28 @@
          });
 
          $('#presenceButton').on('click', function () {
-            console.log('Küldött ID:', selectedId); // Ellenőrizzük az ID-t
             if (selectedId) {
-        // Hiányzó hónapok kitöltése
-        $.ajax({
-            url: '/fillMissingMonths',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({ id: selectedId }),
-            success: function (response) {
-                alert(response.message); // Hiányzó hónapok létrehozásának eredménye
+            // Hiányzó hónapok kitöltése
+            $.ajax({
+                url: '/fillMissingMonths',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ id: selectedId }),
+                success: function (response) {
+                    alert(response.message); // Hiányzó hónapok létrehozásának eredménye
 
-                // Átirányítás a presencePage-re
-                window.location.href = `/presencePage?name=${encodeURIComponent(selectedName)}`;
-            },
-            error: function (xhr, status, error) {
-                console.error('Hiba történt az API hívás során:', status, error);
-                alert('Hiba történt a hónap(ok) hozzáadása során.');
-            }
-        });
-    } else {
-        alert('Nincs kiválasztott páciens!');
-    }
-});
+                    // Átirányítás a presencePage-re
+                    window.location.href = `/presencePage?name=${encodeURIComponent(selectedName)}`;
+                },
+                error: function (xhr, status, error) {
+                    console.error('Hiba történt az API hívás során:', status, error);
+                    alert('Hiba történt a hónap(ok) hozzáadása során.');
+                }
+            });
+        } else {
+            alert('Nincs kiválasztott páciens!');
+        }
+    });
 
 
 
