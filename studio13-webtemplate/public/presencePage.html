@@ -13,22 +13,18 @@
 <body>
     <div class="container">
         <h2 id="patientNameTitle">Kezelési napok</h2>
-        <table id="daysTable" class="display" style="width:60%">
+        <table id="daysTable" class="display table table-striped table-bordered" style="width:100%">
             <thead>
-                <tr>
+                <tr id="daysHeaderRow">
                     <th>Hónap</th>
-                    <th>Napok</th>
+                    <!-- Napok oszlopai dinamikusan kerülnek ide -->
                 </tr>
             </thead>
             <tbody>
-                <!-- Dinamikusan generált sorok (NAPOK rekordok) -->
+                <!-- Dinamikusan generált sorok -->
             </tbody>
         </table>
-         
-        <div id="gombos">
-            <input type="button" value="Jelenlegi hó szerkesztése" class="gyasz">
-        </div>
-
+        <button type="button" class="btn btn-primary gyasz">Hónap szerkesztése</button>
     </div>
 
     <!-- Modal Structure -->
@@ -61,15 +57,43 @@
 
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            const patientName = urlParams.get('name');
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientTaj = urlParams.get('taj'); // TAJ-szám kinyerése az URL-ből
+    let patientId = null; // Globális változó a páciens ID tárolására
 
-            if (patientName) {
-                document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
+    // Hónapnevek objektum
+    const monthNames = {
+        "1": "Január",
+        "2": "Február",
+        "3": "Március",
+        "4": "Április",
+        "5": "Május",
+        "6": "Június",
+        "7": "Július",
+        "8": "Augusztus",
+        "9": "Szeptember",
+        "10": "Október",
+        "11": "November",
+        "12": "December"
+    };
 
-                // Betöltjük az adatokat
-                loadTreatmentDays(patientName);
-            }
+    // Számok jelentése
+    const statusDescriptions = {
+        "0": "Nincs",
+        "1": "Jelen van",
+        "2": "Kórházban van",
+        "3": "Állományban van, de otthonában tartózkodik"
+    };
+
+    if (patientTaj) {
+        document.getElementById('patientNameTitle').innerText = `Kezelési napok TAJ: ${patientTaj}`;
+
+        // Páciens ID lekérdezése a TAJ-szám alapján
+        getPatientIdByTaj(patientTaj).then(id => {
+            patientId = id; // Beállítjuk a páciens ID-t
+            loadTreatmentDays(patientTaj); // Betöltjük a kezelési napokat
+        });
+    }
 
             function loadTreatmentDays(name) {
                 $.ajax({
@@ -78,21 +102,46 @@
                     data: { name },
                     success: function (response) {
                         if (response && response.days) {
+                            const tableHeaderRow = $('#daysHeaderRow');
                             const tableBody = $('#daysTable tbody');
-                            tableBody.empty(); // Tisztítjuk a táblázatot
-                            response.days.forEach(day => {
+
+                            tableBody.empty(); // Tisztítjuk a táblázat testét
+                            tableHeaderRow.empty(); // Tisztítjuk a táblázat fejléceit
+
+                            // Fejléc feltöltése
+                            tableHeaderRow.append('<th>Hónap</th>'); // Az első oszlop
+                            for (let day = 1; day <= 31; day++) {
+                                tableHeaderRow.append(`<th>${day}</th>`);
+                            }
+
+                            // Sorok hozzáadása
+                            response.days.forEach(dayRecord => {
                                 const row = $('<tr></tr>');
-                                row.append(`<td class='sajt'>${day.hónap}</td>`);
-                                row.append(`<td class='sajt'>${day.NAPOK}</td>`);
+
+                                // Hónap számát konvertáljuk betűvé
+                                const monthName = monthNames[parseInt(dayRecord.hónap, 10)] || "Ismeretlen";
+
+                                row.append(`<td>${monthName}</td>`);
+
+                                // Minden naphoz tartozó cella
+                                const daysArray = dayRecord.NAPOK.split('');
+                                for (let i = 0; i < 31; i++) {
+                                    const dayValue = daysArray[i] || ''; // Üres, ha nincs adat
+                                    const description = statusDescriptions[dayValue] || "Ismeretlen";
+                                    row.append(`<td title="${description}">${dayValue}</td>`);
+                                }
+
                                 tableBody.append(row);
                             });
 
+                            // DataTable inicializálása
                             $('#daysTable').DataTable({
                                 searching: false,
                                 paging: false,
                                 info: false,
                                 ordering: false,
                                 responsive: true,
+                                destroy: true, // Újrainicializáláshoz engedélyezve
                             });
                         }
                     },
@@ -103,8 +152,28 @@
             }
 
             document.querySelector('.gyasz').addEventListener('click', function () {
-                $('#editMonthModal').modal('show'); // Show the modal
+                // API hívás a legutolsó hónap és napok lekérdezésére
+                $.ajax({
+                    url: '/getLastMonthAndDays',
+                    method: 'GET',
+                    data: { id: patientId }, // Az aktuális páciens ID-t küldjük el
+                    success: function (response) {
+                        if (response && response.lastMonth && response.lastDigit) {
+                            // Töltsük be az adatokat a modal mezőibe
+                            document.getElementById('monthInput').value = response.lastMonth; // Hónap mező
+                            document.getElementById('daysInput').value = response.lastDigit; // Napok mező
+                            $('#editMonthModal').modal('show'); // Modal megjelenítése
+                        } else {
+                            alert('Nem található adat a legutolsó hónaphoz!');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Hiba történt az adatok betöltése során:', status, error);
+                        alert('Hiba történt az adatok lekérésekor!');
+                    }
+                });
             });
+
 
             document.getElementById('saveEditBtn').addEventListener('click', function () {
                 const month = document.getElementById('monthInput').value.trim();

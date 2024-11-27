@@ -361,6 +361,28 @@ app.post('/fillMissingMonths', (req, res) => {
 });
 
 
+app.get('/getPatientIdByName', (req, res) => {
+  const { name } = req.query;
+  if (!name) {
+      return res.status(400).json({ error: 'Páciens név szükséges!' });
+  }
+
+  const sql = `
+      SELECT ID_PACIENS AS id
+      FROM paciensek
+      WHERE NEV = '${name}'
+      LIMIT 1;
+  `;
+
+  DB.query(sql, [], (json_data, error) => {
+      const data = error ? null : JSON.parse(json_data);
+      if (error || !data || data.rows.length === 0) {
+          return res.status(404).json({ error: 'Nem található páciens az adott névvel!' });
+      }
+
+      res.json({ id: data.rows[0].id });
+  });
+});
 
 
 
