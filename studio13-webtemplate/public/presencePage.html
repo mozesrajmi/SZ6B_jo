@@ -25,7 +25,6 @@
             </tbody>
         </table>
         <button type="button" class="btn btn-primary gyasz">Hónap szerkesztése</button>
-    </div>
 
     <!-- Modal Structure -->
     <div class="modal fade" id="editMonthModal" tabindex="-1" aria-labelledby="editMonthLabel" aria-hidden="true">
@@ -56,113 +55,112 @@
     </div>
 
     <script type="text/javascript">
-   document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
     const urlParams = new URLSearchParams(window.location.search);
     const patientName = urlParams.get('name'); // A név a query stringből
 
     if (patientName) {
         // Név megjelenítése az oldal tetején
-        const patientNameElement = document.getElementById('patientNameTitle');
-        patientNameElement.innerText = `${patientName} kezelési napjai`;
+        document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
 
-        // Táblázat adatainak betöltése
+        //Bettöltjük az adatokat
         loadTreatmentDays(patientName);
     }
-});
+    });
 
       function loadTreatmentDays(name) {
-    $.ajax({
-        url: '/getTreatmentDays',
-        method: 'GET',
-        data: { name },
-        success: function (response) {
-            if (response && response.days) {
-                const tableHeaderRow = $('#daysHeaderRow');
-                const tableBody = $('#daysTable tbody');
+        $.ajax({
+            url: '/getTreatmentDays',
+            method: 'GET',
+            data: { name },
+            success: function (response) {
+                if (response && response.days) {
+                    const tableHeaderRow = $('#daysHeaderRow');
+                    const tableBody = $('#daysTable tbody');
 
-                tableBody.empty();
-                tableHeaderRow.empty();
+                    tableBody.empty();
+                    tableHeaderRow.empty();
 
-                // Fejléc feltöltése
-                tableHeaderRow.append('<th>Hónap</th>');
-                for (let day = 1; day <= 31; day++) {
-                    tableHeaderRow.append(`<th>${day}</th>`);
-                }
-
-                // Tooltip szövegek
-                const statusDescriptions = {
-                    '0': 'Nincs',
-                    '1': 'Jelen van',
-                    '2': 'Kórházban tartózkodik',
-                    '3': 'Állományban van, de otthon tartózkodik'
-                };
-
-                // Színtérkép az értékekhez
-                const colorMap = {
-                        '0': '#fe8a8a', // Piros
-                        '1': '#cdfcba', // Zöld
-                        '2': '#96d2f9', // Kék
-                        '3': '#fffd88', // Sárga
-                };
-
-                const monthNames = {
-                        "1": "Január",
-                        "2": "Február",
-                        "3": "Március",
-                        "4": "Április",
-                        "5": "Május",
-                        "6": "Június",
-                        "7": "Július",
-                        "8": "Augusztus",
-                        "9": "Szeptember",
-                        "10": "Október",
-                        "11": "November",
-                        "12": "December"
-                    };
-
-                // Sorok hozzáadása
-                response.days.forEach(dayRecord => {
-                    const row = $('<tr></tr>');
-                    const monthName = monthNames[parseInt(dayRecord.hónap, 10)] || "Ismeretlen";
-                    row.append(`<td>${monthName}</td>`);
-
-                    const daysArray = dayRecord.NAPOK.split('');
-                    for (let i = 0; i < 31; i++) {
-                        const dayValue = daysArray[i] || '';
-                        const color = colorMap[dayValue] || ''; // Szín kiválasztása
-                        const tooltipText = statusDescriptions[dayValue] || 'Ismeretlen'; // Tooltip szöveg
-
-                        const cell = $(`<td>${dayValue}</td>`);
-
-                        // Szín és tooltip beállítása
-                        if (color) {
-                            cell.css('background-color', color);
-                        }
-
-                        // Tooltip működése
-                        cell.hover(
-                            function () {
-                                const tooltip = $('<div class="custom-tooltip"></div>')
-                                    .text(tooltipText)
-                                    .appendTo('body');
-
-                                // Pozíció beállítása
-                                $(this).on('mousemove', function (e) {
-                                    tooltip.css({
-                                        left: e.pageX + 15 + 'px',
-                                        top: e.pageY + 15 + 'px'
-                                    });
-                                });
-                            },
-                            function () {
-                                $('.custom-tooltip').remove(); // Tooltip eltávolítása
-                            }
-                        );
-
-                        row.append(cell);
+                    // Fejléc feltöltése
+                    tableHeaderRow.append('<th>Hónap</th>');
+                    for (let day = 1; day <= 31; day++) {
+                        tableHeaderRow.append(`<th>${day}</th>`);
                     }
 
-                    tableBody.append(row);
+                    // Tooltip szövegek
+                    const statusDescriptions = {
+                        '0': 'Nincs',
+                        '1': 'Jelen van',
+                        '2': 'Kórházban tartózkodik',
+                        '3': 'Állományban van, de otthon tartózkodik'
+                    };
+
+                    // Színtérkép az értékekhez
+                    const colorMap = {
+                            '0': '#fe8a8a', // Piros
+                            '1': '#cdfcba', // Zöld
+                            '2': '#96d2f9', // Kék
+                            '3': '#fffd88', // Sárga
+                    };
+
+                    const monthNames = {
+                            "1": "Január",
+                            "2": "Február",
+                            "3": "Március",
+                            "4": "Április",
+                            "5": "Május",
+                            "6": "Június",
+                            "7": "Július",
+                            "8": "Augusztus",
+                            "9": "Szeptember",
+                            "10": "Október",
+                            "11": "November",
+                            "12": "December"
+                        };
+
+                    // Sorok hozzáadása
+                    response.days.forEach(dayRecord => {
+                        const row = $('<tr></tr>');
+                        const monthName = monthNames[parseInt(dayRecord.hónap, 10)] || "Ismeretlen";
+                        row.append(`<td>${monthName}</td>`);
+
+                        const daysArray = dayRecord.NAPOK.split('');
+                        for (let i = 0; i < 31; i++) {
+                            const dayValue = daysArray[i] || '';
+                            const color = colorMap[dayValue] || ''; // Szín kiválasztása
+                            const tooltipText = statusDescriptions[dayValue] || 'Ismeretlen'; // Tooltip szöveg
+
+                            const cell = $(`<td>${dayValue}</td>`);
+
+                            // Szín és tooltip beállítása
+                            if (color) {
+                                cell.css('background-color', color);
+                            }
+
+                            // Tooltip működése
+                            cell.hover(
+                                function () {
+                                    const tooltip = $('<div class="custom-tooltip"></div>')
+                                        .text(tooltipText)
+                                        .appendTo('body');
+
+                                    // Pozíció beállítása
+                                    $(this).on('mousemove', function (e) {
+                                        tooltip.css({
+                                            left: e.pageX + 15 + 'px',
+                                            top: e.pageY + 15 + 'px'
+                                        });
+                                    });
+                                },
+                                function () {
+                                    $('.custom-tooltip').remove(); // Tooltip eltávolítása
+                                }
+                            );
+
+                            row.append(cell);
+                        }
+
+                        tableBody.append(row);
                 });
 
                 // DataTable inicializálása

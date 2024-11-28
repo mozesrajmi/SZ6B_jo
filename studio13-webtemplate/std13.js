@@ -343,7 +343,7 @@ app.post('/fillMissingMonths', (req, res) => {
           VALUES ${newRecords.map(record => `('${record[0]}', '${record[1]}', '${record[2]}')`).join(', ')}; 
       `;
 
-      DB.query(insertQuery, [], (insertErr, insertResult) => {
+      DB.query(insertQuery, [], (insertResult, insertErr) => {
         if (insertErr) {
             console.error('Hiba az új hónap(ok) hozzáadása során:', insertErr);
             return res.status(500).json({ success: false, message: 'Hiba történt a hónap(ok) hozzáadása során.' });
@@ -391,13 +391,6 @@ app.get('/getLastMonthAndDays', (req, res) => {
         res.json({ lastMonth, lastDigit });
     });
 });
-
-
-
-
-
-
-
 
 
 /* ---------------------------- log 'fájl' naplózás ------------------  */

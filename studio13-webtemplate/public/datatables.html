@@ -57,6 +57,7 @@
         </button>
     </div>
 
+
     <!-- Modal Structure -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-dialog">
@@ -122,8 +123,6 @@
             }
         });
 
-      
-
         // Modal feltöltése és megnyitása
         selectedName = name; // Név mentése
         $('#modalName').text('Név: ' + name);
@@ -131,6 +130,7 @@
         $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
         $('#detailsModal').modal('show');
     };
+
 
 
             $('#szortirozas').on('change', function () {
@@ -148,28 +148,30 @@
             table.search(this.value).draw(); // DataTable's search method filters on all columns
          });
 
-           // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen
-        window.openModal = function (name, id, taj, szuldatum) {
-            // ID lekérése a TAJ alapján
+         $('#presenceButton').on('click', function () {
+            if (selectedId) {
+            // Hiányzó hónapok kitöltése
             $.ajax({
-                url: '/getPatientIdByTaj',
-                method: 'GET',
-                data: { taj },
+                url: '/fillMissingMonths',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ id: selectedId }),
                 success: function (response) {
-                    const patientId = response.id; // ID az API válaszából
-                    if (patientId) {
-                        // Átirányítás a presencePage oldalra a névvel és ID-vel
-                        window.location.href = `/presencePage?name=${encodeURIComponent(name)}&id=${patientId}`;
-                    } else {
-                        alert('Nem található ID a megadott TAJ-hoz.');
-                    }
+                    alert(response.message); // Hiányzó hónapok létrehozásának eredménye
+
+                    // Átirányítás a presencePage-re
+                    window.location.href = `/presencePage?name=${encodeURIComponent(selectedName)}`;
                 },
                 error: function (xhr, status, error) {
-                    console.error('Hiba történt az ID lekérése során:', status, error);
-                    alert('Hiba történt az ID lekérése során.');
+                    console.error('Hiba történt az API hívás során:', status, error);
+                    alert('Hiba történt a hónap(ok) hozzáadása során.');
                 }
             });
+        } else {
+            alert('Nincs kiválasztott páciens!');
         }
+    });
+
 
 
             // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen
@@ -274,6 +276,7 @@
             updateNavButtons();
         });
 
-     </script>
+    </script>
+    
 </body>
-</html> 
+</html>
