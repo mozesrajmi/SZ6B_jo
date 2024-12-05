@@ -269,7 +269,9 @@ th, td {
 
 .btn-group {
     gap: 5px; /* Space between buttons */
+    border-radius: 20px;
 }
+
 
 .modal-content {
     border-radius: 8px;
