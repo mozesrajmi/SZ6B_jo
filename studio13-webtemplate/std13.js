@@ -132,6 +132,94 @@ app.get('/getData', (req, res) => {
   });
 });
 
+// Adatok lekérése MySQL adatbázisból és visszaadása JSON formátumban bővített státusszal
+// Adatok lekérése MySQL adatbázisból és visszaadása JSON formátumban, státusszal
+app.get('/getDataWithStatus', (req, res) => {
+  const sql = `
+    SELECT 
+      NEV, 
+      TAJ, 
+      DATE_FORMAT(SZULDATUM, "%Y.%m.%d") AS SZULDATUM,
+      STATUS
+    FROM paciensek
+  `;
+
+  DB.query(sql, napló(req), (json_data, error) => {
+    let data = error ? error : JSON.parse(json_data);  // MySQL eredmények JSON formátumban
+    res.set('Content-Type', 'application/json; charset=UTF-8');
+    res.send(data);  // Adatok küldése a kliensnek
+    res.end();
+  });
+});
+
+//varakozo
+app.get('/getWaitingData', (req, res) => {
+  const sql = `
+    SELECT 
+      NEV, 
+      TAJ, 
+      DATE_FORMAT(SZULDATUM, "%Y.%m.%d") AS SZULDATUM,
+      STATUS
+    FROM paciensek
+    WHERE STATUS = 'Várakozó'
+  `;
+
+  DB.query(sql, napló(req), (json_data, error) => {
+    if (error) {
+      res.status(500).json({ error: 'Adatbázis hiba történt', details: error });
+      return;
+    }
+
+    let data;
+    try {
+      data = JSON.parse(json_data); // Parse MySQL results to JSON format
+    } catch (err) {
+      res.status(500).json({ error: 'JSON feldolgozási hiba', details: err });
+      return;
+    }
+
+    res.set('Content-Type', 'application/json; charset=UTF-8');
+    res.send(data); // Send filtered data back to the client
+  });
+});
+
+
+//előgondozott
+app.get('/getPreCareData', (req, res) => {
+  const sql = `
+    SELECT 
+      NEV, 
+      TAJ, 
+      DATE_FORMAT(SZULDATUM, "%Y.%m.%d") AS SZULDATUM,
+      STATUS
+    FROM paciensek
+    WHERE STATUS = 'Előgondozott'
+  `;
+
+  DB.query(sql, napló(req), (json_data, error) => {
+    if (error) {
+      res.status(500).json({ error: 'Adatbázis hiba történt', details: error });
+      return;
+    }
+
+    let data;
+    try {
+      data = JSON.parse(json_data); // Parse MySQL results to JSON format
+    } catch (err) {
+      res.status(500).json({ error: 'JSON feldolgozási hiba', details: err });
+      return;
+    }
+
+    res.set('Content-Type', 'application/json; charset=UTF-8');
+    res.send(data); // Send filtered data back to the client
+  });
+});
+
+
+
+
+
+
 app.get('/presencePage', (req, res) => {
   const patientName = req.query.name;
   res.sendFile(__dirname + '/public/presencePage.html');

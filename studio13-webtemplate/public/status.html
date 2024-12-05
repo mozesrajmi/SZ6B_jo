@@ -19,6 +19,11 @@
             <option value="50">50</option>
             <option value="100">100</option>  
         </select>
+        <div class="d-flex justify-content-between mt-3 btn-group" style="gap: 5px;">
+            <button class="btn btn-primary" id="waitingButton">Várakozó</button>
+            <button class="btn btn-secondary" id="preCareButton">Előgondozott</button>
+            <button class="btn btn-secondary" id="careButton">Gondozott</button>
+        </div>                     
         <div class="box"> 
             <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." />
             <img src="images/eleg.png" class="bixi-image"> 
@@ -26,11 +31,12 @@
     </div>
     <table id="myTable" class="display" style="width:80%">
         <thead>
-            <tr>
-                <th>Név</th>
-                <th>Tajszám</th>
-                <th>Születési dátum</th>
-            </tr>
+                <tr>
+                    <th>Név</th>
+                    <th>TAJ</th>
+                    <th>Születési dátum</th>
+                    <th>Státusz</th>
+                </tr>
         </thead>
         <tbody>
             <!-- Az adatokat JavaScript tölti be ide -->
@@ -58,33 +64,84 @@
     </div>
 
     <script type="text/javascript">
-        let selectedId = null; // ID tárolása
-        let selectedName = null; // Név tárolása
+    $(document).ready(function () {
+    // Initialize the DataTable
+    const table = $('#myTable').DataTable({
+        autoWidth: false,
+        responsive: true,
+        dom: 't',
+    });
 
-        $(document).ready(function () {
-            const table = $('#myTable').DataTable({
-                autoWidth: false,
-                responsive: true,
-                dom: 't',
-            });
+    // Function to fetch and load data into the table
+    function loadData(status) {
+        const endpoint =
+            status === 'Várakozó'
+                ? '/getWaitingData'
+                : status === 'Előgondozott'
+                ? '/getPreCareData'
+                : '/getCareData';
 
-         // Adatok betöltése a táblázatba
-         $.ajax({
-                url: '/getData',
-                method: 'GET',
-                success: function (data) {
-                    data.rows.forEach(function (row) {
-                        table.row.add([
-                            `<span class="name" onclick="openModal('${row.NEV}', '${row.ID_PACIENS}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
-                            row.TAJ,
-                            row.SZULDATUM,
-                        ]).draw(false);
-                    });
-                },
-                error: function (xhr, status, error) {
-                    console.error("Hiba történt az adatok betöltése során:", status, error);
-                }
-            });
+        $.ajax({
+            url: endpoint, // Dynamic endpoint based on the status
+            method: 'GET',
+            success: function (data) {
+                table.clear(); // Clear the current table
+                data.rows.forEach(function (row) {
+                    table.row.add([
+                        `<span class="name" onclick="openModal('${row.NEV}', '${row.ID_PACIENS}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">${row.NEV}</span>`,
+                        row.TAJ,
+                        row.SZULDATUM,
+                        row.STATUS
+                    ]).draw(false); // Populate the table with filtered data
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading data:", status, error);
+            }
+        });
+    }
+
+    // Function to update button styles
+    function updateActiveButton(buttonId) {
+        $('.btn-group .btn').removeClass('btn-primary').addClass('btn-secondary'); // Reset all buttons to secondary
+        $(`#${buttonId}`).removeClass('btn-secondary').addClass('btn-primary'); // Set the selected button to primary
+    }
+
+    // Load "Várakozó" data by default when the page loads
+    loadData('Várakozó');
+    updateActiveButton('waitingButton');
+
+    // "Várakozó" button click event
+    $('#waitingButton').on('click', function () {
+        loadData('Várakozó');
+        updateActiveButton('waitingButton');
+    });
+
+    // "Előgondozott" button click event
+    $('#preCareButton').on('click', function () {
+        loadData('Előgondozott');
+        updateActiveButton('preCareButton');
+    });
+
+    // "Gondozott" button click event
+    $('#careButton').on('click', function () {
+        loadData('Gondozott');
+        updateActiveButton('careButton');
+    });
+
+    // Modal functionality remains unchanged
+    window.openModal = function (name, id, taj, szuldatum, status) {
+        $('#modalName').text('Név: ' + name);
+        $('#modalTaj').text('TAJ szám: ' + taj);
+        $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
+        $('#modalStatus').text('Státusz: ' + status);
+        $('#detailsModal').modal('show');
+    };
+
+
+
+
+
 
             $('#szortirozas').on('change', function () {
                 var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
@@ -182,6 +239,8 @@
             updateNavButtons();
         });
 
+        //gombok
+  
         
     </script>
 </body>
