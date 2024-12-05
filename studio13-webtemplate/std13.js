@@ -137,6 +137,11 @@ app.get('/presencePage', (req, res) => {
   res.sendFile(__dirname + '/public/presencePage.html');
 });
 
+app.get('/status', (req, res) => {
+  const patientName = req.query.name;
+  res.sendFile(__dirname + '/public/status.html');
+});
+
 
 
 // Új végpont a napok számokkal történő kiírásához

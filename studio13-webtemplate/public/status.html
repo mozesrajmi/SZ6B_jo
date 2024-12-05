@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css" />
+        <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
+        <link rel="stylesheet" href="status.css">
+    </head>
+<body>
+    <div class="bixi">
+        <select name="szortirozas" id="szortirozas" class="bixi">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>  
+        </select>
+        <div class="box"> 
+            <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." />
+            <img src="images/eleg.png" class="bixi-image"> 
+        </div>
+    </div>
+    <table id="myTable" class="display" style="width:80%">
+        <thead>
+            <tr>
+                <th>Név</th>
+                <th>Tajszám</th>
+                <th>Születési dátum</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Az adatokat JavaScript tölti be ide -->
+        </tbody>
+    </table>
+
+    <div class="conti">
+        <button class="button" id="startBtn" disabled>
+            <i class="fa-solid fa-angles-left"></i>
+        </button>
+        <button class="button prevNext" id="prev" disabled>
+            <i class="fa-solid fa-angle-left"></i>
+        </button>
+
+        <div class="links">
+            <!-- Dinamikusan generált oldalszámok -->
+        </div>
+
+        <button class="button prevNext" id="next">
+            <i class="fa-solid fa-angle-right"></i>
+        </button>
+        <button class="button" id="endBtn">
+            <i class="fa-solid fa-angles-right"></i>
+        </button>
+    </div>
+
+    <script type="text/javascript">
+        let selectedId = null; // ID tárolása
+        let selectedName = null; // Név tárolása
+
+        $(document).ready(function () {
+            const table = $('#myTable').DataTable({
+                autoWidth: false,
+                responsive: true,
+                dom: 't',
+            });
+
+         // Adatok betöltése a táblázatba
+         $.ajax({
+                url: '/getData',
+                method: 'GET',
+                success: function (data) {
+                    data.rows.forEach(function (row) {
+                        table.row.add([
+                            `<span class="name" onclick="openModal('${row.NEV}', '${row.ID_PACIENS}', '${row.TAJ}', '${row.SZULDATUM}')">${row.NEV}</span>`,
+                            row.TAJ,
+                            row.SZULDATUM,
+                        ]).draw(false);
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error("Hiba történt az adatok betöltése során:", status, error);
+                }
+            });
+
+            $('#szortirozas').on('change', function () {
+                var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
+                table.page.len(pageLength).draw(); // Set the page length and redraw the table
+                getDB();
+            });
+
+            // Reactive search across name, TAJ, and birth date
+            $('#searchBox').on('input', function () {
+            // Check and limit the input length to 50 characters
+            if (this.value.length > 50) {
+                this.value = this.value.slice(0, 50); // Enforce character limit
+            }
+            table.search(this.value).draw(); // DataTable's search method filters on all columns
+            });
+
+            // HTML elements
+            const startBtn = document.querySelector("#startBtn");
+            const endBtn = document.querySelector("#endBtn");
+            const prevBtn = document.querySelector("#prev");
+            const nextBtn = document.querySelector("#next");
+            const pageLinks = document.querySelector(".links");
+            const searchBox = document.querySelector("#searchBox");
+            const sortDropdown = document.querySelector("#szortirozas");
+
+            // Update navigation button states
+            function updateNavButtons() {
+                const currentPage = table.page.info().page;
+                const totalPages = table.page.info().pages;
+
+                // Disable the "start" and "previous" buttons if on the first page
+                startBtn.disabled = currentPage === 0;
+                prevBtn.disabled = currentPage === 0;
+
+                // Disable the "next" and "end" buttons if on the last page
+                nextBtn.disabled = currentPage === totalPages - 1;
+                endBtn.disabled = currentPage === totalPages - 1;
+
+                // Generate page links dynamically
+                pageLinks.innerHTML = "";
+                for (let i = 0; i < totalPages; i++) {
+                    const link = document.createElement("a");
+                    link.href = "#";
+                    link.textContent = i + 1;
+                    link.className = "link" + (i === currentPage ? " active" : "");
+                    link.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        table.page(i).draw(false);
+                        updateNavButtons();
+                    });
+                    pageLinks.appendChild(link);
+                }
+            }
+
+            // Navigation button event listeners
+            startBtn.addEventListener("click", function () {
+                table.page('first').draw(false);
+                updateNavButtons();
+            });
+
+            prevBtn.addEventListener("click", function () {
+                table.page('previous').draw(false);
+                updateNavButtons();
+            });
+
+            nextBtn.addEventListener("click", function () {
+                table.page('next').draw(false);
+                updateNavButtons();
+            });
+
+            endBtn.addEventListener("click", function () {
+                table.page('last').draw(false);
+                updateNavButtons();
+            });
+
+            // Change rows per page
+            sortDropdown.addEventListener("change", function () {
+                const pageLength = parseInt(this.value, 10);
+                table.page.len(pageLength).draw();
+                updateNavButtons();
+            });
+
+            // Search functionality
+            searchBox.addEventListener("input", function () {
+                table.search(this.value).draw();
+                updateNavButtons();
+            });
+
+            // Update buttons after table redraw
+            table.on('draw', function () {
+                updateNavButtons();
+            });
+
+            // Initial button update
+            updateNavButtons();
+        });
+
+        
+    </script>
+</body>
+</html>
