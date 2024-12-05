@@ -270,3 +270,26 @@ th, td {
 .btn-group {
     gap: 5px; /* Space between buttons */
 }
+
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+}
+
+.modal-header{
+    border-bottom: 0;
+    background-color: #759fcb;
+    color: #fff;
+}
+
+.modal-title {
+    font-weight: bold;
+    font-size: 1.25em;
+}
+
+.modal-body {
+    font-size: 1em;
+    color: #333;
+}
