@@ -21,8 +21,8 @@
         </select>
         <div class="d-flex justify-content-between mt-3 btn-group" style="gap: 5px;">
             <button class="btn btn-primary" id="waitingButton">Várakozó</button>
-            <button class="btn btn-secondary" id="preCareButton">Előgondozott</button>
-            <button class="btn btn-secondary" id="careButton">Gondozott</button>
+            <button class="btn btn-primary" id="preCareButton">Előgondozott</button>
+            <button class="btn btn-primary" id="careButton">Ellátott</button>
         </div>                     
         <div class="box"> 
             <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." />
@@ -63,36 +63,59 @@
         </button>
     </div>
 
+
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Páciens adatai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalTaj"></p>
+                    <p id="modalBirthDate"></p>
+                    <p id="modalStatus"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="changeStatusButton" class="btn btn-primary">Státusz változtatás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+
+
     <script type="text/javascript">
-    $(document).ready(function () {
-    // Initialize the DataTable
+   $(document).ready(function () {
     const table = $('#myTable').DataTable({
         autoWidth: false,
         responsive: true,
         dom: 't',
     });
 
-    // Function to fetch and load data into the table
+    let activeButton = 'waitingButton';
+
     function loadData(status) {
-        const endpoint =
-            status === 'Várakozó'
-                ? '/getWaitingData'
-                : status === 'Előgondozott'
-                ? '/getPreCareData'
-                : '/getCareData';
+        const endpoint = status === 'Várakozó'
+            ? '/getWaitingData'
+            : status === 'Előgondozott'
+            ? '/getPreCareData'
+            : '/getCareData';
 
         $.ajax({
-            url: endpoint, // Dynamic endpoint based on the status
+            url: endpoint,
             method: 'GET',
             success: function (data) {
-                table.clear(); // Clear the current table
+                table.clear();
                 data.rows.forEach(function (row) {
                     table.row.add([
-                        `<span class="name" onclick="openModal('${row.NEV}', '${row.ID_PACIENS}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">${row.NEV}</span>`,
+                        `<span class="name" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">${row.NEV}</span>`,
                         row.TAJ,
                         row.SZULDATUM,
                         row.STATUS
-                    ]).draw(false); // Populate the table with filtered data
+                    ]).draw(false);
                 });
             },
             error: function (xhr, status, error) {
@@ -101,42 +124,51 @@
         });
     }
 
-    // Function to update button styles
     function updateActiveButton(buttonId) {
-        $('.btn-group .btn').removeClass('btn-primary').addClass('btn-secondary'); // Reset all buttons to secondary
-        $(`#${buttonId}`).removeClass('btn-secondary').addClass('btn-primary'); // Set the selected button to primary
+        $('.btn-group .btn').removeClass('btn-primary').addClass('btn-secondary');
+        $(`#${buttonId}`).removeClass('btn-secondary').addClass('btn-primary');
+        activeButton = buttonId;
     }
 
-    // Load "Várakozó" data by default when the page loads
     loadData('Várakozó');
     updateActiveButton('waitingButton');
 
-    // "Várakozó" button click event
     $('#waitingButton').on('click', function () {
         loadData('Várakozó');
         updateActiveButton('waitingButton');
     });
 
-    // "Előgondozott" button click event
     $('#preCareButton').on('click', function () {
         loadData('Előgondozott');
         updateActiveButton('preCareButton');
     });
 
-    // "Gondozott" button click event
     $('#careButton').on('click', function () {
         loadData('Gondozott');
         updateActiveButton('careButton');
     });
 
-    // Modal functionality remains unchanged
-    window.openModal = function (name, id, taj, szuldatum, status) {
-        $('#modalName').text('Név: ' + name);
-        $('#modalTaj').text('TAJ szám: ' + taj);
-        $('#modalSzuldatum').text('Születési dátum: ' + szuldatum);
-        $('#modalStatus').text('Státusz: ' + status);
-        $('#detailsModal').modal('show');
-    };
+    window.openModal = function (name, taj, birthDate, status) {
+    // Update modal header with "[Név] adatai"
+    $('#modalTitle').text(`${name} adatai`);
+    
+    // Populate modal body fields
+    $('#modalTaj').text('TAJ szám: ' + taj);
+    $('#modalBirthDate').text('Születési dátum: ' + birthDate);
+    $('#modalStatus').text('Státusz: ' + status);
+
+    // Show the modal
+    $('#detailsModal').modal('show');
+};
+
+    // "Státusz változtatás" gomb eseménykezelő
+    $('#changeStatusButton').on('click', function () {
+        alert('Státusz változtatás funkció aktiválva.');
+        // Add further logic for status change, e.g., API call
+    });
+
+
+
 
 
 

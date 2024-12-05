@@ -215,6 +215,37 @@ app.get('/getPreCareData', (req, res) => {
   });
 });
 
+// gondozott
+app.get('/getCareData', (req, res) => {
+  const sql = `
+    SELECT 
+      NEV, 
+      TAJ, 
+      DATE_FORMAT(SZULDATUM, "%Y.%m.%d") AS SZULDATUM,
+      STATUS
+    FROM paciensek
+    WHERE STATUS = 'ellátott'
+  `;
+
+  DB.query(sql, napló(req), (json_data, error) => {
+    if (error) {
+      res.status(500).json({ error: 'Adatbázis hiba történt', details: error });
+      return;
+    }
+
+    let data;
+    try {
+      data = JSON.parse(json_data); // Parse MySQL results to JSON format
+    } catch (err) {
+      res.status(500).json({ error: 'JSON feldolgozási hiba', details: err });
+      return;
+    }
+
+    res.set('Content-Type', 'application/json; charset=UTF-8');
+    res.send(data); // Send filtered data back to the client
+  });
+});
+
 
 
 
