@@ -287,6 +287,18 @@ h2 {
     background: #ffffff;
 }
 
+/* Szortírozó stílusa */
+#szortirozas{
+    background: rgb(227, 227, 227);
+    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 10%;
+}
+
+.szamos{
+    justify-content: center;
+}
 /* Keresősávot tartalmazó doboz */
 .box {
     display: flex;

@@ -14,16 +14,17 @@
 <body>
     <div class="bixi">
         <select name="szortirozas" id="szortirozas" class="bixi">
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>  
+            <option class="szamos" value="10">10</option>
+            <option class="szamos" value="25">25</option>
+            <option class="szamos" value="50">50</option>
+            <option class="szamos" value="100">100</option>  
         </select>
-        <div class="d-flex justify-content-between mt-3 btn-group" style="gap: 5px;">
+        <div class="d-flex justify-content-between btn-group">
             <button class="btn btn-primary" id="waitingButton">Várakozó</button>
-            <button class="btn btn-primary" id="preCareButton">Előgondozott</button>
-            <button class="btn btn-primary" id="careButton">Ellátott</button>
-        </div>                     
+            <button class="btn btn-secondary" id="preCareButton">Előgondozott</button>
+            <button class="btn btn-secondary" id="careButton">Ellátott</button>
+            <button class="btn btn-secondary" id="leftButton">Távozott</button>
+        </div>    
         <div class="box"> 
             <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." />
             <img src="images/eleg.png" class="bixi-image"> 
@@ -113,123 +114,181 @@
     
 
 
-    <script type="text/javascript">
-  $(document).ready(function () {
-            const table = $('#myTable').DataTable({
-                autoWidth: false,
-                responsive: true,
-                dom: 't',
-            });
+<script type="text/javascript">
+     $(document).ready(function () {
+    const table = $('#myTable').DataTable({
+        autoWidth: false,
+        responsive: true,
+        dom: 't',
+    });
 
-            let currentStatus = ''; // Track the current status
-            let selectedName = ''; // Track the current name
-            let selectedId = ''; // Track the current ID
-            let activeButton = 'waitingButton'; // Track the active button
+    let activeButton = 'waitingButton'; // Track the active button
 
-            // Load data dynamically into the table
-            function loadData(status) {
-                const endpoint = status === 'Várakozó'
-                    ? '/getWaitingData'
-                    : status === 'Előgondozott'
-                    ? '/getPreCareData'
-                    : '/getCareData';
+    // Function to fetch and load data into the table
+    function loadData(status) {
+        const endpoint = status === 'Várakozó'
+            ? '/getWaitingData'
+            : status === 'Előgondozott'
+            ? '/getPreCareData'
+            : status === 'Ellátott'
+            ? '/getCareData'
+            : '/getLeftData'; // New endpoint for "Távozott"
 
-                $.ajax({
-                    url: endpoint,
-                    method: 'GET',
-                    success: function (data) {
-                        table.clear();
-                        data.rows.forEach(function (row) {
-                            table.row.add([
-                                `<span class="name" style="cursor:pointer; color:blue;" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">${row.NEV}</span>`,
-                                row.TAJ,
-                                row.SZULDATUM,
-                                row.STATUS
-                            ]).draw(false);
-                        });
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error loading data:", status, error);
-                    }
+        $.ajax({
+            url: endpoint,
+            method: 'GET',
+            success: function (data) {
+                table.clear();
+                data.rows.forEach(function (row) {
+                    table.row.add([
+                        `<span class="name" style="cursor:pointer;" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">${row.NEV}</span>`,
+                        row.TAJ,
+                        row.SZULDATUM,
+                        row.STATUS
+                    ]).draw(false);
                 });
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading data:", status, error);
             }
+        });
+    }
 
-            function updateActiveButton(buttonId) {
-                $('.btn-group .btn').removeClass('btn-primary').addClass('btn-secondary');
-                $(`#${buttonId}`).removeClass('btn-secondary').addClass('btn-primary');
-                activeButton = buttonId;
-            }
+    function updateActiveButton(buttonId) {
+        $('.btn-group .btn').removeClass('btn-primary').addClass('btn-secondary');
+        $(`#${buttonId}`).removeClass('btn-secondary').addClass('btn-primary');
+        activeButton = buttonId;
+    }
 
-            // Load "Várakozó" data by default
-            loadData('Várakozó');
-            updateActiveButton('waitingButton');
+    // Load "Várakozó" data by default
+    loadData('Várakozó');
+    updateActiveButton('waitingButton');
 
-            // Button click events
-            $('#waitingButton').on('click', function () {
-                loadData('Várakozó');
-                updateActiveButton('waitingButton');
-            });
+    // Button click events
+    $('#waitingButton').on('click', function () {
+        loadData('Várakozó');
+        updateActiveButton('waitingButton');
+    });
 
-            $('#preCareButton').on('click', function () {
-                loadData('Előgondozott');
-                updateActiveButton('preCareButton');
-            });
+    $('#preCareButton').on('click', function () {
+        loadData('Előgondozott');
+        updateActiveButton('preCareButton');
+    });
 
-            $('#careButton').on('click', function () {
-                loadData('Ellátott');
-                updateActiveButton('careButton');
-            });
+    $('#careButton').on('click', function () {
+        loadData('Ellátott');
+        updateActiveButton('careButton');
+    });
 
-            // Open first modal
-            window.openModal = function (name, taj, birthDate, status) {
-                selectedName = name;
-                currentStatus = status;
-                selectedId = taj; // Assuming TAJ is the unique identifier
+    $('#leftButton').on('click', function () {
+        loadData('Távozott'); // Load rows with "Távozott" status
+        updateActiveButton('leftButton');
+    });
 
-                $('#modalTitle').text(`${name} adatai`);
-                $('#modalTaj').text('TAJ szám: ' + taj);
-                $('#modalBirthDate').text('Születési dátum: ' + birthDate);
-                $('#modalStatus').text('Státusz: ' + status);
+    // Open first modal
+    window.openModal = function (name, taj, birthDate, status) {
+        selectedName = name;
+        currentStatus = status;
+        selectedId = taj; // Assuming TAJ is the unique identifier
 
-                $('#detailsModal').modal('show');
-            };
+        $('#modalTitle').text(`${name} adatai`);
+        $('#modalTaj').text('TAJ szám: ' + taj);
+        $('#modalBirthDate').text('Születési dátum: ' + birthDate);
+        $('#modalStatus').text('Státusz: ' + status);
 
-            // Open second modal when clicking "Státusz változtatás"
-            $('#changeStatusButton').on('click', function () {
-                $('#currentStatus').text('Jelenlegi státusz: ' + currentStatus);
-                $('#newStatus').val(currentStatus);
+        $('#detailsModal').modal('show');
+    };
 
-                $('#detailsModal').modal('hide');
-                $('#changeStatusModal').modal('show');
-            });
+    // Open second modal when clicking "Státusz változtatás"
+    $('#changeStatusButton').on('click', function () {
+    $('#currentStatus').text('Jelenlegi státusz: ' + currentStatus);
 
-            // Save new status
-            $('#saveNewStatusButton').on('click', function () {
-                const newStatus = $('#newStatus').val();
-                if (newStatus && newStatus !== currentStatus) {
-                    $.ajax({
-                        url: '/updateStatus',
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            id: selectedId,
-                            status: newStatus,
-                        }),
-                        success: function (response) {
-                            alert('Státusz sikeresen módosítva!');
-                            currentStatus = newStatus;
-                            $('#changeStatusModal').modal('hide');
-                        },
-                        error: function (xhr, status, error) {
-                            alert('Hiba történt a státusz módosítása során!');
-                            console.error('Error:', status, error);
-                        },
-                    });
-                } else {
-                    alert('Válassz egy új státuszt!');
-                }
-            });
-        
+    // Normalize currentStatus for comparison
+    const normalizedStatus = currentStatus.toLowerCase(); 
+    console.log('Current Status:', normalizedStatus);
+
+    const newStatusDropdown = $('#newStatus');
+    newStatusDropdown.empty(); // Clear existing options
+
+    if (normalizedStatus === 'várakozó') {
+        console.log('Adding option: Előgondozott');
+        newStatusDropdown.append('<option value="Előgondozott">Előgondozott</option>');
+    } else if (normalizedStatus === 'előgondozott') {
+        console.log('Adding option: Ellátott');
+        newStatusDropdown.append('<option value="Ellátott">Ellátott</option>');
+    } else if (normalizedStatus === 'ellátott') {
+        console.log('Adding option: Távozott');
+        newStatusDropdown.append('<option value="Távozott">Távozott</option>');
+    } else {
+        console.log('No matching status for options.');
+    }
+
+    // Log the dropdown's options after appending
+    console.log('Dropdown options:', newStatusDropdown.html());
+
+    // Set the first option as selected
+    newStatusDropdown.val(newStatusDropdown.find('option:first').val());
+
+    $('#detailsModal').modal('hide');
+    $('#changeStatusModal').modal('show');
+});
+
+
+
+    // Save new status
+    // Format the date to MySQL DATETIME format
+function formatToMySQLDatetime(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0'); // Ensure 2 digits
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+$('#saveNewStatusButton').on('click', function () {
+    const newStatus = $('#newStatus').val();
+    if (newStatus && newStatus !== currentStatus) {
+        const currentDateTime = formatToMySQLDatetime(new Date()); // Format current date
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1; // Month is zero-indexed
+        const currentDay = currentDate.getDate();
+
+        $.ajax({
+            url: '/updateStatus',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                id: selectedId, // Assuming TAJ or another unique identifier
+                status: newStatus,
+                timestamp: currentDateTime,
+                month: currentMonth,
+                day: currentDay,
+            }),
+            success: function (response) {
+                alert('Státusz sikeresen módosítva!');
+                currentStatus = newStatus;
+
+                // Reload table or perform additional UI updates
+                loadData(activeButton === 'waitingButton' ? 'Várakozó' : activeButton);
+                $('#changeStatusModal').modal('hide');
+            },
+            error: function (xhr, status, error) {
+                alert('Hiba történt a státusz módosítása során!');
+                console.error('Error:', status, error);
+            },
+        });
+    } else {
+        alert('Válassz egy új státuszt!');
+    }
+});
+
+
+
+
+
 
 
 

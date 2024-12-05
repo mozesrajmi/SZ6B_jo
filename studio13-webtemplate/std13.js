@@ -215,7 +215,7 @@ app.get('/getPreCareData', (req, res) => {
   });
 });
 
-// gondozott
+// ellátott
 app.get('/getCareData', (req, res) => {
   const sql = `
     SELECT 
@@ -246,7 +246,100 @@ app.get('/getCareData', (req, res) => {
   });
 });
 
+//távozott
+app.get('/getLeftData', (req, res) => {
+  const sql = `
+      SELECT NEV, TAJ, DATE_FORMAT(SZULDATUM, '%Y-%m-%d') AS SZULDATUM, STATUS
+      FROM paciensek
+      WHERE STATUS = 'Távozott'
+  `;
 
+  DB.query(sql, (err, results) => {
+      if (err) {
+          console.error('Error fetching "Távozott" data:', err);
+          return res.status(500).json({ error: 'Adatbázis hiba történt.' });
+      }
+
+      res.json({ rows: results });
+  });
+});
+
+
+//mentés státusz és ido és datum
+app.post('/updateStatus', (req, res) => {
+  const { id, status, timestamp } = req.body;
+
+  if (!id || !status || !timestamp) {
+      return res.status(400).json({ error: 'Hiányzó adatok!' });
+  }
+
+  // Construct SQL query with variable interpolation
+  const sql = `
+      UPDATE paciensek
+      SET STATUS = '${status}', ELOGOND_DATUM = '${timestamp}'
+      WHERE TAJ = '${id}'
+  `;
+
+  DB.query(sql, (err, results) => {
+      if (err) {
+          console.error('Database update error:', err);
+          return res.status(500).json({ error: 'Adatbázis hiba történt.' });
+      }
+
+      res.json({ success: true, message: 'Státusz sikeresen frissítve!' });
+  });
+});
+
+                                                                        /*HATALMAStesztek*/
+app.post('/updateStatus', (req, res) => {
+const { id, status, timestamp } = req.body;
+
+if (!id || !status || !timestamp) {
+return res.status(400).json({ error: 'Hiányzó adatok!' });
+}
+
+// Parse the timestamp into year, month, and day
+const date = new Date(timestamp);
+const year = date.getFullYear();
+const month = date.getMonth() + 1; // Month is zero-based
+const day = date.getDate();
+
+// SQL to update the `paciensek` table
+const updatePaciensekSql = `
+UPDATE paciensek
+SET STATUS = '${status}', ELOGOND_DATUM = '${timestamp}'
+WHERE TAJ = '${id}'
+`;
+
+// SQL to insert or update the `ellatas` table
+const insertEllatasSql = `
+INSERT INTO ellatas (EV, HO, NAPOK)
+VALUES (${year}, ${month}, ${day})
+ON DUPLICATE KEY UPDATE
+NAPOK = CASE
+WHEN EV = ${year} AND HO = ${month} THEN '${day}' -- Update day if same year and month
+ELSE NAPOK
+END
+`;
+
+// Perform both queries in sequence
+DB.query(updatePaciensekSql, (err) => {
+if (err) {
+console.error('Error updating paciensek table:', err);
+return res.status(500).json({ error: 'Adatbázis hiba történt a paciensek frissítésekor.' });
+}
+
+DB.query(insertEllatasSql, (err) => {
+if (err) {
+  console.error('Error inserting into ellatas table:', err);
+  return res.status(500).json({ error: 'Adatbázis hiba történt az ellatas frissítésekor.' });
+}
+
+res.json({ success: true, message: 'Státusz és ellátás adatok sikeresen frissítve!' });
+});
+});
+});
+                                                                                                                                    
 
 
 

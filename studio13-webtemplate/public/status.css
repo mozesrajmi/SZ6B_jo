@@ -85,13 +85,24 @@ th, td {
     text-align: center;
     border-radius: 20px;
     padding: 10px 20px; /* Egyező belső térköz a .box-szal */
-    border: 1px solid #ccc;
+    border: 1px solid #000000;
     margin: 0; /* Margó eltávolítása */
     width: 100%;
     max-width: 150px; /* Maximális szélesség */
     box-sizing: border-box;
     height: 40px; /* Ugyanakkora magasság, mint a .box */
-    background: #ffffff;
+}
+/* Szortírozó stílusa */
+#szortirozas{
+    background: rgb(227, 227, 227);
+    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 10%;
+}
+
+.szamos{
+    justify-content: center;
 }
 
 /* Keresősávot tartalmazó doboz */
@@ -267,12 +278,22 @@ th, td {
     }
 }
 
-.btn-group {
-    gap: 5px; /* Space between buttons */
-    border-radius: 20px;
+
+.btn-group .btn {
+    color: rgb(0, 0, 0);
+    padding: 10px 20px; /* Egyenlő belső térköz */
+    background: rgb(227, 227, 227);
+    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    cursor: pointer; /* Mutató kurzor */
 }
 
+.btn-group .btn:hover {
+    background-color: rgb(108, 181, 233); /* Piros háttér szín hover eseménykor */
+    color: rgb(0, 0, 0); /* fekete szöveg hover eseménykor */
+}
 
+/*MODAL*/
 .modal-content {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
