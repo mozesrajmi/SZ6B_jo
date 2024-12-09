@@ -447,47 +447,76 @@ app.get('/status', (req, res) => {
 
 
 // Új végpont a napok számokkal történő kiírásához
+// Új végpont a napok számokkal történő kiírásához
 app.get('/getTreatmentDays', (req, res) => {
-  const id = req.query.id; // ID-t kérjük a query paraméterből
+  const id = req.query.id; // ID a query paraméterből
 
   if (!id) {
-    return res.status(400).json({ error: 'A páciens ID hiányzik!' });
+      return res.status(400).json({ error: 'A páciens ID hiányzik!' });
   }
 
-  // SQL lekérdezés az ellátási napokhoz és hónapokhoz az "ellátott dátumtól" kezdve
   const query = `
-    SELECT 
-        ellatas.HO AS hónap,
-        ellatas.NAPOK
-    FROM 
-        ellatas
-    JOIN 
-        paciensek ON ellatas.ID_PACIENS = paciensek.ID_PACIENS
-    WHERE 
-        ellatas.ID_PACIENS = ${id}
-        AND ellatas.HO >= paciensek.ELLATOTT_DATUM
-    ORDER BY 
-        ellatas.HO ASC;
-
+      SELECT 
+          ellatas.HO AS hónap, 
+          ellatas.NAPOK
+      FROM 
+          ellatas
+      INNER JOIN 
+          paciensek 
+      ON 
+          ellatas.ID_PACIENS = paciensek.ID_PACIENS
+      WHERE 
+          ellatas.ID_PACIENS = ${id}
+          AND paciensek.ELOGOND_DATUM IS NOT NULL
   `;
 
-  // Lekérdezés futtatása
-  DB.query(query, [], (json_data, err) => {
-    if (err) {
-      console.error('Adatbázis hiba történt:', err.message);
-      return res.status(500).json({ error: 'Adatbázis hiba', details: err.message });
-    }
+  DB.query(query, [], (json_data, error) => {
+      if (error) {
+          console.error('Adatbázis hiba történt:', error.message);
+          return res.status(500).json({ error: 'Adatbázis hiba', details: error.message });
+      }
 
-    const data = JSON.parse(json_data);
+      const data = JSON.parse(json_data);
 
-    if (data.rows.length === 0) {
-      return res.status(404).json({ error: `Nem található releváns adat a megadott ID-val: ${id}` });
-    }
+      if (!data.rows.length) {
+          return res.status(404).json({ error: 'Ehhez a pácienshez nem tartoznak ellátási napok.' });
+      }
 
-    // Sikeres lekérdezés esetén napok visszaküldése
-    res.json({ days: data.rows });
+      res.json({ days: data.rows });
   });
 });
+
+
+app.post('/updateDayValue', (req, res) => {
+  const { id, day, newValue, month } = req.body;
+
+  if (!id || !day || newValue === undefined || !month) {
+      return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+  }
+
+  const sql = `
+      UPDATE ellatas
+      SET NAPOK = CONCAT(
+          SUBSTRING(NAPOK, 1, ${day - 1}),
+          '${newValue}',
+          SUBSTRING(NAPOK, ${day + 1})
+      )
+      WHERE ID_PACIENS = ${id} AND HO = ${month}
+  `;
+
+  DB.query(sql, (err, result) => {
+      if (err) {
+          console.error('Hiba a nap értékének frissítése során:', err);
+          return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+      }
+
+      res.json({ success: true, message: 'Nap értéke sikeresen frissítve!' });
+  });
+});
+
+
+
+
 
 
 

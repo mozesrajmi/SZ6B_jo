@@ -20,7 +20,7 @@
             <option value="100">100</option>  
         </select>
         <div class="box"> 
-            <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." />
+            <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." autocomplete="off" spellcheck="false" />
             <img src="images/eleg.png" class="bixi-image"> 
         </div>
     </div>
@@ -80,8 +80,8 @@
 
     
     <script type="text/javascript">
-        let selectedId = null; // ID tárolása
-        let selectedName = null; // Név tárolása
+        var selectedId = null; // ID tárolása
+        var selectedName = null; // Név tárolása
 
         $(document).ready(function () {
             const table = $('#myTable').DataTable({
@@ -150,29 +150,52 @@
          });
 
          $('#presenceButton').on('click', function () {
-            if (selectedId) {
-            // Hiányzó hónapok kitöltése
-            $.ajax({
-                url: '/fillMissingMonths',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ id: selectedId }),
-                success: function (response) {
-                    alert(response.message); // Hiányzó hónapok létrehozásának eredménye
-
-                    // Átirányítás a presencePage-re
-                    window.location.href = `/presencePage?name=${encodeURIComponent(selectedName)}`;
-                },
-                error: function (xhr, status, error) {
-                    console.error('Hiba történt az API hívás során:', status, error);
-                    alert('Hiba történt a hónap(ok) hozzáadása során.');
+    if (selectedId) {
+        // Lekérdezés az ID alapján
+        $.ajax({
+            url: '/getTreatmentDays',
+            method: 'GET',
+            data: { id: selectedId },
+            success: function (response) {
+                if (response && response.days && response.days.length > 0) {
+                    // Továbbirányítás, ha vannak ellátási napok
+                    const url = `/presencePage?id=${encodeURIComponent(selectedId)}&name=${encodeURIComponent(selectedName)}`;
+                    window.location.href = url;
+                } else {
+                    // Ha nincsenek ellátási napok
+                    alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
                 }
-            });
-        } else {
-            alert('Nincs kiválasztott páciens!');
-        }
-    });
+            },
+            error: function (xhr) {
+                if (xhr.status === 404) {
+                    alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
+                } else {
+                    alert('Hiba történt az adatok lekérésekor. Próbáld újra később.');
+                }
+            }
+        });
+    } else {
+        alert('Nincs kiválasztott páciens!');
+    }
+});
 
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientName = urlParams.get('name'); // Név a query stringből
+    const patientId = urlParams.get('id'); // ID a query stringből
+
+    if (patientName && patientId) {
+        // Név megjelenítése az oldal tetején
+        document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
+
+        // Kezelési napok betöltése az ID alapján
+        loadTreatmentDays(patientId);
+    } else {
+        alert('Nincs megadva páciens név vagy ID!');
+    }
+    });
 
 
             // Globálissá tesszük az openModal függvényt, hogy a táblázatból elérhető legyen

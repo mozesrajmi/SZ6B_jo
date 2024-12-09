@@ -26,7 +26,7 @@
             <button class="btn btn-secondary" id="leftButton">Távozott</button>
         </div>    
         <div class="box"> 
-            <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." />
+            <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." autocomplete="off" spellcheck="false" />
             <img src="images/eleg.png" class="bixi-image"> 
         </div>
     </div>
@@ -215,7 +215,7 @@ function checkAndLoadData(status, buttonId) {
     window.openModal = function (name, taj, birthDate, status) {
         selectedName = name;
         currentStatus = status;
-        selectedId = taj; // Assuming TAJ is the unique identifier
+        selectedTaj = taj; // Assuming TAJ is the unique identifier
 
         $('#modalTitle').text(`${name} adatai`);
         $('#modalTaj').text('TAJ szám: ' + taj);
@@ -292,7 +292,7 @@ $('#saveNewStatusButton').on('click', function () {
 
     if (newStatus) {
         const requestData = {
-            id: selectedId,
+            id: selectedTaj,
             status: newStatus,
             timestamp: formatToMySQLDatetime(currentDate),
             year: currentYear,
@@ -311,7 +311,7 @@ $('#saveNewStatusButton').on('click', function () {
 
         // Táblázat sorának eltávolítása az aktuális státusz alapján
         const rows = table.rows().data().toArray();
-        const updatedRows = rows.filter(row => !row[1].includes(selectedId)); // Kizárjuk a módosított páciens TAJ számát
+        const updatedRows = rows.filter(row => !row[1].includes(selectedTaj)); // Kizárjuk a módosított páciens TAJ számát
         table.clear();
         table.rows.add(updatedRows).draw();
 
