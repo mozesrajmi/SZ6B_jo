@@ -25,7 +25,6 @@
             </tbody>
             <img src="images/kepkoonyv.png" alt="Description of image" class="img-fluid float-end" id="konyvkep">
         </table>
-        <button type="button" class="btn btn-primary gyasz">Hónap szerkesztése</button>
     </div>
     <!-- Modal Structure -->
     <div class="modal fade" id="editMonthModal" tabindex="-1" aria-labelledby="editMonthLabel" aria-hidden="true">
@@ -47,7 +46,6 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
                     <button type="button" class="btn btn-primary" id="saveDayEditBtn">Mentés</button>
                 </div>
             </div>
@@ -64,9 +62,6 @@
                 </div>
                 <div class="modal-body">
                     A hónap szerkesztése a cellába való kattintás után lehetséges!
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
                 </div>
             </div>
         </div>
@@ -312,65 +307,7 @@ document.addEventListener('DOMContentLoaded', function () {
        
 
 
-    // Hónap szerkesztése gomb eseménykezelője
-    document.querySelector('.gyasz').addEventListener('click', function () {
-    if (!patientId) {
-        alert('A páciens azonosító nincs megadva!');
-        return;
-    }
-
-    // API hívás a legutolsó hónap és napok lekérdezésére
-    $.ajax({
-        url: '/getLastMonthAndDays',
-        method: 'GET',
-        data: { id: patientId },
-        success: function (response) {
-            if (response && response.lastMonth && response.lastDigit) {
-                const currentYear = new Date().getFullYear();
-                const monthString = String(response.lastMonth).padStart(2, '0');
-                document.getElementById('dateInput').value = `${currentYear}-${monthString}-01`; // Hónap első napja
-
-                // Modal megjelenítése
-                $('#editMonthModal').modal('show');
-            } else {
-                alert('Nem található adat a legutolsó hónaphoz!');
-            }
-        },
-        error: function (xhr, status, error) {
-            console.error('Hiba történt az adatok betöltése során:', status, error);
-            alert('Hiba történt az adatok lekérésekor!');
-        }
-    });
-});
-
-
-// Modal mentés gombra kattintás
-document.getElementById('saveEditBtn').addEventListener('click', function () {
-    const selectedDate = document.getElementById('dateInput').value;
-
-    if (!selectedDate) {
-        alert('Kérjük, válasszon ki egy dátumot!');
-        return;
-    }
-
-    // Küldje el a kiválasztott dátumot az API-nak
-    $.ajax({
-        url: '/updateMonth',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ date: selectedDate }),
-        success: function (response) {
-            alert('A jelenlét módosítva!');
-            $('#editMonthModal').modal('hide');
-            loadTreatmentDays(patientId);
-        },
-        error: function (xhr, status, error) {
-            console.error('Hiba történt a jelenlét frissítése során:', status, error);
-            alert('Hiba történt a jelenlét frissítése során.');
-        }
-    });
-});
-
+   
 
 </script>
 </body>

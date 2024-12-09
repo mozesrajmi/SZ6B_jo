@@ -72,12 +72,14 @@
                     <p><strong>Születési dátum:</strong> <span id="modalSzuldatum"></span></p>
                 </div>
                 <div class="modal-footer">
-                    <button id="presenceButton" class="btn btn-primary">Tovább a jelenlétre</button>
+                    <button id="fizetestovButton" class="btn btn-primary">Tovább a fizetésre</button>
                 </div>
             </div>
         </div>
     </div>
+    
 
+    
     <script type="text/javascript">
         var selectedId = null; // ID tárolása
         var selectedName = null; // Név tárolása
@@ -124,78 +126,42 @@
         });
 
         // Modal feltöltése és megnyitása
-        selectedName = name; // Név mentése
+        window.openModal = function (name, id, taj, szuldatum) {
+        // Populate the modal fields without duplication
         $('#modalName').text(name);
         $('#modalTaj').text(taj);
         $('#modalSzuldatum').text(szuldatum);
         // Display the modal
         $('#detailsModal').modal('show');
+};
+
     };
 
 
 
-            $('#szortirozas').on('change', function () {
-                var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
-                table.page.len(pageLength).draw(); // Set the page length and redraw the table
-                getDB();
-            });
-
-            // Reactive search across name, TAJ, and birth date
-            $('#searchBox').on('input', function () {
-            // Check and limit the input length to 50 characters
-            if (this.value.length > 50) {
-                this.value = this.value.slice(0, 50); // Enforce character limit
-            }
-            table.search(this.value).draw(); // DataTable's search method filters on all columns
-         });
-
-         $('#presenceButton').on('click', function () {
-    if (selectedId) {
-        // Lekérdezés az ID alapján
-        $.ajax({
-            url: '/getTreatmentDays',
-            method: 'GET',
-            data: { id: selectedId },
-            success: function (response) {
-                if (response && response.days && response.days.length > 0) {
-                    // Továbbirányítás, ha vannak ellátási napok
-                    const url = `/presencePage?id=${encodeURIComponent(selectedId)}&name=${encodeURIComponent(selectedName)}`;
-                    window.location.href = url;
-                } else {
-                    // Ha nincsenek ellátási napok
-                    alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
-                }
-            },
-            error: function (xhr) {
-                if (xhr.status === 404) {
-                    alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
-                } else {
-                    alert('Hiba történt az adatok lekérésekor. Próbáld újra később.');
-                }
-            }
-        });
-    } else {
-        alert('Nincs kiválasztott páciens!');
-    }
-});
-
-
-
-    document.addEventListener('DOMContentLoaded', function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const patientName = urlParams.get('name'); // Név a query stringből
-    const patientId = urlParams.get('id'); // ID a query stringből
-
-    if (patientName && patientId) {
-        // Név megjelenítése az oldal tetején
-        document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
-
-        // Kezelési napok betöltése az ID alapján
-        loadTreatmentDays(patientId);
-    } else {
-        alert('Nincs megadva páciens név vagy ID!');
-    }
+    $('#szortirozas').on('change', function () {
+        var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
+        table.page.len(pageLength).draw(); // Set the page length and redraw the table
+        getDB();
     });
+
+    // Reactive search across name, TAJ, and birth date
+    $('#searchBox').on('input', function () {
+    // Check and limit the input length to 50 characters
+    if (this.value.length > 50) {
+        this.value = this.value.slice(0, 50); // Enforce character limit
+    }
+    table.search(this.value).draw(); // DataTable's search method filters on all columns
+    });
+
+
+
+
+
+
+
+
+
 
 // HTML elements
             const startBtn = document.querySelector("#startBtn");

@@ -66,24 +66,24 @@
 
 
     <!-- First Modal -->
-<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Páciens adatai</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p id="modalTaj"></p>
-                <p id="modalBirthDate"></p>
-                <p id="modalStatus"></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="changeStatusButton" class="btn btn-primary">Státusz változtatás</button>
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title w-100" id="modalTitle">Páciens adatai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Név:</strong> <span id="modalName"></span></p>
+                    <p><strong>TAJ szám:</strong> <span id="modalTaj"></span></p>
+                    <p><strong>Születési dátum:</strong> <span id="modalSzuldatum"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="changeStatusButton" class="btn btn-primary">Státusz változtatás</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 <!-- Second Modal -->
 <div class="modal fade" id="changeStatusModal" tabindex="-1" aria-labelledby="changeStatusTitle" aria-hidden="true">
@@ -212,16 +212,15 @@ function checkAndLoadData(status, buttonId) {
 
 
     // Open first modal
-    window.openModal = function (name, taj, birthDate, status) {
+    window.openModal = function (name, taj, szuldatum, status) {
         selectedName = name;
         currentStatus = status;
         selectedTaj = taj; // Assuming TAJ is the unique identifier
 
-        $('#modalTitle').text(`${name} adatai`);
-        $('#modalTaj').text('TAJ szám: ' + taj);
-        $('#modalBirthDate').text('Születési dátum: ' + birthDate);
-        $('#modalStatus').text('Státusz: ' + status);
-
+        $('#modalName').text(name);
+        $('#modalTaj').text(taj);
+        $('#modalSzuldatum').text(szuldatum);
+        // Display the modal
         $('#detailsModal').modal('show');
     };
 

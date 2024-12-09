@@ -1,0 +1,361 @@
+table.display {
+    width: 80%;
+    margin: 20px auto;
+    border-collapse: collapse;
+    font-family: 'Arial', sans-serif;
+    color: #444;
+    border: 1px solid #e0e0e0;
+}
+
+table.display thead th {
+    background-color: #759fcb; /* A blue background */
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 15px;
+    border-bottom: 2px solid #ddd;
+}
+
+table.display tbody td {
+    text-align: center;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+table.display tbody tr:nth-child(even) {
+    background-color: #f8f8f8; /* Light gray for alternating rows */
+}
+
+table.display tbody tr:hover {
+    background-color: #e6f7ff; /* Light blue on hover */
+    cursor: pointer;
+}
+
+table.display tbody td.dt-type-date {
+    text-align: center;
+}
+
+span.dt-column-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+table.display tbody td.dt-type-numeric {
+    text-align: center;
+}
+
+                                                                       /* Modal window styling */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+}
+
+.modal-header{
+    border-bottom: 0;
+    background-color: #759fcb;
+    color: #fff;
+}
+
+.modal-title {
+    font-weight: bold;
+    font-size: 1.25em;
+}
+
+.modal-body {
+    font-size: 1em;
+    color: #333;
+}
+
+                                                                /* Buttons */
+.btn-primary {
+    background-color: #759fcb; 
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+                                                                /* DataTable adjustments */
+.dataTables_wrapper .dataTables_filter input {
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border: 1px solid transparent;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: all 0.3s;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    color: white !important;
+}
+
+/* Table column and row padding and alignment for a cleaner look */
+th, td {
+    padding: 12px 15px;
+    text-align: center;
+}
+
+/* Adjust modal button styles */
+#fizetestovButton {
+    color: white;
+    border-radius: 4px;
+    padding: 10px 20px;
+    transition: background-color 0.3s;
+}
+
+#fizetestovButton:hover {
+    background-color: #0056b3;
+    color: #fff;
+}
+
+h2 {
+    text-align: center;
+    margin-top: 20px;
+    margin-left: -50px;
+    font-family: 'Arial', sans-serif;
+    font-style: Arial, sans-serif;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-body {
+    font-size: 1em;
+    color: #333;
+    font-weight: 500; /* Adjusts to a medium font weight */
+    font-family: 'Arial', sans-serif; /* Consistent with table styling */
+}
+
+
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+.conti,
+.button,
+.links,
+.link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+}
+
+.conti {
+    padding: 20px;
+    border-radius: 8px;
+    column-gap: 12px;
+    background-color: none;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    display: flex;
+    justify-content: center; /* Középre igazítás vízszintesen */
+    align-items: center; /* Középre igazítás függőlegesen */
+    gap: 10px; /* Távolság a gombok között */
+    margin-top: 20px; /* Távolság a táblázattól */
+    flex-wrap: wrap; /* Kisebb képernyőn tördelés engedélyezése */
+
+}
+
+.button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid;
+    border-radius: 50%; /* Kerek gombok */
+    cursor: pointer;
+}
+
+.button i {
+    pointer-events: none;
+    display: inline-flex;
+}
+
+.buttton:disabled {
+    color: #b3b3b3;
+    pointer-events: none;  
+}
+
+.button,
+.link {
+    height: 45px;
+    width: 45px;
+    font-size: 20px;
+    color: #666666;
+    background-color: #f2f2f2;
+    border-radius: 6px;
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+.links {
+    column-gap: 12px;
+    display: flex;
+    flex-wrap: wrap; /* Kisebb képernyőn tördelés */
+
+}
+
+.link:hover {
+    color: #fff;
+    background: #759fcb;
+}
+
+.link.active {
+    color: #fff;
+    background: #759fcb;
+}
+
+
+
+.link {
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.prevNext {
+    width: 50px;
+    height: 40px;
+    border-radius: 20px; /* Lekerekített téglalap forma */
+}
+
+/* Reszponzív stílusok */
+@media (max-width: 600px) {
+    .conti {
+        flex-direction: column; /* Gombok egymás alatt */
+        gap: 15px; /* Távolság a gombok között */
+    }
+
+    .links {
+        justify-content: center;
+    }
+
+    .button {
+        width: 50px; /* Nagyobb gombok mobilon */
+        height: 50px;
+    }
+
+    .prevNext {
+        width: 60px; /* Nagyobb prev/next gombok mobilon */
+        height: 50px;
+    }
+
+    .links a {
+        padding: 10px 15px; /* Nagyobb oldalszámok */
+    }
+}
+
+/* bixi stílusa */
+.bixi {
+    width: 80%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; /* Elején és végén helyezkedjenek el */
+    align-items: center; /* Vertikálisan középre igazítva */
+    margin: 10px auto;
+    padding: 10px; /* Egyenlő belső térköz */
+    border-radius: 20px; /* Lekerekített sarkok */
+}
+
+/* Szortírozó stílusa */
+.bixi select {
+    text-align: center;
+    border-radius: 20px;
+    padding: 10px 20px; /* Egyező belső térköz a .box-szal */
+    border: 1px solid #ccc;
+    margin: 0; /* Margó eltávolítása */
+    width: 100%;
+    max-width: 150px; /* Maximális szélesség */
+    box-sizing: border-box;
+    height: 40px; /* Ugyanakkora magasság, mint a .box */
+    background: #ffffff;
+}
+
+/* Szortírozó stílusa */
+#szortirozas{
+    background: rgb(227, 227, 227);
+    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    width: 10%;
+}
+
+.szamos{
+    justify-content: center;
+}
+/* Keresősávot tartalmazó doboz */
+.box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 300px;
+    height: 45px; /* Ugyanakkora magasság, mint a szortírozó */
+    padding: 10px 20px; /* Egyező belső térköz */
+    cursor: pointer;
+    background: rgb(227, 227, 227);
+    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Keresőmező */
+.box input {
+    width: 0;
+    outline: none;
+    border: none;
+    font-weight: 500;
+    transition: none;
+    background: transparent;
+}
+
+.box input:focus,
+.box:hover input {
+    width: 100%; /* Kitágul a rendelkezésre álló helyre */
+}
+
+/* Kép a keresősávban */
+.bixi-image {
+    width: 24px;
+    height: 24px;
+}
+
+/* Reszponzív dizájn */
+@media (max-width: 600px) {
+    .bixi {
+        flex-direction: column; /* Kisebb képernyőn egymás alá kerülnek */
+        gap: 10px; /* Távolság az elemek között */
+    }
+
+    .bixi select,
+    .box {
+        width: 90%; /* Teljes szélesség kisebb képernyőkön */
+    }
+}
+
+/* Center-align the modal header text */
+#detailsModal .modal-header .modal-title {
+    text-align: center;
+    width: 100%; /* Ensure the title spans the entire header */
+}
+
+/* Bolden the labels in the modal body */
+#detailsModal .modal-body p strong {
+    font-weight: bold;
+    font-size: 1.1rem; /* Optional: slightly increase font size */
+}
+

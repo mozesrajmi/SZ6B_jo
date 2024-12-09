@@ -13,7 +13,12 @@ var menü_json = [{
     "ikon": "images/jomeret.png",
     "url": "status.html",
     "tip": 0
-  }];
+  },
+  {
+    "text": "Fizetés",
+    "ikon": "images/fizetes.png.jpg",
+    "url": "fizetes.html",
+    "tip": 0}];
 
 
 /* menü_json ból menüpontokat generál id="menu1_ul" ba
