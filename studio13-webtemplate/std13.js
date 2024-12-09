@@ -19,6 +19,8 @@ app.use(express.urlencoded({ extended: true })); // URL-encoded adatok feldolgoz
 
 
 
+//npm install node-schedule mysql
+
 
 app.post('/logout', (req, res) => {
   session_data = req.session;
@@ -264,7 +266,7 @@ app.get('/getLeftData', (req, res) => {
   });
 });
 
-
+/*
 //mentés státusz és ido és datum
 app.post('/updateStatus', (req, res) => {
   const { id, status, timestamp } = req.body;
@@ -289,56 +291,144 @@ app.post('/updateStatus', (req, res) => {
       res.json({ success: true, message: 'Státusz sikeresen frissítve!' });
   });
 });
-
-                                                                        /*HATALMAStesztek*/
+*/
+/*HATALMAStesztek*/
 app.post('/updateStatus', (req, res) => {
-const { id, status, timestamp } = req.body;
+  const { id, status, timestamp, year, month, day } = req.body;
 
-if (!id || !status || !timestamp) {
-return res.status(400).json({ error: 'Hiányzó adatok!' });
-}
+  if (!id || !status || !timestamp || !year || !month || !day) {
+      console.log('Hiányzó adatok!', { id, status, timestamp, year, month, day });
+      return res.status(400).json({ error: 'Hiányzó adatok!' });
+  }
 
-// Parse the timestamp into year, month, and day
-const date = new Date(timestamp);
-const year = date.getFullYear();
-const month = date.getMonth() + 1; // Month is zero-based
-const day = date.getDate();
+  // Meghatározzuk, hogy melyik dátum mezőt kell frissíteni az új státusz alapján
+  let dateField = '';
+  if (status === 'Előgondozott') {
+      dateField = `ELOGOND_DATUM = '${timestamp}',`;
+  } else if (status === 'Ellátott') {
+      dateField = `ELLATOTT_DATUM = '${timestamp}',`;
+  } else if (status === 'Távozott') {
+      dateField = `TAVOZOTT_DATUM = '${timestamp}',`;
+  }
 
-// SQL to update the `paciensek` table
-const updatePaciensekSql = `
-UPDATE paciensek
-SET STATUS = '${status}', ELOGOND_DATUM = '${timestamp}'
-WHERE TAJ = '${id}'
-`;
+  // Frissítsük a paciensek táblát az új státusszal és adott dátum mezővel
+  const updatePaciensekSql = `
+      UPDATE paciensek
+      SET STATUS = '${status}', ${dateField} ELOGOND_DATUM = ELOGOND_DATUM
+      WHERE TAJ = '${id}'
+  `;
 
-// SQL to insert or update the `ellatas` table
-const insertEllatasSql = `
-INSERT INTO ellatas (EV, HO, NAPOK)
-VALUES (${year}, ${month}, ${day})
-ON DUPLICATE KEY UPDATE
-NAPOK = CASE
-WHEN EV = ${year} AND HO = ${month} THEN '${day}' -- Update day if same year and month
-ELSE NAPOK
-END
-`;
+  DB.query(updatePaciensekSql, [], (updateResult, updateErr) => {
+      if (updateErr) {
+          console.error('Hiba a paciensek tábla frissítésekor:', updateErr);
+          return res.status(500).json({ error: 'Adatbázis hiba történt a státusz frissítése során.' });
+      }
 
-// Perform both queries in sequence
-DB.query(updatePaciensekSql, (err) => {
-if (err) {
-console.error('Error updating paciensek table:', err);
-return res.status(500).json({ error: 'Adatbázis hiba történt a paciensek frissítésekor.' });
-}
+      console.log('Paciensek tábla sikeresen frissítve.');
 
-DB.query(insertEllatasSql, (err) => {
-if (err) {
-  console.error('Error inserting into ellatas table:', err);
-  return res.status(500).json({ error: 'Adatbázis hiba történt az ellatas frissítésekor.' });
-}
+      // Csak akkor frissítjük az ellatas tábla adatait, ha az új státusz "Ellátott"
+      if (status === 'Ellátott') {
+          // Töltsük ki a napok mezőt
+          const daysArray = Array(day - 1).fill('0').join('') + '1';
 
-res.json({ success: true, message: 'Státusz és ellátás adatok sikeresen frissítve!' });
+          const updateEllatasSql = `
+              INSERT INTO ellatas (ID_PACIENS, EV, HO, NAPOK)
+              SELECT ID_PACIENS, ${year}, ${month}, '${daysArray}'
+              FROM paciensek
+              WHERE TAJ = '${id}'
+              ON DUPLICATE KEY UPDATE NAPOK = '${daysArray}'
+          `;
+
+          DB.query(updateEllatasSql, [], (ellatasResult, ellatasErr) => {
+              if (ellatasErr) {
+                  console.error('Hiba az ellatas tábla frissítésekor:', ellatasErr);
+                  return res.status(500).json({ error: 'Adatbázis hiba történt az ellatas táblázat frissítése során.' });
+              }
+
+              console.log('Ellátás tábla sikeresen frissítve.');
+              res.json({ success: true, message: 'Státusz és ellátás adatai sikeresen frissítve!' });
+          });
+      } else {
+          res.json({ success: true, message: 'Státusz sikeresen módosítva!' });
+      }
+  });
 });
+
+
+
+
+
+
+
+const schedule = require('node-schedule');
+
+// Napi feladat ütemezése éjfélkor
+schedule.scheduleJob('0 0 * * *', () => {
+    console.log('Napi Napok frissítés indítása...');
+
+    // SQL lekérdezés az "Ellátott" státuszú rekordokhoz
+    const selectQuery = `
+        SELECT paciensek.ID_PACIENS, ellatas.EV, ellatas.HO, ellatas.NAPOK
+        FROM paciensek
+        INNER JOIN ellatas ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE paciensek.STATUS = 'Ellátott'
+    `;
+
+    DB.query(selectQuery, (err, results) => {
+        if (err) {
+            console.error('Hiba az "Ellátott" rekordok lekérdezésekor:', err);
+            return;
+        }
+
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1; // Hónap (1 alapú)
+        const maxDaysInMonth = new Date(currentYear, currentMonth, 0).getDate(); // Hónap napjainak száma
+
+        results.forEach(record => {
+            const { ID_PACIENS, EV, HO, NAPOK } = record;
+
+            if (HO !== currentMonth || EV !== currentYear) {
+                // Csak az aktuális hónapot frissítjük
+                console.log(`Rekord kihagyva: ID_PACIENS=${ID_PACIENS}, EV=${EV}, HO=${HO}`);
+                return;
+            }
+
+            // Ellenőrizzük, hogy van-e még hely az adott hónapra
+            if (NAPOK.length >= maxDaysInMonth) {
+                console.log(`Hónap tele: ID_PACIENS=${ID_PACIENS}, EV=${EV}, HO=${HO}`);
+                return;
+            }
+
+            // Az utolsó számjegy alapján új nap érték hozzáadása (0–3 tartományban)
+            const lastDayValue = NAPOK.slice(-1); // Utolsó számjegy
+            const updatedNapok = NAPOK + lastDayValue; // Új érték
+
+            console.log(`Frissítés: ID_PACIENS=${ID_PACIENS}, Új NAPOK=${updatedNapok}`);
+
+            // Frissítjük az adatbázist
+            const updateQuery = `
+                UPDATE ellatas
+                SET NAPOK = '${updatedNapok}'
+                WHERE ID_PACIENS = ${ID_PACIENS} AND EV = ${currentYear} AND HO = ${currentMonth}
+            `;
+
+            DB.query(updateQuery, (err) => {
+                if (err) {
+                    console.error(`Hiba a NAPOK frissítésekor: ID_PACIENS=${ID_PACIENS}`, err);
+                } else {
+                    console.log(`Sikeres frissítés: ID_PACIENS=${ID_PACIENS}`);
+                }
+            });
+        });
+    });
 });
-});
+
+
+
+
+
+
                                                                                                                                     
 
 
@@ -358,43 +448,53 @@ app.get('/status', (req, res) => {
 
 // Új végpont a napok számokkal történő kiírásához
 app.get('/getTreatmentDays', (req, res) => {
-  const name = req.query.name;
+  const id = req.query.id; // ID-t kérjük a query paraméterből
 
-  // SQL lekérdezés a napok lekérésére
+  if (!id) {
+    return res.status(400).json({ error: 'A páciens ID hiányzik!' });
+  }
+
+  // SQL lekérdezés az ellátási napokhoz és hónapokhoz az "ellátott dátumtól" kezdve
   const query = `
     SELECT 
-        (ellatas.HO) AS hónap,
+        ellatas.HO AS hónap,
         ellatas.NAPOK
     FROM 
-        ellatas 
+        ellatas
     JOIN 
         paciensek ON ellatas.ID_PACIENS = paciensek.ID_PACIENS
     WHERE 
-        paciensek.NEV = '${name}';
+        ellatas.ID_PACIENS = ${id}
+        AND ellatas.HO >= paciensek.ELLATOTT_DATUM
+    ORDER BY 
+        ellatas.HO ASC;
 
   `;
 
   // Lekérdezés futtatása
-  DB.query(query, [], (results, err) => {
-      if (err) {
-          // Pontos adatbázishiba megjelenítése a konzolban
-          //console.error('Adatbázis hiba történt:', err.message); // Hiba üzenet a részletekkel
-          return res.status(500).json({ error: 'Adatbázis hiba', details: err.message });
-      }
+  DB.query(query, [], (json_data, err) => {
+    if (err) {
+      console.error('Adatbázis hiba történt:', err.message);
+      return res.status(500).json({ error: 'Adatbázis hiba', details: err.message });
+    }
 
-      if (results.length === 0) {
-          // Üres találat kezelése
-          //console.warn(`Nem található páciens a megadott névvel: ${name}`);
-          return res.status(404).json({ error: `Nem található páciens a megadott névvel: ${name}` });
-      }
-      var anyad11 = JSON.parse(results);
-      // Sikeres lekérdezés esetén napok visszaküldése
-      const daysString = anyad11.rows[0].napok;
-      res.json({ days: anyad11.rows});
+    const data = JSON.parse(json_data);
+
+    if (data.rows.length === 0) {
+      return res.status(404).json({ error: `Nem található releváns adat a megadott ID-val: ${id}` });
+    }
+
+    // Sikeres lekérdezés esetén napok visszaküldése
+    res.json({ days: data.rows });
   });
 });
 
-/*
+
+
+
+
+
+
 // Új végpont a napok számokkal történő kiírásához
 app.post('/addTreatmentDays', (req, res) => {
   const { name, hónap, napok } = req.body;
@@ -420,8 +520,8 @@ app.post('/addTreatmentDays', (req, res) => {
   });
 });
 
-*/
 
+/*
 // Új végpont az adott páciens ID-jének lekéréséhez TAJ alapján
 app.get('/getPatientIdByTaj', (req, res) => {
   const taj = req.query.taj; // TAJ lekérése a query paraméterekből
@@ -440,6 +540,39 @@ app.get('/getPatientIdByTaj', (req, res) => {
       res.json({ id });
   });
 });
+*/
+
+// Új végpont a státusz lekérdezésére TAJ szám alapján
+// Új végpont a státusz lekérdezésére ID alapján
+app.get('/getStatusById', (req, res) => {
+  const id = req.query.id; // ID-t kérjük a query paraméterből
+
+  if (!id) {
+      return res.status(400).json({ error: 'A páciens ID hiányzik!' });
+  }
+
+  // SQL lekérdezés az ID alapján
+  const sql = `SELECT STATUS FROM paciensek WHERE ID_PACIENS = '${id}' LIMIT 1`;
+
+  DB.query(sql, [], (json_data, error) => {
+      if (error) {
+          console.error('Adatbázis hiba:', error);
+          return res.status(500).json({ error: 'Adatbázis hiba történt.' });
+      }
+
+      const data = JSON.parse(json_data);
+      if (data.rows.length === 0) {
+          return res.status(404).json({ error: 'Nem található páciens a megadott ID-val!' });
+      }
+
+      const status = data.rows[0].STATUS;
+      res.json({ status }); // Státusz visszaküldése
+  });
+});
+
+
+
+
 
 // Új végpont az adott páciens ID-jének lekéréséhez TAJ alapján
 app.get('/getPatientIdByTaj', (req, res) => {
@@ -494,6 +627,7 @@ app.get('/getLastMonthAndDays', (req, res) => {
       res.json({ lastMonth, lastDigit });
   });
 });
+
 
 app.post('/fillMissingMonths', (req, res) => {
   const { id } = req.body; // Páciens ID-t a kérésből olvassuk ki
@@ -608,6 +742,7 @@ app.get('/getLastMonthAndDays', (req, res) => {
         res.json({ lastMonth, lastDigit });
     });
 });
+
 
 
 /* ---------------------------- log 'fájl' naplózás ------------------  */

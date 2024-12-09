@@ -165,26 +165,51 @@
     loadData('Várakozó');
     updateActiveButton('waitingButton');
 
-    // Button click events
-    $('#waitingButton').on('click', function () {
-        loadData('Várakozó');
-        updateActiveButton('waitingButton');
-    });
+ // Button click events
+$('#waitingButton').on('click', function () {
+    checkAndLoadData('Várakozó', 'waitingButton');
+});
 
-    $('#preCareButton').on('click', function () {
-        loadData('Előgondozott');
-        updateActiveButton('preCareButton');
-    });
+$('#preCareButton').on('click', function () {
+    checkAndLoadData('Előgondozott', 'preCareButton');
+});
 
-    $('#careButton').on('click', function () {
-        loadData('Ellátott');
-        updateActiveButton('careButton');
-    });
+$('#careButton').on('click', function () {
+    checkAndLoadData('Ellátott', 'careButton');
+});
 
-    $('#leftButton').on('click', function () {
-        loadData('Távozott'); // Load rows with "Távozott" status
-        updateActiveButton('leftButton');
+$('#leftButton').on('click', function () {
+    checkAndLoadData('Távozott', 'leftButton');
+});
+
+// Function to check if there are records for a given status and load data
+function checkAndLoadData(status, buttonId) {
+    const endpoint = status === 'Várakozó'
+        ? '/getWaitingData'
+        : status === 'Előgondozott'
+        ? '/getPreCareData'
+        : status === 'Ellátott'
+        ? '/getCareData'
+        : '/getLeftData'; // Default to "Távozott"
+
+    $.ajax({
+        url: endpoint,
+        method: 'GET',
+        success: function (data) {
+            if (data.rows && data.rows.length > 0) {
+                loadData(status);
+                updateActiveButton(buttonId);
+            } else {
+                alert(`Még nincs páciens "${status}" státusszal!`);
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("Hiba történt az adatok lekérése során:", status, error);
+            alert("Nem sikerült betölteni az adatokat. Kérlek, próbáld újra később.");
+        }
     });
+}
+
 
     // Open first modal
     window.openModal = function (name, taj, birthDate, status) {
@@ -201,11 +226,12 @@
     };
 
     // Open second modal when clicking "Státusz változtatás"
-    $('#changeStatusButton').on('click', function () {
+   // Open second modal when clicking "Státusz változtatás"
+$('#changeStatusButton').on('click', function () {
     $('#currentStatus').text('Jelenlegi státusz: ' + currentStatus);
 
     // Normalize currentStatus for comparison
-    const normalizedStatus = currentStatus.toLowerCase(); 
+    const normalizedStatus = currentStatus.toLowerCase();
     console.log('Current Status:', normalizedStatus);
 
     const newStatusDropdown = $('#newStatus');
@@ -215,11 +241,15 @@
         console.log('Adding option: Előgondozott');
         newStatusDropdown.append('<option value="Előgondozott">Előgondozott</option>');
     } else if (normalizedStatus === 'előgondozott') {
-        console.log('Adding option: Ellátott');
+        console.log('Adding options: Várakozó, Ellátott');
+        newStatusDropdown.append('<option value="Várakozó">Várakozó</option>');
         newStatusDropdown.append('<option value="Ellátott">Ellátott</option>');
     } else if (normalizedStatus === 'ellátott') {
         console.log('Adding option: Távozott');
         newStatusDropdown.append('<option value="Távozott">Távozott</option>');
+    } else if (normalizedStatus === 'távozott') {
+        console.log('Adding option: Várakozó');
+        newStatusDropdown.append('<option value="Várakozó">Várakozó</option>');
     } else {
         console.log('No matching status for options.');
     }
@@ -238,7 +268,7 @@
 
     // Save new status
     // Format the date to MySQL DATETIME format
-function formatToMySQLDatetime(date) {
+    function formatToMySQLDatetime(date) {
     const d = new Date(date);
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0'); // Ensure 2 digits
@@ -250,41 +280,72 @@ function formatToMySQLDatetime(date) {
 }
 
 $('#saveNewStatusButton').on('click', function () {
-    const newStatus = $('#newStatus').val();
-    if (newStatus && newStatus !== currentStatus) {
-        const currentDateTime = formatToMySQLDatetime(new Date()); // Format current date
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth() + 1; // Month is zero-indexed
-        const currentDay = currentDate.getDate();
+   const newStatus = $('#newStatus').val(); // A kiválasztott új státusz
+    const currentTable = $(`#table-${currentStatus.toLowerCase()}`); // Jelenlegi státusz táblázata
+    const currentTableRows = currentTable.find('tbody tr');
+    const  currentRowCount = currentTableRows.length;
+
+    const currentDate = new Date(); // Aktuális dátum
+    const currentMonth = currentDate.getMonth() + 1; // Hónap (1 alapú)
+    const currentYear = currentDate.getFullYear(); // Év
+    const currentDay = currentDate.getDate(); // Nap
+
+    if (newStatus) {
+        const requestData = {
+            id: selectedId,
+            status: newStatus,
+            timestamp: formatToMySQLDatetime(currentDate),
+            year: currentYear,
+            month: currentMonth,
+            day: currentDay
+        };
 
         $.ajax({
-            url: '/updateStatus',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                id: selectedId, // Assuming TAJ or another unique identifier
-                status: newStatus,
-                timestamp: currentDateTime,
-                month: currentMonth,
-                day: currentDay,
-            }),
-            success: function (response) {
-                alert('Státusz sikeresen módosítva!');
-                currentStatus = newStatus;
+    url: '/updateStatus',
+    method: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify(requestData),
+    success: function (response) {
+        alert(response.message || 'Státusz sikeresen módosítva!');
+        $('#changeStatusModal').modal('hide');
 
-                // Reload table or perform additional UI updates
-                loadData(activeButton === 'waitingButton' ? 'Várakozó' : activeButton);
-                $('#changeStatusModal').modal('hide');
-            },
-            error: function (xhr, status, error) {
-                alert('Hiba történt a státusz módosítása során!');
-                console.error('Error:', status, error);
-            },
-        });
+        // Táblázat sorának eltávolítása az aktuális státusz alapján
+        const rows = table.rows().data().toArray();
+        const updatedRows = rows.filter(row => !row[1].includes(selectedId)); // Kizárjuk a módosított páciens TAJ számát
+        table.clear();
+        table.rows.add(updatedRows).draw();
+
+        // Ellenőrizzük, hogy a táblázat üres lett-e
+        if (updatedRows.length === 0) {
+            alert(`Már nincs páciens a "${currentStatus}" státuszban.`);
+        }
+    },
+    error: function (xhr, status, error) {
+        alert('Hiba történt a státusz módosítása során!');
+        console.error('Error:', status, error);
+    }
+});
+
     } else {
         alert('Válassz egy új státuszt!');
     }
 });
+
+// Táblázat betöltése
+function loadTable(status) {
+    $(`#table-${status}`).show().siblings('.table-container').hide(); // Csak a megfelelő táblázatot mutatjuk
+    console.log(`Táblázat betöltve: ${status}`);
+}
+
+
+//gombok vizsgálata
+
+
+
+
+
+
+
 
 
 
