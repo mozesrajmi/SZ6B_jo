@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Kezelési Napok</title>
+        <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <link rel="stylesheet" href="fizetesprog.css">
+    </head>
+<body>
+    <div class="container">
+        <h2 id="patientNameTitle">Kezelési napok</h2>
+        <table id="daysTable" class="display table table-striped table-bordered" style="width:100%">
+            <thead>
+                <tr id="daysHeaderRow">
+                    <th>Hónap</th>
+                    <!-- Napok oszlopai dinamikusan kerülnek ide -->
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dinamikusan generált sorok -->
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-start mb-3"></div>
+            <button type="button" class="btn btn-primary">Havi fizetés</button>
+        </div>
+    </div>
+
+<script type="text/javascript">
+    var patientId = null; // Globális változó
+    var patientName = null; // Globális változó
+
+   document.addEventListener('DOMContentLoaded', function () {
+    // Extract URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const patientId = urlParams.get('id'); // Extract patient ID
+    const patientName = urlParams.get('name'); // Extract patient name
+
+    if (!patientId) {
+        alert('Nem található páciens azonosító!');
+        return;
+    }
+
+    // Update the title with the patient's name
+    if (patientName) {
+        document.getElementById('patientNameTitle').textContent = `${patientName} kezelési napjai`;
+    } else {
+        document.getElementById('patientNameTitle').textContent = 'Névtelen páciens kezelési napjai';
+    }
+
+    // Load the treatment days
+    loadTreatmentDays(patientId);
+});
+
+
+    function loadTreatmentDays(patientId) {
+    $.ajax({
+        url: '/getTreatmentDays',
+        method: 'GET',
+        data: { id: patientId },
+        success: function (response) {
+            if (response && response.days) {
+                const tableHeaderRow = $('#daysHeaderRow');
+                const tableBody = $('#daysTable tbody');
+
+                tableBody.empty();
+                tableHeaderRow.empty();
+
+                // Fejléc feltöltése
+                tableHeaderRow.append('<th>Hónap</th>');
+                for (let day = 1; day <= 31; day++) {
+                    tableHeaderRow.append(`<th>${day}</th>`);
+                }
+
+                // Hónapok szöveges nevei
+                const monthNames = {
+                    "1": "Január",
+                    "2": "Február",
+                    "3": "Március",
+                    "4": "Április",
+                    "5": "Május",
+                    "6": "Június",
+                    "7": "Július",
+                    "8": "Augusztus",
+                    "9": "Szeptember",
+                    "10": "Október",
+                    "11": "November",
+                    "12": "December"
+                };
+
+                // Tooltip szövegek és színek
+                const statusDescriptions = {
+                    '0': 'Nincs',
+                    '1': 'Jelen van',
+                    '2': 'Kórházban tartózkodik',
+                    '3': 'Állományban van, de otthon tartózkodik'
+                };
+                const colorMap = {
+                    '0': '#fe8a8a', // Piros
+                    '1': '#cdfcba', // Zöld
+                    '2': '#96d2f9', // Kék
+                    '3': '#fffd88', // Sárga
+                };
+
+                // Sorok hozzáadása
+                response.days.forEach(dayRecord => {
+                    const row = $('<tr></tr>');
+                    const monthName = monthNames[parseInt(dayRecord.hónap, 10)] || "Ismeretlen";
+                    row.append(`<td>${monthName}</td>`);
+
+                    const daysArray = dayRecord.NAPOK.split('');
+                    for (let i = 0; i < 31; i++) {
+                        const dayValue = daysArray[i] || '';
+                        const color = colorMap[dayValue] || '';
+                        const tooltipText = statusDescriptions[dayValue] || 'Ismeretlen';
+
+                        const cell = $(`<td>${dayValue}</td>`);
+
+                        // Szín beállítása
+                        if (color) {
+                            cell.css('background-color', color);
+                        }
+
+                        // Tooltip események
+                        cell.hover(
+                            function (e) {
+                                const tooltip = $('<div class="custom-tooltip"></div>')
+                                    .text(tooltipText)
+                                    .appendTo('body');
+
+                                $(this).on('mousemove', function (e) {
+                                    tooltip.css({
+                                        left: e.pageX + 10 + 'px',
+                                        top: e.pageY + 10 + 'px'
+                                    });
+                                });
+                            },
+                            function () {
+                                $('.custom-tooltip').remove(); // Tooltip eltávolítása
+                            }
+                        );
+
+                        row.append(cell);
+                    }
+
+                    tableBody.append(row);
+                });
+
+                // DataTable inicializálása
+                $('#daysTable').DataTable({
+                    searching: false,
+                    paging: false,
+                    info: false,
+                    ordering: false,
+                    responsive: true,
+                    destroy: true,
+                });
+            } else {
+                alert('Nincs adat a kiválasztott pácienshez.');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Hiba történt az adatok betöltése során:', status, error);
+        }
+    });
+}
+
+</script>    
+</body>
+</html>

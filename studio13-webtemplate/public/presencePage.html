@@ -212,15 +212,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-
 $(document).ready(function () {
     const currentDate = new Date();
-    const currentMonth = currentDate.getMonth() + 1; // Aktuális hónap (1-től indexelve)
+    const currentDay = currentDate.getDate(); // Today's day (e.g., 7)
+    const currentMonth = currentDate.getMonth() + 1; // Current month (1-indexed)
 
-    // Táblázat cellájának kattintási eseménye
+    // Table cell click event
     $('#daysTable tbody').on('click', 'td', function () {
         const row = $(this).closest('tr');
-        const monthText = row.find('td:first').text().trim(); // Az első oszlop a hónap neve
+        const monthText = row.find('td:first').text().trim(); // Get the month name
         const monthNames = {
             "Január": 1,
             "Február": 2,
@@ -235,25 +235,32 @@ $(document).ready(function () {
             "November": 11,
             "December": 12
         };
-        const selectedMonth = monthNames[monthText];
-        const dayIndex = $(this).index(); // A nap indexe (oszlop)
+        const selectedMonth = monthNames[monthText]; // Convert month name to number
+        const dayIndex = $(this).index(); // Get the day index (column index in the row)
 
-        // Csak akkor engedélyezzük a módosítást, ha a hónap az aktuális
+        // Prevent editing for days outside the current month
         if (selectedMonth !== currentMonth) {
-            alert('Csak a jelenlegi hónap napjait lehet módosítani!');
+            alert('Csak a jelenlegi hónap napjai szerkeszthetők!');
             return;
         }
 
-        const selectedValue = $(this).text().trim(); // A cella értéke
+        // Prevent editing beyond today's date in the current month
+        if (selectedMonth === currentMonth && dayIndex > currentDay) {
+            alert('A mai dátumnál későbbi napokat nem lehet módosítani!');
+            return;
+        }
+
+        // Continue with the rest of the logic for editing
+        const selectedValue = $(this).text().trim(); // Get the current value
         $('#currentDayValue').text(selectedValue || 'Nincs érték');
         $('#dayValueInput').val(selectedValue || 0);
         $('#editMonthModal').modal('show');
 
-        // Mentés gomb esemény
+        // Save button event
         $('#saveDayEditBtn').off('click').on('click', () => {
             const newValue = $('#dayValueInput').val();
             if (newValue >= 0 && newValue <= 3) {
-                // Frissítjük a táblázat celláját
+                // Update the cell value
                 const colorMap = {
                     '0': '#fe8a8a',
                     '1': '#cdfcba',
@@ -261,13 +268,11 @@ $(document).ready(function () {
                     '3': '#fffd88',
                 };
                 $(this).css('background-color', colorMap[newValue] || '');
-
-                // Frissítjük a cella értékét
                 $(this).text(newValue);
 
-                // API hívás a frissített érték mentésére
+                // Make an API call to save the updated value
                 $.ajax({
-                    url: '/updateDayValue', // A megfelelő végpont
+                    url: '/updateDayValue', // Replace with the correct endpoint
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -293,6 +298,9 @@ $(document).ready(function () {
 });
 
 
+
+
+
 // Kép eseménykezelője
 document.addEventListener('DOMContentLoaded', function () {
     // Click esemény a képre
@@ -304,7 +312,14 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-
+// Havi fizetés gomb eseménykezelője
+  // Set the button click event
+  const paymentButton = document.querySelector('.btn-primary');
+    paymentButton.addEventListener('click', function () {
+        // Construct the URL for fizetesprog.html
+        const paymentUrl = `fizetesprog.html?id=${encodeURIComponent(patientId)}&name=${encodeURIComponent(patientName)}`;
+        window.location.href = paymentUrl;
+    });
     
 
        

@@ -7,7 +7,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
-    <link rel="stylesheet" href="datatables.css">
+    <link rel="stylesheet" href="fizetes.css">
 </head>
 
 <body>
@@ -126,17 +126,13 @@
         });
 
         // Modal feltöltése és megnyitása
-        window.openModal = function (name, id, taj, szuldatum) {
-        // Populate the modal fields without duplication
+        selectedName = name; // Név mentése
         $('#modalName').text(name);
         $('#modalTaj').text(taj);
         $('#modalSzuldatum').text(szuldatum);
         // Display the modal
         $('#detailsModal').modal('show');
-};
-
     };
-
 
 
     $('#szortirozas').on('change', function () {
@@ -153,6 +149,39 @@
     }
     table.search(this.value).draw(); // DataTable's search method filters on all columns
     });
+
+
+
+    // Redirect to fizetesprog.html
+    $('#fizetestovButton').on('click', function () {
+    if (selectedId) {
+        // Lekérdezés az ID alapján
+        $.ajax({
+            url: '/getTreatmentDays',
+            method: 'GET',
+            data: { id: selectedId },
+            success: function (response) {
+                if (response && response.days && response.days.length > 0) {
+                    // Továbbirányítás, ha vannak ellátási napok
+                    const url = `/fizetesprog?id=${encodeURIComponent(selectedId)}&name=${encodeURIComponent(selectedName)}`;
+                    window.location.href = url;
+                } else {
+                    // Ha nincsenek ellátási napok
+                    alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
+                }
+            },
+            error: function (xhr) {
+                if (xhr.status === 404) {
+                    alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
+                } else {
+                    alert('Hiba történt az adatok lekérésekor. Próbáld újra később.');
+                }
+            }
+        });
+    } else {
+        alert('Nincs kiválasztott páciens!');
+    }
+});
 
 
 

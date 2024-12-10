@@ -427,13 +427,6 @@ schedule.scheduleJob('0 0 * * *', () => {
 
 
 
-
-
-                                                                                                                                    
-
-
-
-
 app.get('/presencePage', (req, res) => {
   const patientName = req.query.name;
   res.sendFile(__dirname + '/public/presencePage.html');
@@ -444,7 +437,10 @@ app.get('/status', (req, res) => {
   res.sendFile(__dirname + '/public/status.html');
 });
 
-
+app.get('/fizetesprog', (req, res) => {
+  const patientName = req.query.name;
+  res.sendFile(__dirname + '/public/fizetesprog.html');
+});
 
 // Új végpont a napok számokkal történő kiírásához
 // Új végpont a napok számokkal történő kiírásához
