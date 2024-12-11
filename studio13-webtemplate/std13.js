@@ -328,30 +328,68 @@ app.post('/updateStatus', (req, res) => {
 
       // Csak akkor frissítjük az ellatas tábla adatait, ha az új státusz "Ellátott"
       if (status === 'Ellátott') {
-          // Töltsük ki a napok mezőt
-          const daysArray = Array(day - 1).fill('0').join('') + '1';
+          // Nyugdíj lekérése és kiírása
+          // Nyugdíj lekérése és kiírása
+          const fetchPensionSql = `
+    SELECT NYUGDIJ FROM paciensek WHERE TAJ = '${id}'`;
+  console.log('SQL Lekérdezés:', fetchPensionSql);
+  DB.query(fetchPensionSql, [], (pensionResult, pensionErr) => {
+    if (pensionErr) {
+        console.error('Hiba a nyugdíj lekérdezésekor:', pensionErr);
+    } else {
+        console.log('Lekérdezés eredménye (eredeti):', pensionResult);
 
-          const updateEllatasSql = `
-              INSERT INTO ellatas (ID_PACIENS, EV, HO, NAPOK)
-              SELECT ID_PACIENS, ${year}, ${month}, '${daysArray}'
-              FROM paciensek
-              WHERE TAJ = '${id}'
-              ON DUPLICATE KEY UPDATE NAPOK = '${daysArray}'
-          `;
+        // Ellenőrizzük, hogy szükséges-e JSON.parse
+        let rows;
+        if (typeof pensionResult === 'string') {
+            try {
+                const parsedResult = JSON.parse(pensionResult);
+                rows = parsedResult.rows || [];
+            } catch (parseError) {
+                console.error('Hiba a lekérdezés eredményének feldolgozása során:', parseError);
+                rows = [];
+            }
+        } else {
+            rows = pensionResult.rows || [];
+        }
 
-          DB.query(updateEllatasSql, [], (ellatasResult, ellatasErr) => {
-              if (ellatasErr) {
-                  console.error('Hiba az ellatas tábla frissítésekor:', ellatasErr);
-                  return res.status(500).json({ error: 'Adatbázis hiba történt az ellatas táblázat frissítése során.' });
-              }
+        console.log('Lekérdezés eredménye (feldolgozott):', rows);
 
-              console.log('Ellátás tábla sikeresen frissítve.');
-              res.json({ success: true, message: 'Státusz és ellátás adatai sikeresen frissítve!' });
-          });
-      } else {
-          res.json({ success: true, message: 'Státusz sikeresen módosítva!' });
+        if (rows.length > 0 && rows[0].NYUGDIJ !== undefined) {
+            const pension = rows[0].NYUGDIJ;
+            console.log(`Páciens ID: ${id}, Nyugdíj: ${pension}`);
+        } else {
+            console.log(`Páciens ID: ${id}, nyugdíj érték nem található vagy üres.`);
+        }
+
+      
+    }
+});
+  // Töltsük ki a napok mezőt
+  const daysArray = Array(day - 1).fill('0').join('') + '1';
+
+  const updateEllatasSql = `
+      INSERT INTO ellatas (ID_PACIENS, EV, HO, NAPOK)
+      SELECT ID_PACIENS, ${year}, ${month}, '${daysArray}'
+      FROM paciensek
+      WHERE TAJ = '${id}'
+      ON DUPLICATE KEY UPDATE NAPOK = '${daysArray}'
+  `;
+
+  DB.query(updateEllatasSql, [], (ellatasResult, ellatasErr) => {
+      if (ellatasErr) {
+          console.error('Hiba az ellatas tábla frissítésekor:', ellatasErr);
+          return res.status(500).json({ error: 'Adatbázis hiba történt az ellatas táblázat frissítése során.' });
       }
+
+      console.log('Ellátás tábla sikeresen frissítve.');
+      res.json({ success: true, message: 'Státusz és ellátás adatai sikeresen frissítve!' });
   });
+  } else {
+    res.json({ success: true, message: 'Státusz sikeresen módosítva!' });
+  }
+  });
+
 });
 
 
