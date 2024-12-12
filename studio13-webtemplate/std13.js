@@ -328,69 +328,88 @@ app.post('/updateStatus', (req, res) => {
 
       // Csak akkor frissítjük az ellatas tábla adatait, ha az új státusz "Ellátott"
       if (status === 'Ellátott') {
-          // Nyugdíj lekérése és kiírása
-          // Nyugdíj lekérése és kiírása
           const fetchPensionSql = `
-    SELECT NYUGDIJ FROM paciensek WHERE TAJ = '${id}'`;
-  console.log('SQL Lekérdezés:', fetchPensionSql);
-  DB.query(fetchPensionSql, [], (pensionResult, pensionErr) => {
-    if (pensionErr) {
-        console.error('Hiba a nyugdíj lekérdezésekor:', pensionErr);
-    } else {
-        console.log('Lekérdezés eredménye (eredeti):', pensionResult);
+              SELECT NYUGDIJ FROM paciensek WHERE TAJ = '${id}'`;
+          console.log('SQL Lekérdezés:', fetchPensionSql);
 
-        // Ellenőrizzük, hogy szükséges-e JSON.parse
-        let rows;
-        if (typeof pensionResult === 'string') {
-            try {
-                const parsedResult = JSON.parse(pensionResult);
-                rows = parsedResult.rows || [];
-            } catch (parseError) {
-                console.error('Hiba a lekérdezés eredményének feldolgozása során:', parseError);
-                rows = [];
-            }
-        } else {
-            rows = pensionResult.rows || [];
-        }
+          DB.query(fetchPensionSql, [], (pensionResult, pensionErr) => {
+              if (pensionErr) {
+                  console.error('Hiba a nyugdíj lekérdezésekor:', pensionErr);
+              } else {
+                  console.log('Lekérdezés eredménye (eredeti):', pensionResult);
 
-        console.log('Lekérdezés eredménye (feldolgozott):', rows);
+                  let rows;
+                  if (typeof pensionResult === 'string') {
+                      try {
+                          const parsedResult = JSON.parse(pensionResult);
+                          rows = parsedResult.rows || [];
+                      } catch (parseError) {
+                          console.error('Hiba a lekérdezés eredményének feldolgozása során:', parseError);
+                          rows = [];
+                      }
+                  } else {
+                      rows = pensionResult.rows || [];
+                  }
 
-        if (rows.length > 0 && rows[0].NYUGDIJ !== undefined) {
-            const pension = rows[0].NYUGDIJ;
-            console.log(`Páciens ID: ${id}, Nyugdíj: ${pension}`);
-        } else {
-            console.log(`Páciens ID: ${id}, nyugdíj érték nem található vagy üres.`);
-        }
+                  console.log('Lekérdezés eredménye (feldolgozott):', rows);
 
-      
-    }
-});
-  // Töltsük ki a napok mezőt
-  const daysArray = Array(day - 1).fill('0').join('') + '1';
+                  if (rows.length > 0 && rows[0].NYUGDIJ !== undefined) {
+                      const pension = parseFloat(rows[0].NYUGDIJ);
+                      const daysInYear = (new Date(year, 11, 31) - new Date(year, 0, 0)) / (1000 * 60 * 60 * 24);
+                      const dailyFee = Math.floor((pension * 0.6) * 12 / daysInYear);
 
-  const updateEllatasSql = `
-      INSERT INTO ellatas (ID_PACIENS, EV, HO, NAPOK)
-      SELECT ID_PACIENS, ${year}, ${month}, '${daysArray}'
-      FROM paciensek
-      WHERE TAJ = '${id}'
-      ON DUPLICATE KEY UPDATE NAPOK = '${daysArray}'
-  `;
+                      console.log(`Nyugdíj összege: ${pension}`);
+                      console.log(`Éves napok száma: ${daysInYear}`);
+                      console.log(`Napidíj képlete: Math.floor((${pension} * 0.6) * 12 / ${daysInYear})`);
+                      console.log(`Napidíj: ${dailyFee}`);
 
-  DB.query(updateEllatasSql, [], (ellatasResult, ellatasErr) => {
-      if (ellatasErr) {
-          console.error('Hiba az ellatas tábla frissítésekor:', ellatasErr);
-          return res.status(500).json({ error: 'Adatbázis hiba történt az ellatas táblázat frissítése során.' });
+                      console.log(`Páciens ID: ${id}, Nyugdíj: ${pension}, Napidíj: ${dailyFee}`);
+
+                      // Frissítsük a napidíjat az adatbázisban
+                      const updateDailyFeeSql = `
+                          UPDATE ellatas
+                          SET NAPIDIJ = ${dailyFee}
+                          WHERE ID_PACIENS = (SELECT ID_PACIENS FROM paciensek WHERE TAJ = '${id}')
+                      `;
+
+                      DB.query(updateDailyFeeSql, [], (updateDailyFeeResult, updateDailyFeeErr) => {
+                          if (updateDailyFeeErr) {
+                              console.error('Hiba a napidíj frissítésekor:', updateDailyFeeErr);
+                          } else {
+                              console.log('Napidíj sikeresen frissítve az adatbázisban.');
+                          }
+                      });
+                  } else {
+                      console.log(`Páciens ID: ${id}, nyugdíj érték nem található vagy üres.`);
+                  }
+              }
+          });
+
+          const daysArray = Array(day - 1).fill('0').join('') + '1';
+
+          const updateEllatasSql = `
+              INSERT INTO ellatas (ID_PACIENS, EV, HO, NAPOK)
+              SELECT ID_PACIENS, ${year}, ${month}, '${daysArray}'
+              FROM paciensek
+              WHERE TAJ = '${id}'
+              ON DUPLICATE KEY UPDATE NAPOK = '${daysArray}'
+          `;
+
+          DB.query(updateEllatasSql, [], (ellatasResult, ellatasErr) => {
+              if (ellatasErr) {
+                  console.error('Hiba az ellatas tábla frissítésekor:', ellatasErr);
+                  return res.status(500).json({ error: 'Adatbázis hiba történt az ellatas táblázat frissítése során.' });
+              }
+
+              console.log('Ellátás tábla sikeresen frissítve.');
+              res.json({ success: true, message: 'Státusz és ellátás adatai sikeresen frissítve!' });
+          });
+      } else {
+          res.json({ success: true, message: 'Státusz sikeresen módosítva!' });
       }
-
-      console.log('Ellátás tábla sikeresen frissítve.');
-      res.json({ success: true, message: 'Státusz és ellátás adatai sikeresen frissítve!' });
   });
-  } else {
-    res.json({ success: true, message: 'Státusz sikeresen módosítva!' });
-  }
-  });
-
 });
+
 
 
 
