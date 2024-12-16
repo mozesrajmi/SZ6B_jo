@@ -25,7 +25,7 @@
             </tbody>
         </table>
         <div class="d-flex justify-content-start mb-3"></div>
-            <button type="button" class="btn btn-primary">Havi fizetés</button>
+            <button type="button" id="calculateHospitalDays" class="btn btn-primary">Havi fizetés</button>
         </div>
     </div>
 
@@ -165,6 +165,62 @@
         error: function (xhr, status, error) {
             console.error('Hiba történt az adatok betöltése során:', status, error);
         }
+    });
+
+    $(document).ready(function () {
+        $('#calculateHospitalDays').on('click', function () {
+            let totalHospitalDays = 0;
+            let totalReservationDays = 0;
+
+            $('#daysTable tbody tr').each(function (rowIndex) {
+                $(this).find('td').each(function (colIndex) {
+                    if (colIndex > 0) { // Skip the first column (Hónap)
+                        const cellValue = $(this).text();
+                        if (cellValue === '2') {
+                            totalHospitalDays++;
+                        } else if (cellValue === '3') { // Assuming '3' represents reservation days
+                            totalReservationDays++;
+                        }
+                    }
+                });
+            });
+
+            console.log(`Összes korházban töltött nap: ${totalHospitalDays}`);
+            console.log(`Összes helyfoglalón töltött nap: ${totalReservationDays}`);
+            $.ajax({
+                url: '/getNapidij',
+                method: 'GET',
+                data: { id: patientId },
+                success: function (response) {
+                         let napidij = response.napidij;
+                    if (napidij) {
+                        console.log(`Original napidij: ${napidij}`);
+                        if (totalHospitalDays >= 40) {
+                            console.log('Applying 40% reduction for hospital days >= 40');
+                            napidij *= 0.4; // Reduce napidij to 40% of the original
+                        } else if (totalHospitalDays < 40) {
+                            console.log('Applying 20% reduction for hospital days < 40');
+                            napidij *= 0.2; // Reduce napidij to 20% of the original
+                        }
+
+                        if (totalReservationDays >= 40) {
+                            console.log('Applying 60% reduction for reservation days >= 40');
+                            napidij *= 0.6; // Reduce napidij to 60% for 40 or more reservation days
+                        } else if (totalReservationDays < 40) {
+                            console.log('Applying 20% reduction for reservation days < 40');
+                            napidij *= 0.2; // Reduce napidij to 20% for less than 40 reservation days
+                        }
+
+                        console.log(`Updated napidij after calculations: ${napidij}`);
+                    } else {
+                        console.error('Napidij not found for the patient.');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching napidij:', error);
+                }
+            });
+        });
     });
 }
 

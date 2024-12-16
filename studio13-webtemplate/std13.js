@@ -412,6 +412,36 @@ app.post('/updateStatus', (req, res) => {
 
 
 
+// Endpoint to get napidij for a patient
+app.get('/getNapidij', (req, res) => {
+  const patientId = req.query.id; // Retrieve the patient ID from query parameters
+
+  if (!patientId) {
+      return res.status(400).json({ error: 'A páciens ID hiányzik!' });
+  }
+
+  const query = `
+      SELECT NAPIDIJ
+      FROM ellatas
+      WHERE ID_PACIENS = '${patientId}'
+      LIMIT 1;
+  `;
+
+  DB.query(query, (err, results) => {
+      if (err) {
+          console.error('Adatbázis hiba a napidij lekérdezésekor:', err);
+          return res.status(500).json({ error: 'Adatbázis hiba történt.' });
+      }
+
+      if (results.length === 0) {
+          return res.status(404).json({ error: 'A páciens napidíja nem található!' });
+      }
+
+      const napidij = results[0].NAPIDIJ;
+      res.json({ napidij });
+  });
+});
+
 
 
 
