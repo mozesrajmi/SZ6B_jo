@@ -532,42 +532,42 @@ app.get('/fizetesprog', (req, res) => {
 // Új végpont a napok számokkal történő kiírásához
 // Új végpont a napok számokkal történő kiírásához
 app.get('/getTreatmentDays', (req, res) => {
-  const id = req.query.id; // ID a query paraméterből
+  const id = req.query.id; 
+  const year = req.query.year || new Date().getFullYear(); 
 
   if (!id) {
-      return res.status(400).json({ error: 'A páciens ID hiányzik!' });
+      return res.status(400).json({ error: 'Páciens ID megadása kötelező!' });
   }
+
+  console.log(`Adatlekérdezés év alapján: ${year}`); // Ellenőrzés konzolban
 
   const query = `
       SELECT 
-          ellatas.HO AS hónap, 
-          ellatas.NAPOK
+          HO AS hónap, 
+          NAPOK 
       FROM 
-          ellatas
-      INNER JOIN 
-          paciensek 
-      ON 
-          ellatas.ID_PACIENS = paciensek.ID_PACIENS
+          ellatas 
       WHERE 
-          ellatas.ID_PACIENS = ${id}
-          AND paciensek.ELOGOND_DATUM IS NOT NULL
+          ID_PACIENS = '${id}' 
+          AND EV = '${year}'
+      ORDER BY HO ASC;
   `;
 
-  DB.query(query, [], (json_data, error) => {
-      if (error) {
-          console.error('Adatbázis hiba történt:', error.message);
-          return res.status(500).json({ error: 'Adatbázis hiba', details: error.message });
+  DB.query(query, (err, results) => {
+      if (err) {
+          console.error('Adatbázis hiba:', err);
+          return res.status(500).json({ error: 'Adatbázis hiba történt!' });
       }
 
-      const data = JSON.parse(json_data);
-
-      if (!data.rows.length) {
-          return res.status(404).json({ error: 'Ehhez a pácienshez nem tartoznak ellátási napok.' });
+      if (results.length === 0) {
+          return res.status(404).json({ error: 'Nincs adat a kiválasztott évhez!' });
       }
 
-      res.json({ days: data.rows });
+      res.json({ days: results });
   });
 });
+
+
 
 
 app.post('/updateDayValue', (req, res) => {
@@ -853,6 +853,46 @@ app.get('/getLastMonthAndDays', (req, res) => {
         const lastDigit = data.rows[0].lastDigit;
         res.json({ lastMonth, lastDigit });
     });
+});
+
+
+// Új végpont: Kezelési napok lekérése adott évre
+app.get('/getTreatmentDaysByYear', (req, res) => {
+  const id = req.query.id; // Páciens ID
+  const year = req.query.year; // Kiválasztott év
+
+  // Ellenőrzések
+  if (!id || !year) {
+      return res.status(400).json({ error: 'Páciens ID és év megadása kötelező!' });
+  }
+
+  // SQL lekérdezés: évszűrés
+  const query = `
+      SELECT 
+          HO AS hónap, 
+          NAPOK 
+      FROM 
+          ellatas 
+      WHERE 
+          ID_PACIENS = '${id}' 
+          AND EV = '${year}'
+      ORDER BY HO ASC;
+  `;
+
+  // Lekérdezés futtatása
+  DB.query(query, (err, results) => {
+      if (err) {
+          console.error('Adatbázis hiba a kezelési napok lekérdezésekor:', err);
+          return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+      }
+
+      if (results.length === 0) {
+          return res.status(404).json({ error: 'Nincs adat a kiválasztott évre!' });
+      }
+
+      // Eredmény visszaadása
+      res.json({ days: results });
+  });
 });
 
 

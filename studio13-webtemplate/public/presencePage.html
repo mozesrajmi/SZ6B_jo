@@ -14,6 +14,7 @@
     <div class="container">
         <h2 id="patientNameTitle">Kezelési napok</h2>
         <table id="daysTable" class="display table table-striped table-bordered" style="width:100%">
+            
             <thead>
                 <tr id="daysHeaderRow">
                     <th>Hónap</th>
@@ -23,7 +24,20 @@
             <tbody>
                 <!-- Dinamikusan generált sorok -->
             </tbody>
-            <img src="images/kepkoonyv.png" alt="Description of image" class="img-fluid float-end" id="konyvkep">
+            <!-- Év választó és kép egymás mellett -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <!-- Év választó Select -->
+            <div class="year-selector">
+                <label for="yearSelect" class="form-label"><strong></strong></label>
+                <select id="yearSelect" class="form-select"></select>
+            </div>
+
+            <!-- Kép -->
+            <div>
+                <img src="images/kepkoonyv.png" alt="Description of image" class="img-fluid" id="konyvkep">
+            </div>
+        </div>
         </table>
         <div class="d-flex justify-content-start mb-3"></div>
             <button type="button" class="btn btn-primary">Havi fizetés</button>
@@ -78,7 +92,7 @@
     var patientId = null; // Globális változó
     var patientName = null; // Globális változó
 
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
     // Lekérjük az id és a név paramétereket az URL-ből
     const urlParams = new URLSearchParams(window.location.search);
     patientId = urlParams.get('id'); // A páciens ID-je
@@ -98,20 +112,28 @@ document.addEventListener('DOMContentLoaded', function () {
     loadTreatmentDays(patientId);
 });
 
-    function loadTreatmentDays(patientId) {
+    // Kezelési napok lekérése év alapján (alapértelmezett: aktuális év)
+    function loadTreatmentDays(patientId, year = new Date().getFullYear()) {
+    console.log(`Adatok lekérése év alapján: ${year}`);
+
     $.ajax({
         url: '/getTreatmentDays',
         method: 'GET',
-        data: { id: patientId },
+        data: { id: patientId, year: year },
         success: function (response) {
-            if (response && response.days) {
+            console.log('Backend válasz:', response);
+
+            if (response && response.days && response.days.length > 0) {
                 const tableHeaderRow = $('#daysHeaderRow');
                 const tableBody = $('#daysTable tbody');
 
-                tableBody.empty();
-                tableHeaderRow.empty();
+                // Teljes táblázat újrarajzolása
+                $('#daysTable').DataTable().clear().destroy(); // Táblázat teljes törlése
 
-                // Fejléc feltöltése
+                tableBody.empty(); // Töröljük a táblázat sorait
+                tableHeaderRow.empty(); // Töröljük a táblázat fejlécét
+
+                // Új fejléc létrehozása
                 tableHeaderRow.append('<th>Hónap</th>');
                 for (let day = 1; day <= 31; day++) {
                     tableHeaderRow.append(`<th>${day}</th>`);
@@ -141,13 +163,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     '3': 'Állományban van, de otthon tartózkodik'
                 };
                 const colorMap = {
-                    '0': '#fe8a8a', // Piros
-                    '1': '#cdfcba', // Zöld
-                    '2': '#96d2f9', // Kék
-                    '3': '#fffd88', // Sárga
+                    '0': '#fe8a8a',
+                    '1': '#cdfcba',
+                    '2': '#96d2f9',
+                    '3': '#fffd88'
                 };
 
-                // Sorok hozzáadása
+                // Sorok hozzáadása a táblázathoz
                 response.days.forEach(dayRecord => {
                     const row = $('<tr></tr>');
                     const monthName = monthNames[parseInt(dayRecord.hónap, 10)] || "Ismeretlen";
@@ -159,14 +181,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         const color = colorMap[dayValue] || '';
                         const tooltipText = statusDescriptions[dayValue] || 'Ismeretlen';
 
-                        const cell = $(`<td>${dayValue}</td>`);
+                        const cell = $(`<td>${dayValue}</td>`).css('background-color', color);
 
-                        // Szín beállítása
-                        if (color) {
-                            cell.css('background-color', color);
-                        }
-
-                        // Tooltip események
                         cell.hover(
                             function (e) {
                                 const tooltip = $('<div class="custom-tooltip"></div>')
@@ -191,24 +207,30 @@ document.addEventListener('DOMContentLoaded', function () {
                     tableBody.append(row);
                 });
 
-                // DataTable inicializálása
+                // DataTable újrainicializálása
                 $('#daysTable').DataTable({
                     searching: false,
                     paging: false,
                     info: false,
                     ordering: false,
-                    responsive: true,
-                    destroy: true,
+                    responsive: true
                 });
+
+                console.log('Táblázat sikeresen frissítve!');
             } else {
-                alert('Nincs adat a kiválasztott pácienshez.');
+                console.warn('Nincs adat a kiválasztott évhez:', year);
+                alert('Nincs adat a kiválasztott évhez.');
             }
         },
         error: function (xhr, status, error) {
-            console.error('Hiba történt az adatok betöltése során:', status, error);
+            console.error('AJAX Hiba:', status, error);
+            alert('Hiba történt az adatok betöltése során. Részletek a konzolban.');
         }
     });
 }
+
+
+
 
 
 
@@ -294,6 +316,32 @@ $(document).ready(function () {
                 alert('Az érték 0 és 3 között kell legyen!');
             }
         });
+    });
+});
+
+
+// Évek dinamikus feltöltése: aktuális év és két korábbi év
+document.addEventListener('DOMContentLoaded', function () {
+    const yearSelect = document.getElementById('yearSelect');
+    const currentYear = new Date().getFullYear();
+
+    // Évek feltöltése (aktuális év és egy évvel korábbi év)
+    for (let i = 0; i < 2; i++) {
+        const option = document.createElement('option');
+        option.value = currentYear - i;
+        option.textContent = currentYear - i;
+        yearSelect.appendChild(option);
+    }
+
+    yearSelect.value = currentYear;
+
+    // Alapértelmezett év betöltése
+    loadTreatmentDays(patientId, currentYear);
+
+    // Év változás eseménykezelő
+    yearSelect.addEventListener('change', function () {
+        const selectedYear = yearSelect.value;
+        loadTreatmentDays(patientId, selectedYear);
     });
 });
 

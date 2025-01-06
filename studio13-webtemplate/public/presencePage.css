@@ -162,3 +162,20 @@ table.display tbody tr:hover {
     font-weight: bold;
     font-size: 1.1rem; /* Optional: slightly increase font size */
 }
+
+.year-selector {
+    flex: 1;
+    margin-right: 20px;
+    max-width: 200px;
+}
+
+.year-selector .form-select {
+    width: 45%;
+    margin-top: 5px;
+}
+
+#konyvkep {
+    max-width: 100px;
+    height: auto;
+    margin-left: 20px;
+}
