@@ -232,11 +232,9 @@
 
 
 
-
-
 $(document).ready(function () {
     const currentDate = new Date();
-    const currentDay = currentDate.getDate(); // Today's day (e.g., 7)
+    const currentDay = currentDate.getDate();        // Today's day (e.g., 7)
     const currentMonth = currentDate.getMonth() + 1; // Current month (1-indexed)
 
     // Table cell click event
@@ -280,8 +278,11 @@ $(document).ready(function () {
 
         // Save button event
         $('#saveDayEditBtn').off('click').on('click', () => {
-            const newValue = $('#dayValueInput').val();
-            if (newValue >= 0 && newValue <= 3) {
+            // A felhasználó által beírt érték (szövegként)
+            const newValue = $('#dayValueInput').val().trim();
+
+            // Regex: csak a 0, 1, 2 vagy 3 egyetlen karakter lehet
+            if (/^[0-3]$/.test(newValue)) {
                 // Update the cell value
                 const colorMap = {
                     '0': '#fe8a8a',
@@ -289,7 +290,9 @@ $(document).ready(function () {
                     '2': '#96d2f9',
                     '3': '#fffd88',
                 };
+                // A cella háttérszíne a bevitt érték szerint
                 $(this).css('background-color', colorMap[newValue] || '');
+                // A cella szövegét is frissítjük a bevitt értékkel
                 $(this).text(newValue);
 
                 // Make an API call to save the updated value
@@ -300,7 +303,7 @@ $(document).ready(function () {
                     data: JSON.stringify({
                         id: patientId,
                         day: dayIndex,
-                        newValue: newValue,
+                        newValue: Number(newValue), // számmá konvertálás a küldéskor
                         month: currentMonth
                     }),
                     success: function (response) {
@@ -313,11 +316,13 @@ $(document).ready(function () {
                     }
                 });
             } else {
-                alert('Az érték 0 és 3 között kell legyen!');
+                // Ha nem felel meg a ^[0-3]$ mintának (pl. "1.6"), akkor hiba
+                alert('Az értéknek egész számnak kell lennie 0 és 3 között (0,1,2,3)!');
             }
         });
     });
 });
+
 
 
 // Évek dinamikus feltöltése: aktuális év és két korábbi év
