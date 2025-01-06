@@ -168,60 +168,85 @@
     });
 
     $(document).ready(function () {
-        $('#calculateHospitalDays').on('click', function () {
-            let totalHospitalDays = 0;
-            let totalReservationDays = 0;
-
-            $('#daysTable tbody tr').each(function (rowIndex) {
-                $(this).find('td').each(function (colIndex) {
-                    if (colIndex > 0) { // Skip the first column (Hónap)
-                        const cellValue = $(this).text();
-                        if (cellValue === '2') {
-                            totalHospitalDays++;
-                        } else if (cellValue === '3') { // Assuming '3' represents reservation days
-                            totalReservationDays++;
-                        }
+    $('#calculateHospitalDays').on('click', function () {
+        // Napok számlálása státusz alapján
+        let statusCounts = { '0': 0, '1': 0, '2': 0, '3': 0 };
+        
+        $('#daysTable tbody tr').each(function () {
+            $(this).find('td').each(function (colIndex) {
+                if (colIndex > 0) { // Hónap oszlop kihagyása
+                    const cellValue = $(this).text();
+                    if (statusCounts.hasOwnProperty(cellValue)) {
+                        statusCounts[cellValue]++;
                     }
-                });
-            });
-
-            console.log(`Összes korházban töltött nap: ${totalHospitalDays}`);
-            console.log(`Összes helyfoglalón töltött nap: ${totalReservationDays}`);
-            $.ajax({
-                url: '/getNapidij',
-                method: 'GET',
-                data: { id: patientId },
-                success: function (response) {
-                         let napidij = response.napidij;
-                    if (napidij) {
-                        console.log(`Original napidij: ${napidij}`);
-                        if (totalHospitalDays >= 40) {
-                            console.log('Applying 40% reduction for hospital days >= 40');
-                            napidij *= 0.4; // Reduce napidij to 40% of the original
-                        } else if (totalHospitalDays < 40) {
-                            console.log('Applying 20% reduction for hospital days < 40');
-                            napidij *= 0.2; // Reduce napidij to 20% of the original
-                        }
-
-                        if (totalReservationDays >= 40) {
-                            console.log('Applying 60% reduction for reservation days >= 40');
-                            napidij *= 0.6; // Reduce napidij to 60% for 40 or more reservation days
-                        } else if (totalReservationDays < 40) {
-                            console.log('Applying 20% reduction for reservation days < 40');
-                            napidij *= 0.2; // Reduce napidij to 20% for less than 40 reservation days
-                        }
-
-                        console.log(`Updated napidij after calculations: ${napidij}`);
-                    } else {
-                        console.error('Napidij not found for the patient.');
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('Error fetching napidij:', error);
                 }
             });
         });
+
+        console.log('Napok státusz szerint:', statusCounts);
+
+        // Napidíj kiszámítása státuszonként
+        $.ajax({
+            url: '/getNapidij',
+            method: 'GET',
+            data: { id: patientId },
+            success: function (response) {
+                let baseNapidij = response.napidij;
+                if (!baseNapidij) {
+                    console.error('Napidíj nem található a pácienshez.');
+                    return;
+                }
+
+                console.log(`Alap napidíj: ${baseNapidij}`);
+
+                // Státuszonkénti napidíjak
+                let napidijPerStatus = {
+                    '0': baseNapidij * 0.5, // Példa számítás
+                    '1': baseNapidij * 0.8,
+                    '2': baseNapidij * 1.0,
+                    '3': baseNapidij * 0.6,
+                };
+
+                // Kedvezmény alkalmazása 40 nap felett
+                if (statusCounts['2'] >= 40) {
+                    napidijPerStatus['2'] *= 0.4;
+                } else if (statusCounts['2'] < 40) {
+                    napidijPerStatus['2'] *= 0.2;
+                }
+
+                if (statusCounts['3'] >= 40) {
+                    napidijPerStatus['3'] *= 0.6;
+                } else if (statusCounts['3'] < 40) {
+                    napidijPerStatus['3'] *= 0.2;
+                }
+
+                console.log('Státuszonkénti napidíjak:', napidijPerStatus);
+
+                // Összesített napidíj számítás
+                let totalNapidij = 0;
+                for (let status in statusCounts) {
+                    totalNapidij += statusCounts[status] * napidijPerStatus[status];
+                }
+
+                console.log(`Összesített napidíj: ${totalNapidij}`);
+
+                alert(`
+                    Napidíjak státuszonként:
+                    - 0 (Hiányzó): ${statusCounts['0']} nap, Napidíj: ${napidijPerStatus['0']}
+                    - 1 (Jelen van): ${statusCounts['1']} nap, Napidíj: ${napidijPerStatus['1']}
+                    - 2 (Kórház): ${statusCounts['2']} nap, Napidíj: ${napidijPerStatus['2']}
+                    - 3 (Otthoni tartózkodás): ${statusCounts['3']} nap, Napidíj: ${napidijPerStatus['3']}
+                    
+                    Összesített napidíj: ${totalNapidij.toFixed(2)} HUF
+                `);
+            },
+            error: function (xhr, status, error) {
+                console.error('Hiba történt a napidíj lekérdezése során:', status, error);
+            }
+        });
     });
+});
+
 }
 
 </script>    
