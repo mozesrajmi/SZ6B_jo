@@ -11,10 +11,10 @@ var mysql = require("mysql");
 var pool = mysql.createPool({
     connectionLimit : 250,
     host    : '193.227.198.214',
-    user    : 'gombos_gergo',
+    user    : 'user',
     port    : "9306",
-    password: 'Csany4140',     
-    database: '2020_gombos_gergo'
+    password: 'Pite137',     
+    database: 'studio13_gondozohaz',
 });
 
 const getConnection = function () {
