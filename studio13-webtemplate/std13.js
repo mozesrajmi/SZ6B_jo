@@ -539,8 +539,6 @@ app.get('/getTreatmentDays', (req, res) => {
       return res.status(400).json({ error: 'Páciens ID megadása kötelező!' });
   }
 
-  console.log(`Adatlekérdezés év alapján: ${year}`); // Ellenőrzés konzolban
-
   const query = `
       SELECT 
           HO AS hónap, 
@@ -571,9 +569,9 @@ app.get('/getTreatmentDays', (req, res) => {
 
 
 app.post('/updateDayValue', (req, res) => {
-  const { id, day, newValue, month } = req.body;
+  const { id, day, newValue, month, year } = req.body;
 
-  if (!id || !day || newValue === undefined || !month) {
+  if (!id || !day || newValue === undefined || !month || !year) {
       return res.status(400).json({ error: 'Hiányzó paraméterek!' });
   }
 
@@ -584,9 +582,9 @@ app.post('/updateDayValue', (req, res) => {
           '${newValue}',
           SUBSTRING(NAPOK, ${day + 1})
       )
-      WHERE ID_PACIENS = ${id} AND HO = ${month}
+      WHERE ID_PACIENS = ${id} AND HO = ${month} AND EV = ${year}
   `;
-
+  
   DB.query(sql, (err, result) => {
       if (err) {
           console.error('Hiba a nap értékének frissítése során:', err);
@@ -596,6 +594,7 @@ app.post('/updateDayValue', (req, res) => {
       res.json({ success: true, message: 'Nap értéke sikeresen frissítve!' });
   });
 });
+
 
 
 

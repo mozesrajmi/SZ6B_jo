@@ -114,14 +114,12 @@
 
     // Kezelési napok lekérése év alapján (alapértelmezett: aktuális év)
     function loadTreatmentDays(patientId, year = new Date().getFullYear()) {
-    console.log(`Adatok lekérése év alapján: ${year}`);
 
     $.ajax({
         url: '/getTreatmentDays',
         method: 'GET',
         data: { id: patientId, year: year },
         success: function (response) {
-            console.log('Backend válasz:', response);
 
             if (response && response.days && response.days.length > 0) {
                 const tableHeaderRow = $('#daysHeaderRow');
@@ -216,14 +214,11 @@
                     responsive: true
                 });
 
-                console.log('Táblázat sikeresen frissítve!');
             } else {
-                console.warn('Nincs adat a kiválasztott évhez:', year);
                 alert('Nincs adat a kiválasztott évhez.');
             }
         },
         error: function (xhr, status, error) {
-            console.error('AJAX Hiba:', status, error);
             alert('Hiba történt az adatok betöltése során. Részletek a konzolban.');
         }
     });
@@ -231,11 +226,11 @@
 
 
 
-
 $(document).ready(function () {
     const currentDate = new Date();
     const currentDay = currentDate.getDate();        // Today's day (e.g., 7)
     const currentMonth = currentDate.getMonth() + 1; // Current month (1-indexed)
+    const currentYear = currentDate.getFullYear();   // Current year
 
     // Table cell click event
     $('#daysTable tbody').on('click', 'td', function () {
@@ -257,6 +252,13 @@ $(document).ready(function () {
         };
         const selectedMonth = monthNames[monthText]; // Convert month name to number
         const dayIndex = $(this).index(); // Get the day index (column index in the row)
+        const selectedYear = parseInt($('#yearSelect').val()); // Get selected year
+
+        // Prevent editing if the selected year is not the current year
+        if (selectedYear !== currentYear) {
+            alert('Csak az aktuális év táblázata szerkeszthető!');
+            return;
+        }
 
         // Prevent editing for days outside the current month
         if (selectedMonth !== currentMonth) {
@@ -304,14 +306,14 @@ $(document).ready(function () {
                         id: patientId,
                         day: dayIndex,
                         newValue: Number(newValue), // számmá konvertálás a küldéskor
-                        month: currentMonth
+                        month: currentMonth,
+                        year: selectedYear // Év hozzáadása az API híváshoz
                     }),
                     success: function (response) {
                         alert('Nap értéke sikeresen frissítve!');
                         $('#editMonthModal').modal('hide');
                     },
                     error: function (xhr, status, error) {
-                        console.error('Hiba történt az érték frissítése során:', status, error);
                         alert('Hiba történt az érték frissítése során.');
                     }
                 });
@@ -348,6 +350,75 @@ document.addEventListener('DOMContentLoaded', function () {
         const selectedYear = yearSelect.value;
         loadTreatmentDays(patientId, selectedYear);
     });
+    document.addEventListener('DOMContentLoaded', function () {
+    const yearSelect = document.getElementById('yearSelect');
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentDay = currentDate.getDate();
+
+    /**
+     * Ellenőrzi, hogy a cella szerkeszthető-e
+     * @param {number} selectedYear 
+     * @param {number} selectedMonth 
+     * @param {number} selectedDay 
+     * @returns {boolean}
+     */
+    function isEditable(selectedYear, selectedMonth, selectedDay) {
+        // Csak akkor szerkeszthető, ha év és hónap egyezik, és a nap nem jövőbeli
+        return selectedYear === currentYear && 
+               selectedMonth === currentMonth && 
+               selectedDay <= currentDay;
+    }
+
+    /**
+     * Táblázat celláinak kattintási esemény kezelése
+     */
+    function handleTableCellClick() {
+        $('#daysTable tbody').off('click', 'td').on('click', 'td', function () {
+            const selectedYear = parseInt(yearSelect.value);
+
+            const row = $(this).closest('tr');
+            const monthText = row.find('td:first').text().trim();
+            const monthNames = {
+                "Január": 1, "Február": 2, "Március": 3, "Április": 4,
+                "Május": 5, "Június": 6, "Július": 7, "Augusztus": 8,
+                "Szeptember": 9, "Október": 10, "November": 11, "December": 12
+            };
+            const selectedMonth = monthNames[monthText];
+            const selectedDay = $(this).index();
+
+            if (!isEditable(selectedYear, selectedMonth, selectedDay)) {
+                alert('Csak az aktuális év, hónap és nap napjai szerkeszthetők!');
+                return;
+            }
+
+            // Megnyitjuk a modal ablakot
+            $('#currentDayValue').text($(this).text().trim() || 'Nincs érték');
+            $('#dayValueInput').val($(this).text().trim() || 0);
+            $('#editMonthModal').modal('show');
+        });
+    }
+
+    /**
+     * Év választás kezelése
+     */
+    yearSelect.addEventListener('change', function () {
+        const selectedYear = parseInt(yearSelect.value);
+
+        if (selectedYear !== currentYear) {
+            $('#daysTable tbody td').addClass('disabled-month'); // CSS osztály a letiltáshoz
+            $('#daysTable tbody').off('click', 'td'); // Kattintási esemény eltávolítása
+        } else {
+            $('#daysTable tbody td').removeClass('disabled-month'); // CSS osztály eltávolítása
+            handleTableCellClick(); // Újraaktiváljuk az eseménykezelőt
+        }
+    });
+
+    // Alapértelmezett eseménykezelő inicializálása
+    handleTableCellClick();
+});
+
 });
 
 

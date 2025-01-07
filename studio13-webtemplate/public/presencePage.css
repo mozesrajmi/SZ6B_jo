@@ -179,3 +179,16 @@ table.display tbody tr:hover {
     height: auto;
     margin-left: 20px;
 }
+
+/* Letiltott cella stílus */
+.disabled-month {
+    background-color: #e0e0e0 !important; /* Szürke háttér */
+    color: #a0a0a0 !important; /* Halvány szöveg */
+    pointer-events: none; /* Kattinthatóság letiltása */
+    cursor: not-allowed; /* Tiltott kurzor */
+}
+
+/* Kattintható cella kiemelése */
+.enabled-month {
+    cursor: pointer;
+}
