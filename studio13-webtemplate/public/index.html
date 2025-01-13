@@ -291,12 +291,12 @@ $(document).ready(function () {
       success: function (session_data) {
         if (!session_data || !session_data.NEV) {
           // Ha nincs érvényes munkamenet, átirányítjuk a főoldalra
-          alert('Nincs érvényes munkamenet! Kérjük, jelentkezzen be újra.');
+          //alert('Nincs érvényes munkamenet! Kérjük, jelentkezzen be újra.');
           window.location.href = '/';
         }
       }
     });
-  }, 5000); // 5 másodpercenkénti ellenőrzés
+  }, 3600000); // óránkénti ellenőrzés (3600000 ms)
 });
 
   </script>

@@ -171,56 +171,70 @@
     
     
 // Frissített logika a fizetesprog.html-hez
-$(document).ready(function () {
-    $('#calculateHospitalDays').on('click', function () {
-        // Státuszokhoz tartozó napok összesítése
-        const statusCounts = { '0': 0, '1': 0, '2': 0, '3': 0 };
-        const statusDetails = []; // Részletek napi bontásban
+$('#calculateHospitalDays').on('click', function () {
+    // Get the current month and year
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-based
+    const monthMap = {
+        "Január": 1, "Február": 2, "Március": 3, "Április": 4,
+        "Május": 5, "Június": 6, "Július": 7, "Augusztus": 8,
+        "Szeptember": 9, "Október": 10, "November": 11, "December": 12
+    };
 
-        $('#daysTable tbody tr').each(function () {
-            const row = $(this);
-            const month = row.find('td:first').text();
+    // Initialize status counters
+    const statusCounts = { '0': 0, '1': 0, '2': 0, '3': 0 };
+    const statusDetails = [];
 
+    // Process rows for months up to the current month
+    $('#daysTable tbody tr').each(function () {
+        const row = $(this);
+        const monthIndex = row.find('td:first').text();
+        const monthNumber = monthMap[monthIndex];
+
+        // Only include rows for months before or equal to the current month
+        if (monthNumber <= currentMonth) {
             row.find('td').each(function (colIndex) {
-                if (colIndex > 0) { // Az első oszlop (hónap) kihagyása
+                if (colIndex > 0) { // Skip the first column (month name)
                     const cellValue = $(this).text();
-
                     if (['1', '2', '3'].includes(cellValue)) {
                         statusCounts[cellValue]++;
                         statusDetails.push({
-                            month,
+                            month: monthIndex,
                             day: colIndex,
                             status: cellValue
                         });
                     }
                 }
             });
-        });
+        }
+    });
 
-        // Napidíj lekérdezése az API-n keresztül
-        $.ajax({
-            url: '/getNapidij',
-            method: 'GET',
-            data: { id: patientId },
-            success: function (response) {
-                const baseNapidij = response.napidij;
-                if (!baseNapidij) {
-                    alert('Napidíj nem található a pácienshez.');
-                    return;
-                }
-
-                // Számítási szabályok alkalmazása
-                const totalCost = calculateCosts(statusDetails, baseNapidij);
-
-                // Összegzés megjelenítése új ablakban
-                displaySummaryInWindow(totalCost, statusCounts, baseNapidij);
-            },
-            error: function () {
-                alert('Hiba történt a napidíj lekérése során.');
+    // Fetch the daily fee from the API
+    $.ajax({
+        url: '/getNapidij',
+        method: 'GET',
+        data: { id: patientId },
+        success: function (response) {
+            const baseNapidij = response.napidij;
+            if (!baseNapidij) {
+                alert('Napidíj nem található a pácienshez.');
+                return;
             }
-        });
+
+            // Calculate costs with backward-looking logic
+            const totalCost = calculateCosts(statusDetails, baseNapidij);
+
+            // Display summary
+            displaySummaryInWindow(totalCost, statusCounts, baseNapidij);
+        },
+        error: function () {
+            alert('Hiba történt a napidíj lekérése során.');
+        }
     });
 });
+
+
+
 
 function calculateCosts(statusDetails, baseNapidij) {
     let totalCost = 0;
@@ -232,10 +246,11 @@ function calculateCosts(statusDetails, baseNapidij) {
         let dailyCost = baseNapidij;
 
         if (status === '2' || status === '3') {
-            counts[status]++;
-            const multiplier = counts[status] >= 40 ? (status === '2' ? 0.4 : 0.6) : 0.2;
-            dailyCost *= multiplier;
-        }
+    counts[status]++;
+    const multiplier = counts[status] >= 40 ? (status === '2' ? 0.4 : 0.6) : 0.2;
+    dailyCost *= multiplier;
+    }
+
 
         totalCost += dailyCost;
 
