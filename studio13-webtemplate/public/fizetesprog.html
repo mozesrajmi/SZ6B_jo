@@ -167,85 +167,111 @@
         }
     });
 
-    $(document).ready(function () {
+
+    
+    
+// Frissített logika a fizetesprog.html-hez
+$(document).ready(function () {
     $('#calculateHospitalDays').on('click', function () {
-        // Napok számlálása státusz alapján
-        let statusCounts = { '0': 0, '1': 0, '2': 0, '3': 0 };
-        
+        // Státuszokhoz tartozó napok összesítése
+        const statusCounts = { '0': 0, '1': 0, '2': 0, '3': 0 };
+        const statusDetails = []; // Részletek napi bontásban
+
         $('#daysTable tbody tr').each(function () {
-            $(this).find('td').each(function (colIndex) {
-                if (colIndex > 0) { // Hónap oszlop kihagyása
+            const row = $(this);
+            const month = row.find('td:first').text();
+
+            row.find('td').each(function (colIndex) {
+                if (colIndex > 0) { // Az első oszlop (hónap) kihagyása
                     const cellValue = $(this).text();
-                    if (statusCounts.hasOwnProperty(cellValue)) {
+
+                    if (['1', '2', '3'].includes(cellValue)) {
                         statusCounts[cellValue]++;
+                        statusDetails.push({
+                            month,
+                            day: colIndex,
+                            status: cellValue
+                        });
                     }
                 }
             });
         });
 
-        console.log('Napok státusz szerint:', statusCounts);
-
-        // Napidíj kiszámítása státuszonként
+        // Napidíj lekérdezése az API-n keresztül
         $.ajax({
             url: '/getNapidij',
             method: 'GET',
             data: { id: patientId },
             success: function (response) {
-                let baseNapidij = response.napidij;
+                const baseNapidij = response.napidij;
                 if (!baseNapidij) {
-                    console.error('Napidíj nem található a pácienshez.');
+                    alert('Napidíj nem található a pácienshez.');
                     return;
                 }
 
-                console.log(`Alap napidíj: ${baseNapidij}`);
+                // Számítási szabályok alkalmazása
+                const totalCost = calculateCosts(statusDetails, baseNapidij);
 
-                // Státuszonkénti napidíjak
-                let napidijPerStatus = {
-                    '0': baseNapidij * 0.5, // Példa számítás
-                    '1': baseNapidij * 0.8,
-                    '2': baseNapidij * 1.0,
-                    '3': baseNapidij * 0.6,
-                };
-
-                // Kedvezmény alkalmazása 40 nap felett
-                if (statusCounts['2'] >= 40) {
-                    napidijPerStatus['2'] *= 0.4;
-                } else if (statusCounts['2'] < 40) {
-                    napidijPerStatus['2'] *= 0.2;
-                }
-
-                if (statusCounts['3'] >= 40) {
-                    napidijPerStatus['3'] *= 0.6;
-                } else if (statusCounts['3'] < 40) {
-                    napidijPerStatus['3'] *= 0.2;
-                }
-
-                console.log('Státuszonkénti napidíjak:', napidijPerStatus);
-
-                // Összesített napidíj számítás
-                let totalNapidij = 0;
-                for (let status in statusCounts) {
-                    totalNapidij += statusCounts[status] * napidijPerStatus[status];
-                }
-
-                console.log(`Összesített napidíj: ${totalNapidij}`);
-
-                alert(`
-                    Napidíjak státuszonként:
-                    - 0 (Hiányzó): ${statusCounts['0']} nap, Napidíj: ${napidijPerStatus['0']}
-                    - 1 (Jelen van): ${statusCounts['1']} nap, Napidíj: ${napidijPerStatus['1']}
-                    - 2 (Kórház): ${statusCounts['2']} nap, Napidíj: ${napidijPerStatus['2']}
-                    - 3 (Otthoni tartózkodás): ${statusCounts['3']} nap, Napidíj: ${napidijPerStatus['3']}
-                    
-                    Összesített napidíj: ${totalNapidij.toFixed(2)} HUF
-                `);
+                // Összegzés megjelenítése új ablakban
+                displaySummaryInWindow(totalCost, statusCounts, baseNapidij);
             },
-            error: function (xhr, status, error) {
-                console.error('Hiba történt a napidíj lekérdezése során:', status, error);
+            error: function () {
+                alert('Hiba történt a napidíj lekérése során.');
             }
         });
     });
 });
+
+function calculateCosts(statusDetails, baseNapidij) {
+    let totalCost = 0;
+    const counts = { '2': 0, '3': 0 }; // Éves szintű számlálók
+    const dayCalculations = [];
+
+    // Részletes feldolgozás
+    statusDetails.forEach(({ status, month, day }) => {
+        let dailyCost = baseNapidij;
+
+        if (status === '2' || status === '3') {
+            counts[status]++;
+            const multiplier = counts[status] >= 40 ? (status === '2' ? 0.4 : 0.6) : 0.2;
+            dailyCost *= multiplier;
+        }
+
+        totalCost += dailyCost;
+
+        // Napok részletezése a számításhoz
+        dayCalculations.push({
+            month,
+            day,
+            status,
+            dailyCost: dailyCost.toFixed(2),
+        });
+    });
+
+    return {
+        totalCost,
+        counts,
+        dayCalculations
+    };
+}
+
+function displaySummaryInWindow({ totalCost, counts, dayCalculations }, statusCounts, baseNapidij) {
+    let summary = `\nÖsszegzés:\n` +
+        `Alap napidíj: ${baseNapidij.toFixed(2)} Ft\n` +
+        `Kórházban töltött napok: ${statusCounts['2']} (kedvezmény: ${counts['2']} nap)\n` +
+        `Helyfoglalás napok: ${statusCounts['3']} (kedvezmény: ${counts['3']} nap)\n`;
+
+    summary += `Részletek napokra lebontva:\n`;
+    dayCalculations.forEach(({ month, day, status, dailyCost }) => {
+        summary += `  - ${month} ${day}. nap: Státusz: ${status}, Napidíj: ${dailyCost} Ft\n`;
+    });
+
+    summary += `\nÖsszes fizetendő összeg: ${totalCost.toFixed(2)} Ft`;
+
+    const newWindow = window.open('', '_blank', 'width=600,height=400');
+    newWindow.document.write('<pre>' + summary + '</pre>');
+    newWindow.document.close();
+}
 
 }
 
