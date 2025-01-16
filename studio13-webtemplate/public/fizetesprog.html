@@ -183,36 +183,41 @@ $('#calculateHospitalDays').on('click', function () {
 
     // Process rows for the current month and gather yearly counts
     $('#daysTable tbody tr').each(function () {
-        const row = $(this);
-        const monthIndex = row.find('td:first').text();
-        const monthMap = {
-            "Január": 1, "Február": 2, "Március": 3, "Április": 4,
-            "Május": 5, "Június": 6, "Július": 7, "Augusztus": 8,
-            "Szeptember": 9, "Október": 10, "November": 11, "December": 12
-        };
-        const monthNumber = monthMap[monthIndex];
+    const row = $(this);
+    const monthIndex = row.find('td:first').text();
+    const monthMap = {
+        "Január": 1, "Február": 2, "Március": 3, "Április": 4,
+        "Május": 5, "Június": 6, "Július": 7, "Augusztus": 8,
+        "Szeptember": 9, "Október": 10, "November": 11, "December": 12
+    };
+    const monthNumber = monthMap[monthIndex];
 
-        row.find('td').each(function (colIndex) {
-            if (colIndex > 0) { // Skip the first column (month name)
-                const cellValue = $(this).text();
+    row.find('td').each(function (colIndex) {
+        if (colIndex > 0) { // Skip the first column (month name)
+            const cellValue = $(this).text();
 
-                // Éves kedvezményes napok számolása
-                if (['2', '3'].includes(cellValue) && monthNumber < currentMonth) {
-                    yearlyCounts[cellValue]++;
-                }
-
-                // Csak az aktuális hónapot dolgozzuk fel
-                if (monthNumber === currentMonth && ['1', '2', '3'].includes(cellValue)) {
-                    statusCounts[cellValue]++;
-                    statusDetails.push({
-                        month: monthIndex,
-                        day: colIndex,
-                        status: cellValue
-                    });
-                }
+            // Skip days beyond the current day for the current month
+            if (monthNumber === currentMonth && colIndex > currentDate.getDate()) {
+                return; // Skip this iteration for future days
             }
-        });
+
+            // Yearly discounts calculation
+            if (['2', '3'].includes(cellValue) && monthNumber < currentMonth) {
+                yearlyCounts[cellValue]++;
+            }
+
+            // Process only the current month
+            if (monthNumber === currentMonth && ['1', '2', '3'].includes(cellValue)) {
+                statusCounts[cellValue]++;
+                statusDetails.push({
+                    month: monthIndex,
+                    day: colIndex,
+                    status: cellValue
+                });
+            }
+        }
     });
+});
 
     // Fetch the daily fee from the API
     $.ajax({
