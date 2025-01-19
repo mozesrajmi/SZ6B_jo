@@ -26,8 +26,44 @@
         </table>
         <div class="d-flex justify-content-start mb-3"></div>
             <button type="button" id="calculateHospitalDays" class="btn btn-primary">Havi fizetés</button>
+            <button type="button" id="recalculatePayment" class="btn btn-secondary">Számold újra</button>
         </div>
     </div>
+     <!-- teszt-->
+     <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Havi Fizetés Részletei</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Summary Section -->
+                    <div id="statusSummary" class="mb-3">
+                        <!-- Dynamically populated summary will be added here -->
+                    </div>
+    
+                    <!-- Details Table -->
+                    <table id="detailsTable" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Nap</th>
+                                <th>Státusz</th>
+                                <th>Napi Díj</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                    <div>
+                        <h5>Összes Fizetendő: <span id="totalCost"></span> Ft</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+     <!-- teszt-->
 
 <script type="text/javascript">
     var patientId = null; // Globális változó
@@ -302,6 +338,50 @@ function displaySummaryInWindow({ totalCost, counts, dayCalculations }, statusCo
     newWindow.document.write('<pre>' + summary + '</pre>');
     newWindow.document.close();
 }
+$('#recalculatePayment').on('click', function () {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+
+    $.ajax({
+        url: '/recalculate',
+        method: 'POST',
+        data: { id: patientId, year: currentYear, month: currentMonth },
+        success: function (response) {
+            const detailsTableBody = $('#detailsTable tbody');
+            const statusSummary = $('#statusSummary');
+            detailsTableBody.empty();
+            statusSummary.empty();
+
+            // Populate the summary with yearly counts
+            const hospitalCount = response.yearlyHospitalDays;
+            const reservedCount = response.yearlyReservedDays;
+            statusSummary.append(`
+                <h5>Státusz Összegzés:</h5>
+                <p>Kórházban töltött napok: ${hospitalCount}</p>
+                <p>Helyfoglalás napok: ${reservedCount}</p>
+            `);
+
+            // Populate the table with details
+            response.details.forEach(detail => {
+                detailsTableBody.append(`
+                    <tr>
+                        <td>${detail.day}</td>
+                        <td>${detail.status}</td>
+                        <td>${detail.dailyCost.toFixed(2)} Ft</td>
+                    </tr>
+                `);
+            });
+
+            // Update total cost
+            $('#totalCost').text(response.totalCost.toFixed(2));
+            $('#detailsModal').modal('show');
+        },
+        error: function () {
+            alert('Hiba történt az újraszámolás során!');
+        }
+    });
+});
 
 
 }

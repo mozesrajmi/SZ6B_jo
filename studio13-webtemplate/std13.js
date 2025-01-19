@@ -19,6 +19,8 @@ app.use(express.urlencoded({ extended: true })); // URL-encoded adatok feldolgoz
 
 
 
+
+
 //npm install node-schedule mysql
 
 
@@ -894,7 +896,140 @@ app.get('/getTreatmentDaysByYear', (req, res) => {
   });
 });
 
+                                                            //tesztafafadfdasfasdfasdfadsfafafafafaf
+// Havi zárás ütemezése minden hónap elsején hajnali 1 órakor
+schedule.scheduleJob('0 1 1 * *', () => {
+  console.log('Havi zárás indítása...');
+  const currentDate = new Date();
+  const previousMonth = currentDate.getMonth() === 0 ? 12 : currentDate.getMonth();
+  const year = previousMonth === 12 ? currentDate.getFullYear() - 1 : currentDate.getFullYear();
 
+  // Lekérdezés az összes páciensre, aki rendelkezik ellátási adatokkal az előző hónapból
+  const closeMonthQuery = `
+      SELECT 
+          ID_PACIENS, 
+          HO, 
+          EV, 
+          NAPOK,
+          NAPIDIJ
+      FROM ellatas
+      WHERE HO = '${previousMonth}' AND EV = '${year}';
+  `;
+
+  DB.query(closeMonthQuery, (err, results) => {
+      if (err) {
+          console.error('Havi zárás hiba:', err);
+          return;
+      }
+
+      if (results.length === 0) {
+          console.log('Nincsenek ellátási adatok feldolgozandó páciensekhez.');
+          return;
+      }
+
+      results.forEach(row => {
+          const napok = row.NAPOK.split('');
+          let totalCost = 0;
+          let yearlyHospitalDays = 0;
+          let yearlyReservedDays = 0;
+
+          napok.forEach((status, index) => {
+              let dailyCost = row.NAPIDIJ;
+
+              if (status === '0') {
+                  dailyCost = 0; // Set daily cost to 0 for status '0'
+              } else if (status === '2') { // Kórházban
+                  yearlyHospitalDays++;
+                  dailyCost *= yearlyHospitalDays >= 40 ? 0.4 : 0.2;
+              } else if (status === '3') { // Helyfoglalás
+                  yearlyReservedDays++;
+                  dailyCost *= yearlyReservedDays >= 40 ? 0.6 : 0.2;
+              }
+
+              totalCost += dailyCost;
+          });
+
+          // FIZETENDO mező frissítése
+          const updateQuery = `
+              UPDATE ellatas
+              SET FIZETENDO = '${totalCost}'
+              WHERE ID_PACIENS = '${row.ID_PACIENS}' AND HO = '${previousMonth}' AND EV = '${year}';
+          `;
+
+          DB.query(updateQuery, updateErr => {
+              if (updateErr) {
+                  console.error(`Hiba a ${row.ID_PACIENS} páciens adatainak frissítése során:`, updateErr);
+              } else {
+                  console.log(`Havi zárás sikeresen lefutott: Páciens ID: ${row.ID_PACIENS}`);
+              }
+          });
+      });
+
+      console.log(`Havi zárás lezárva. Feldolgozott páciensek száma: ${results.length}`);
+  });
+});
+
+// Újraszámolás végpont
+app.post('/recalculate', (req, res) => {
+  const { id, year, month } = req.body;
+
+  if (!id || !year || !month) {
+      return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+  }
+
+  const recalculateQuery = `
+      SELECT 
+          NAPOK,
+          NAPIDIJ
+      FROM ellatas
+      WHERE ID_PACIENS = '${id}' AND EV = '${year}' AND HO = '${month}';
+  `;
+
+  DB.query(recalculateQuery, (err, results) => {
+      if (err) {
+          console.error('Újraszámolás hiba:', err);
+          return res.status(500).json({ error: 'Adatbázis hiba!' });
+      }
+
+      let totalCost = 0;
+      let yearlyHospitalDays = 0;
+      let yearlyReservedDays = 0;
+      const detailedCosts = [];
+
+      results.forEach(row => {
+          const napok = row.NAPOK.split('');
+          napok.forEach((status, index) => {
+              let dailyCost = row.NAPIDIJ;
+
+              if (status === '0') {
+                  dailyCost = 0; // Set daily cost to 0 for status '0'
+              } else if (status === '2') { // Kórházban
+                  yearlyHospitalDays++;
+                  dailyCost *= yearlyHospitalDays >= 40 ? 0.4 : 0.2;
+              } else if (status === '3') { // Helyfoglalás
+                  yearlyReservedDays++;
+                  dailyCost *= yearlyReservedDays >= 40 ? 0.6 : 0.2;
+              }
+
+              totalCost += dailyCost;
+              detailedCosts.push({ day: index + 1, status, dailyCost });
+          });
+      });
+
+      res.json({ 
+          success: true, 
+          totalCost, 
+          details: detailedCosts, 
+          yearlyHospitalDays, 
+          yearlyReservedDays
+      });
+  });
+});
+
+
+
+
+                                                          
 
 /* ---------------------------- log 'fájl' naplózás ------------------  */
 function napló (req) {
