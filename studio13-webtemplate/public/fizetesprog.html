@@ -338,6 +338,7 @@ function displaySummaryInWindow({ totalCost, counts, dayCalculations }, statusCo
     newWindow.document.write('<pre>' + summary + '</pre>');
     newWindow.document.close();
 }
+
 $('#recalculatePayment').on('click', function () {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1;
@@ -368,20 +369,43 @@ $('#recalculatePayment').on('click', function () {
                     <tr>
                         <td>${detail.day}</td>
                         <td>${detail.status}</td>
-                        <td>${detail.dailyCost.toFixed(2)} Ft</td>
+                        <td>${formatNumber(detail.dailyCost)} Ft</td>
                     </tr>
                 `);
             });
 
             // Update total cost
-            $('#totalCost').text(response.totalCost.toFixed(2));
+            $('#totalCost').text(formatNumber(response.totalCost) + ' Ft');
             $('#detailsModal').modal('show');
         },
         error: function () {
             alert('Hiba történt az újraszámolás során!');
         }
     });
+
+    // Táblázat sorainak bejárása és cellák formázása
+    $('#daysTable tbody tr').each(function () {
+        $(this).find('td').each(function (colIndex) {
+            if (colIndex > 0) { // Az első oszlopot kihagyjuk (Hónap)
+                const cellValue = $(this).text().trim();
+                if ($.isNumeric(cellValue.replace(/\s/g, ''))) { // Szóközök eltávolítása és számellenőrzés
+                    const numericValue = parseInt(cellValue.replace(/\s/g, ''), 10); // Szóközök eltávolítása
+                    const formattedValue = formatNumber(numericValue);
+                    $(this).text(formattedValue); // Frissített érték a cellában
+                }
+            }
+        });
+    });
 });
+
+// Számformázás segítő függvény
+function formatNumber(value) {
+    return new Intl.NumberFormat('hu-HU', {
+        minimumFractionDigits: 0, // Tizedesjegyek eltávolítása
+        maximumFractionDigits: 0
+    }).format(value);
+}
+
 
 
 }

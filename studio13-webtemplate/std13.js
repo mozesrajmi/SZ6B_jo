@@ -1026,6 +1026,23 @@ app.post('/recalculate', (req, res) => {
   });
 });
 
+/* ---------------------------- sürgős várakozás van e ------------------  */
+app.get('/getUrgentData', (req, res) => {
+    const sql = `
+        SELECT NEV, TAJ,  DATE_FORMAT(SZULDATUM, "%Y.%m.%d") AS SZULDATUM, STATUS
+        FROM paciensek
+        WHERE STATUS = 'várakozó' AND SURGOS_VARAKOZO = 'Y'
+    `;
+    DB.query(sql, (error, results) => {
+        if (error) {
+            console.error('Error fetching urgent data:', error);
+            res.status(500).json({ error: 'Database query failed' });
+        } else {
+            res.json({ rows: results });
+        }
+    });
+});
+
 
 
 

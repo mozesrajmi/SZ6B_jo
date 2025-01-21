@@ -316,3 +316,10 @@ th, td {
     font-size: 1em;
     color: #333;
 }
+
+/*sürgős*/
+.urgent-row {
+    font-weight: bold;
+    background-color: #ffe6e6; /* Halvány piros háttér */
+    color: #f18787; /* Sötétebb piros szöveg */
+}

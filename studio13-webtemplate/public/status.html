@@ -127,33 +127,87 @@
 
     // Function to fetch and load data into the table
     function loadData(status) {
-        const endpoint = status === 'Várakozó'
-            ? '/getWaitingData'
-            : status === 'Előgondozott'
-            ? '/getPreCareData'
-            : status === 'Ellátott'
-            ? '/getCareData'
-            : '/getLeftData'; // New endpoint for "Távozott"
+    const generalEndpoint = status === 'Várakozó'
+        ? '/getWaitingData'
+        : status === 'Előgondozott'
+        ? '/getPreCareData'
+        : status === 'Ellátott'
+        ? '/getCareData'
+        : '/getLeftData';
 
-        $.ajax({
-            url: endpoint,
-            method: 'GET',
-            success: function (data) {
-                table.clear();
-                data.rows.forEach(function (row) {
-                    table.row.add([
-                        `<span class="name" style="cursor:pointer;" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">${row.NEV}</span>`,
-                        row.TAJ,
-                        row.SZULDATUM,
-                        row.STATUS
-                    ]).draw(false);
-                });
-            },
-            error: function (xhr, status, error) {
-                console.error("Error loading data:", status, error);
-            }
-        });
-    }
+    // Sürgős várakozók lekérése
+    $.ajax({
+        url: '/getUrgentData', // Sürgős várakozók
+        method: 'GET',
+        success: function (urgentData) {
+            const urgentRows = urgentData.rows;
+
+            // Általános adatok lekérése
+            $.ajax({
+                url: generalEndpoint,
+                method: 'GET',
+                success: function (generalData) {
+                    const generalRows = generalData.rows;
+
+                    // Táblázat frissítése
+                    updateTable(urgentRows, generalRows);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error loading general data:", status, error);
+                }
+            });
+        },
+        error: function (xhr, status, error) {
+            console.error("Error loading urgent data:", status, error);
+        }
+    });
+}
+
+
+// Táblázat frissítése sürgős várakozók és általános adatok alapján
+function updateTable(urgentRows, generalRows) {
+    table.clear();
+
+     // A sürgős várakozók kerülnek a táblázat elejére
+     urgentRows.forEach(row => {
+        const rowHtml = `
+            <tr class="urgent-row">
+                <td>
+                    <span 
+                        class="name-link" 
+                        style="cursor: pointer;" 
+                        onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">
+                        ${row.NEV}
+                    </span>
+                </td>
+                <td>${row.TAJ}</td>
+                <td>${row.SZULDATUM}</td>
+                <td>${row.STATUS}</td>
+            </tr>
+        `;
+        table.row.add($(rowHtml)).draw(false);
+    });
+
+    // Általános adatok hozzáadása a sürgős várakozók után
+    generalRows.forEach(row => {
+        const rowHtml = `
+            <tr>
+                <td>
+                    <span 
+                        style="cursor: pointer;" 
+                        onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">
+                        ${row.NEV}
+                    </span>
+                </td>
+                <td>${row.TAJ}</td>
+                <td>${row.SZULDATUM}</td>
+                <td>${row.STATUS}</td>
+            </tr>
+        `;
+        table.row.add($(rowHtml)).draw(false);
+    });
+}
+
 
     function updateActiveButton(buttonId) {
         $('.btn-group .btn').removeClass('btn-primary').addClass('btn-secondary');
@@ -338,25 +392,6 @@ function loadTable(status) {
 
 
 //gombok vizsgálata
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             $('#szortirozas').on('change', function () {
                 var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
