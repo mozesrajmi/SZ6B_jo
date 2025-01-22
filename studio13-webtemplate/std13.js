@@ -8,7 +8,7 @@ const util = require('util');
 const express = require('express');
 const session = require('express-session');
 const app    = express();
-const port   = 3000;
+const port   = 3000;    //const port   = 9062;
 var session_data;                   // login user adatai
 app.use(session({ key:'user_sid', secret:'nagyontitkossütemény', resave:true, saveUninitialized:true }));  /* https://www.js-tutorials.com/nodejs-tutorial/nodejs-session-example-using-express-session */
 var DB  = require('./datamodule_mysql.js');
@@ -296,122 +296,155 @@ app.post('/updateStatus', (req, res) => {
 */
 /*HATALMAStesztek*/
 app.post('/updateStatus', (req, res) => {
-  const { id, status, timestamp, year, month, day } = req.body;
-
-  if (!id || !status || !timestamp || !year || !month || !day) {
-      console.log('Hiányzó adatok!', { id, status, timestamp, year, month, day });
-      return res.status(400).json({ error: 'Hiányzó adatok!' });
-  }
-
-  // Meghatározzuk, hogy melyik dátum mezőt kell frissíteni az új státusz alapján
-  let dateField = '';
-  if (status === 'Előgondozott') {
-      dateField = `ELOGOND_DATUM = '${timestamp}',`;
-  } else if (status === 'Ellátott') {
-      dateField = `ELLATOTT_DATUM = '${timestamp}',`;
-  } else if (status === 'Távozott') {
-      dateField = `TAVOZOTT_DATUM = '${timestamp}',`;
-  }
-
-  // Frissítsük a paciensek táblát az új státusszal és adott dátum mezővel
-  const updatePaciensekSql = `
-      UPDATE paciensek
-      SET STATUS = '${status}', ${dateField} ELOGOND_DATUM = ELOGOND_DATUM
-      WHERE TAJ = '${id}'
-  `;
-
-  DB.query(updatePaciensekSql, [], (updateResult, updateErr) => {
-      if (updateErr) {
-          console.error('Hiba a paciensek tábla frissítésekor:', updateErr);
-          return res.status(500).json({ error: 'Adatbázis hiba történt a státusz frissítése során.' });
-      }
-
-      console.log('Paciensek tábla sikeresen frissítve.');
-
-      // Csak akkor frissítjük az ellatas tábla adatait, ha az új státusz "Ellátott"
-      if (status === 'Ellátott') {
-          const fetchPensionSql = `
-              SELECT NYUGDIJ FROM paciensek WHERE TAJ = '${id}'`;
-          console.log('SQL Lekérdezés:', fetchPensionSql);
-
-          DB.query(fetchPensionSql, [], (pensionResult, pensionErr) => {
-              if (pensionErr) {
-                  console.error('Hiba a nyugdíj lekérdezésekor:', pensionErr);
-              } else {
-                  console.log('Lekérdezés eredménye (eredeti):', pensionResult);
-
-                  let rows;
-                  if (typeof pensionResult === 'string') {
-                      try {
-                          const parsedResult = JSON.parse(pensionResult);
-                          rows = parsedResult.rows || [];
-                      } catch (parseError) {
-                          console.error('Hiba a lekérdezés eredményének feldolgozása során:', parseError);
-                          rows = [];
-                      }
-                  } else {
-                      rows = pensionResult.rows || [];
-                  }
-
-                  console.log('Lekérdezés eredménye (feldolgozott):', rows);
-
-                  if (rows.length > 0 && rows[0].NYUGDIJ !== undefined) {
-                      const pension = parseFloat(rows[0].NYUGDIJ);
-                      const daysInYear = (new Date(year, 11, 31) - new Date(year, 0, 0)) / (1000 * 60 * 60 * 24);
-                      const dailyFee = Math.floor((pension * 0.6) * 12 / daysInYear);
-
-                      console.log(`Nyugdíj összege: ${pension}`);
-                      console.log(`Éves napok száma: ${daysInYear}`);
-                      console.log(`Napidíj képlete: Math.floor((${pension} * 0.6) * 12 / ${daysInYear})`);
-                      console.log(`Napidíj: ${dailyFee}`);
-
-                      console.log(`Páciens ID: ${id}, Nyugdíj: ${pension}, Napidíj: ${dailyFee}`);
-
-                      // Frissítsük a napidíjat az adatbázisban
-                      const updateDailyFeeSql = `
-                          UPDATE ellatas
-                          SET NAPIDIJ = ${dailyFee}
-                          WHERE ID_PACIENS = (SELECT ID_PACIENS FROM paciensek WHERE TAJ = '${id}')
-                      `;
-
-                      DB.query(updateDailyFeeSql, [], (updateDailyFeeResult, updateDailyFeeErr) => {
-                          if (updateDailyFeeErr) {
-                              console.error('Hiba a napidíj frissítésekor:', updateDailyFeeErr);
-                          } else {
-                              console.log('Napidíj sikeresen frissítve az adatbázisban.');
-                          }
-                      });
-                  } else {
-                      console.log(`Páciens ID: ${id}, nyugdíj érték nem található vagy üres.`);
-                  }
-              }
-          });
-
-          const daysArray = Array(day - 1).fill('0').join('') + '1';
-
-          const updateEllatasSql = `
-              INSERT INTO ellatas (ID_PACIENS, EV, HO, NAPOK)
-              SELECT ID_PACIENS, ${year}, ${month}, '${daysArray}'
-              FROM paciensek
-              WHERE TAJ = '${id}'
-              ON DUPLICATE KEY UPDATE NAPOK = '${daysArray}'
-          `;
-
-          DB.query(updateEllatasSql, [], (ellatasResult, ellatasErr) => {
-              if (ellatasErr) {
-                  console.error('Hiba az ellatas tábla frissítésekor:', ellatasErr);
-                  return res.status(500).json({ error: 'Adatbázis hiba történt az ellatas táblázat frissítése során.' });
-              }
-
-              console.log('Ellátás tábla sikeresen frissítve.');
-              res.json({ success: true, message: 'Státusz és ellátás adatai sikeresen frissítve!' });
-          });
-      } else {
-          res.json({ success: true, message: 'Státusz sikeresen módosítva!' });
-      }
+    const { id, status, timestamp, year, month, day } = req.body;
+  
+    if (!id || !status || !timestamp || !year || !month || !day) {
+        console.log('Hiányzó adatok!', { id, status, timestamp, year, month, day });
+        return res.status(400).json({ error: 'Hiányzó adatok!' });
+    }
+  
+    // Meghatározzuk, hogy melyik dátum mezőt kell frissíteni az új státusz alapján
+    let dateField = '';
+    if (status === 'Előgondozott') {
+        dateField = `ELOGOND_DATUM = '${timestamp}',`;
+    } else if (status === 'Ellátott') {
+        dateField = `ELLATOTT_DATUM = '${timestamp}',`;
+    } else if (status === 'Távozott') {
+        dateField = `TAVOZOTT_DATUM = '${timestamp}',`;
+    }
+  
+    // Frissítsük a paciensek táblát az új státusszal és adott dátum mezővel
+    const updatePaciensekSql = `
+        UPDATE paciensek
+        SET STATUS = '${status}', ${dateField} ELOGOND_DATUM = ELOGOND_DATUM
+        WHERE TAJ = '${id}'
+    `;
+  
+    DB.query(updatePaciensekSql, [], (updateResult, updateErr) => {
+        if (updateErr) {
+            console.error('Hiba a paciensek tábla frissítésekor:', updateErr);
+            return res.status(500).json({ error: 'Adatbázis hiba történt a státusz frissítése során.' });
+        }
+  
+        console.log('Paciensek tábla sikeresen frissítve.');
+  
+        // Ellenőrizzük, hogy a státusz "Sürgős Várakozó"-ról "Előgondozott"-ra vált
+        if (status === 'Előgondozott') {
+            const checkUrgentSql = `
+                SELECT SURGOS_VARAKOZO
+                FROM paciensek
+                WHERE TAJ = '${id}' AND SURGOS_VARAKOZO = 'Y'
+            `;
+  
+            DB.query(checkUrgentSql, [], (urgentResult, urgentErr) => {
+                if (urgentErr) {
+                    console.error('Hiba a sürgős státusz ellenőrzésekor:', urgentErr);
+                    return;
+                }
+  
+                if (urgentResult.length > 0) {
+                    // Ha sürgős várakozó, állítsuk át a `surgos_varakozo` mezőt "N"-re
+                    const updateUrgentSql = `
+                        UPDATE paciensek
+                        SET SURGOS_VARAKOZO = 'N'
+                        WHERE TAJ = '${id}'
+                    `;
+  
+                    DB.query(updateUrgentSql, [], (urgentUpdateResult, urgentUpdateErr) => {
+                        if (urgentUpdateErr) {
+                            console.error('Hiba a sürgős státusz frissítésekor:', urgentUpdateErr);
+                        } else {
+                            console.log('Sürgős státusz sikeresen átállítva "N"-re.');
+                        }
+                    });
+                }
+            });
+        }
+  
+        // Csak akkor frissítjük az ellatas tábla adatait, ha az új státusz "Ellátott"
+        if (status === 'Ellátott') {
+            const fetchPensionSql = `
+                SELECT NYUGDIJ FROM paciensek WHERE TAJ = '${id}'`;
+            console.log('SQL Lekérdezés:', fetchPensionSql);
+  
+            DB.query(fetchPensionSql, [], (pensionResult, pensionErr) => {
+                if (pensionErr) {
+                    console.error('Hiba a nyugdíj lekérdezésekor:', pensionErr);
+                } else {
+                    console.log('Lekérdezés eredménye (eredeti):', pensionResult);
+  
+                    let rows;
+                    if (typeof pensionResult === 'string') {
+                        try {
+                            const parsedResult = JSON.parse(pensionResult);
+                            rows = parsedResult.rows || [];
+                        } catch (parseError) {
+                            console.error('Hiba a lekérdezés eredményének feldolgozása során:', parseError);
+                            rows = [];
+                        }
+                    } else {
+                        rows = pensionResult.rows || [];
+                    }
+  
+                    console.log('Lekérdezés eredménye (feldolgozott):', rows);
+  
+                    if (rows.length > 0 && rows[0].NYUGDIJ !== undefined) {
+                        const pension = parseFloat(rows[0].NYUGDIJ);
+                        const daysInYear = (new Date(year, 11, 31) - new Date(year, 0, 0)) / (1000 * 60 * 60 * 24);
+                        const dailyFee = Math.floor((pension * 0.6) * 12 / daysInYear);
+  
+                        console.log(`Nyugdíj összege: ${pension}`);
+                        console.log(`Éves napok száma: ${daysInYear}`);
+                        console.log(`Napidíj képlete: Math.floor((${pension} * 0.6) * 12 / ${daysInYear})`);
+                        console.log(`Napidíj: ${dailyFee}`);
+  
+                        console.log(`Páciens ID: ${id}, Nyugdíj: ${pension}, Napidíj: ${dailyFee}`);
+  
+                        // Frissítsük a napidíjat az adatbázisban
+                        const updateDailyFeeSql = `
+                            UPDATE ellatas
+                            SET NAPIDIJ = ${dailyFee}
+                            WHERE ID_PACIENS = (SELECT ID_PACIENS FROM paciensek WHERE TAJ = '${id}')
+                        `;
+  
+                        DB.query(updateDailyFeeSql, [], (updateDailyFeeResult, updateDailyFeeErr) => {
+                            if (updateDailyFeeErr) {
+                                console.error('Hiba a napidíj frissítésekor:', updateDailyFeeErr);
+                            } else {
+                                console.log('Napidíj sikeresen frissítve az adatbázisban.');
+                            }
+                        });
+                    } else {
+                        console.log(`Páciens ID: ${id}, nyugdíj érték nem található vagy üres.`);
+                    }
+                }
+            });
+  
+            const daysArray = Array(day - 1).fill('0').join('') + '1';
+  
+            const updateEllatasSql = `
+                INSERT INTO ellatas (ID_PACIENS, EV, HO, NAPOK)
+                SELECT ID_PACIENS, ${year}, ${month}, '${daysArray}'
+                FROM paciensek
+                WHERE TAJ = '${id}'
+                ON DUPLICATE KEY UPDATE NAPOK = '${daysArray}'
+            `;
+  
+            DB.query(updateEllatasSql, [], (ellatasResult, ellatasErr) => {
+                if (ellatasErr) {
+                    console.error('Hiba az ellatas tábla frissítésekor:', ellatasErr);
+                    return res.status(500).json({ error: 'Adatbázis hiba történt az ellatas táblázat frissítése során.' });
+                }
+  
+                console.log('Ellátás tábla sikeresen frissítve.');
+                res.json({ success: true, message: 'Státusz és ellátás adatai sikeresen frissítve!' });
+            });
+        } else {
+            res.json({ success: true, message: 'Státusz sikeresen módosítva!' });
+        }
+    });
   });
-});
-
+  
 
 
 // Endpoint to get napidij for a patient

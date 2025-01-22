@@ -18,6 +18,12 @@ var menü_json = [{
     "text": "Fizetés",
     "ikon": "images/fizetes.png.jpg",
     "url": "fizetes.html",
+    "tip": 0
+  },
+  {
+    "text": "Jelenléti ív",
+    "ikon": "images/jelenlet.png.jpg",
+    "url": "jelenlet.html",
     "tip": 0}];
 
 

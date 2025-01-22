@@ -1,3 +1,7 @@
+Csány László Technikum Mail	Gergő, Gombos <gombos.gergo@csany-zeg.hu></gombos.gergo>
+HTMLS
+Gergő, Gombos <gombos.gergo@csany-zeg.hu>	2025. január 21. 17:50
+Címzett: Gombos Gergő <gombos.gergo@csany-zeg.hu>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -57,7 +61,7 @@
         </div>
 
         <button class="button prevNext" id="next">
-            <i class="fa-solid fa-angle-right"></i>  
+            <i class="fa-solid fa-angle-right"></i>
         </button>
         <button class="button" id="endBtn">
             <i class="fa-solid fa-angles-right"></i>
@@ -109,6 +113,10 @@
     </div>
 </div>
 
+    
+    
+    
+
 
 <script type="text/javascript">
      $(document).ready(function () {
@@ -123,102 +131,33 @@
 
     // Function to fetch and load data into the table
     function loadData(status) {
-    // Define the endpoint for the general data
-    const generalEndpoint = status === 'Várakozó'
-        ? '/getWaitingData'
-        : status === 'Előgondozott'
-        ? '/getPreCareData'
-        : status === 'Ellátott'
-        ? '/getCareData'
-        : '/getLeftData'; // For "Távozott"
+        const endpoint = status === 'Várakozó'
+            ? '/getWaitingData'
+            : status === 'Előgondozott'
+            ? '/getPreCareData'
+            : status === 'Ellátott'
+            ? '/getCareData'
+            : '/getLeftData'; // New endpoint for "Távozott"
 
-    // Fetch urgent data only if the status is "Várakozó"
-    if (status === 'Várakozó') {
         $.ajax({
-            url: '/getUrgentData', // Fetch urgent patients
-            method: 'GET',
-            success: function (urgentData) {
-                const urgentRows = urgentData.rows;
-
-                // Fetch general data
-                $.ajax({
-                    url: generalEndpoint,
-                    method: 'GET',
-                    success: function (generalData) {
-                        const generalRows = generalData.rows;
-
-                        // Update the table with both urgent and general data
-                        updateTable(urgentRows, generalRows);
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error loading general data:", status, error);
-                    }
-                });
-            },
-            error: function (xhr, status, error) {
-                console.error("Error loading urgent data:", status, error);
-            }
-        });
-    } else {
-        // For other statuses, just load general data
-        $.ajax({
-            url: generalEndpoint,
+            url: endpoint,
             method: 'GET',
             success: function (data) {
-                updateTable([], data.rows); // No urgent rows for other statuses
+                table.clear();
+                data.rows.forEach(function (row) {
+                    table.row.add([
+                        `<span class="name" style="cursor:pointer;" onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">${row.NEV}</span>`,
+                        row.TAJ,
+                        row.SZULDATUM,
+                        row.STATUS
+                    ]).draw(false);
+                });
             },
             error: function (xhr, status, error) {
                 console.error("Error loading data:", status, error);
             }
         });
     }
-}
-
-// Function to update the table
-function updateTable(urgentRows, generalRows) {
-    table.clear();
-
-    // Add urgent rows to the table (highlighted in red)
-    urgentRows.forEach(row => {
-        const rowHtml = `
-            <tr class="urgent-row">
-                <td>
-                    <span 
-                        class="name" 
-                        style="cursor:pointer;" 
-                        onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">
-                        ${row.NEV}
-                    </span>
-                </td>
-                <td>${row.TAJ}</td>
-                <td>${row.SZULDATUM}</td>
-                <td>${row.STATUS}</td>
-            </tr>
-        `;
-        table.row.add($(rowHtml)).draw(false);
-    });
-
-    // Add general rows to the table
-    generalRows.forEach(row => {
-        const rowHtml = `
-            <tr>
-                <td>
-                    <span 
-                        class="name" 
-                        style="cursor:pointer;" 
-                        onclick="openModal('${row.NEV}', '${row.TAJ}', '${row.SZULDATUM}', '${row.STATUS}')">
-                        ${row.NEV}
-                    </span>
-                </td>
-                <td>${row.TAJ}</td>
-                <td>${row.SZULDATUM}</td>
-                <td>${row.STATUS}</td>
-            </tr>
-        `;
-        table.row.add($(rowHtml)).draw(false);
-    });
-}
-
 
     function updateActiveButton(buttonId) {
         $('.btn-group .btn').removeClass('btn-primary').addClass('btn-secondary');
@@ -344,7 +283,11 @@ function checkAndLoadData(status, buttonId) {
 }
 
 $('#saveNewStatusButton').on('click', function () {
-    const newStatus = $('#newStatus').val(); // A kiválasztott új státusz
+   const newStatus = $('#newStatus').val(); // A kiválasztott új státusz
+    const currentTable = $(`#table-${currentStatus.toLowerCase()}`); // Jelenlegi státusz táblázata
+    const currentTableRows = currentTable.find('tbody tr');
+    const  currentRowCount = currentTableRows.length;
+
     const currentDate = new Date(); // Aktuális dátum
     const currentMonth = currentDate.getMonth() + 1; // Hónap (1 alapú)
     const currentYear = currentDate.getFullYear(); // Év
@@ -361,27 +304,35 @@ $('#saveNewStatusButton').on('click', function () {
         };
 
         $.ajax({
-            url: '/updateStatus',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(requestData),
-            success: function (response) {
-                alert(response.message || 'Státusz sikeresen módosítva!');
-                $('#changeStatusModal').modal('hide');
+    url: '/updateStatus',
+    method: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify(requestData),
+    success: function (response) {
+        alert(response.message || 'Státusz sikeresen módosítva!');
+        $('#changeStatusModal').modal('hide');
 
-                // Frissítsd az adatokat a táblázatban
-                loadData('Várakozó'); // Újratölti a „Várakozó” státuszú páciensek adatait
-            },
-            error: function (xhr, status, error) {
-                alert('Hiba történt a státusz módosítása során!');
-                console.error('Error:', status, error);
-            }
-        });
+        // Táblázat sorának eltávolítása az aktuális státusz alapján
+        const rows = table.rows().data().toArray();
+        const updatedRows = rows.filter(row => !row[1].includes(selectedTaj)); // Kizárjuk a módosított páciens TAJ számát
+        table.clear();
+        table.rows.add(updatedRows).draw();
+
+        // Ellenőrizzük, hogy a táblázat üres lett-e
+        if (updatedRows.length === 0) {
+            alert(`Már nincs páciens a "${currentStatus}" státuszban.`);
+        }
+    },
+    error: function (xhr, status, error) {
+        alert('Hiba történt a státusz módosítása során!');
+        console.error('Error:', status, error);
+    }
+});
+
     } else {
         alert('Válassz egy új státuszt!');
     }
 });
-
 
 // Táblázat betöltése
 function loadTable(status) {
@@ -391,6 +342,25 @@ function loadTable(status) {
 
 
 //gombok vizsgálata
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             $('#szortirozas').on('change', function () {
                 var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
