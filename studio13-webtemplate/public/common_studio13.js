@@ -16,13 +16,13 @@ var menü_json = [{
   },
   {
     "text": "Fizetés",
-    "ikon": "images/fizetes.png.jpg",
+    "ikon": "images/moneybag.png",
     "url": "fizetes.html",
     "tip": 0
   },
   {
-    "text": "Jelenléti ív",
-    "ikon": "images/jelenlet.png.jpg",
+    "text": "Kommuált napi jelenléti ív",
+    "ikon": "images/kommunaltjelen.png",
     "url": "jelenlet.html",
     "tip": 0}];
 

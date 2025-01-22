@@ -1078,6 +1078,31 @@ app.get('/getUrgentData', (req, res) => {
 
 
 
+app.get('/getLastDayStatus', (req, res) => {
+    const statusFilter = req.query.status || 'ellátott'; // Alapértelmezett státusz az "ellátott"
+
+    const sql = `
+        SELECT 
+            paciensek.NEV, 
+            paciensek.TAJ, 
+            RIGHT(ellatas.NAPOK, 1) AS LAST_DAY_STATUS
+        FROM paciensek
+        INNER JOIN ellatas 
+            ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE paciensek.STATUS = '${statusFilter}'
+          AND ellatas.EV = YEAR(CURDATE()) 
+          AND ellatas.HO = MONTH(CURDATE())
+    `;
+
+    DB.query(sql, (err, results) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        res.json({ rows: results });
+    });
+});
 
                                                           
 
