@@ -23,7 +23,7 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table display" id="patientsTable">
+                <table id="myTable" class="display" >
                     <thead>
                         <tr>
                             <th scope="col">#</th>
@@ -68,11 +68,12 @@
             fetch('/getLastDayStatus?status=ellátott') // Replace with your actual endpoint
                 .then(response => response.json())
                 .then(data => {
-                    const table = $('#patientsTable').DataTable({
+                    const table = $('#myTable').DataTable({
                         responsive: true,
                         autoWidth: false,
                         destroy: true, // Ensures reinitialization on subsequent data loads
                         dom: 't',
+                        pageLength: 150,
                     });
                     table.clear();
 

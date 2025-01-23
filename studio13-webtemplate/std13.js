@@ -8,7 +8,8 @@ const util = require('util');
 const express = require('express');
 const session = require('express-session');
 const app    = express();
-const port   = 3000;    //const port   = 9062;
+//const port   = 3000;    
+const port   = 9062;
 var session_data;                   // login user adatai
 app.use(session({ key:'user_sid', secret:'nagyontitkossütemény', resave:true, saveUninitialized:true }));  /* https://www.js-tutorials.com/nodejs-tutorial/nodejs-session-example-using-express-session */
 var DB  = require('./datamodule_mysql.js');
@@ -1101,6 +1102,25 @@ app.get('/getLastDayStatus', (req, res) => {
         }
 
         res.json({ rows: results });
+    });
+});
+
+app.get('/getEllatottPatients', (req, res) => {
+    const sql = `
+         SELECT distinct NEV, TAJ
+        FROM paciensek
+        INNER JOIN ellatas
+        ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE paciensek.STATUS = 'ellátott';
+    `;
+
+    DB.query(sql, (err, results) => {
+        if (err) {
+            console.error('Hiba az adatbázis-lekérdezés során:', err);
+            res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        } else {
+            res.json(results);
+        }
     });
 });
 

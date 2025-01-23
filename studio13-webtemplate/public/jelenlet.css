@@ -43,12 +43,11 @@ table.display tbody tr:nth-child(even) {
     background-color: #f8f8f8;
 }
 
+
 table.display tbody tr:hover {
     background-color: #e6f7ff; /* Light blue on hover */
     cursor: pointer;
 }
-
-
 
 /* Responsive Styling */
 @media (max-width: 600px) {

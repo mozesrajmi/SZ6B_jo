@@ -4,8 +4,8 @@ https://stackoverflow.com/questions/2799283/use-a-json-array-with-objects-with-j
 
 */
 var menü_json = [{
-  "text": "Ellátott páciensek jelenlétel",
-  "ikon": "images/xls-32.png",
+  "text": "Napi státusz módosítás",
+  "ikon": "images/jelnecserejo.png",
   "url": "datatables.html",
   "tip": 0},
   {
@@ -15,7 +15,7 @@ var menü_json = [{
     "tip": 0
   },
   {
-    "text": "Fizetés",
+    "text": "Manuális fizetés",
     "ikon": "images/moneybag.png",
     "url": "fizetes.html",
     "tip": 0
@@ -24,7 +24,14 @@ var menü_json = [{
     "text": "Kommuált napi jelenléti ív",
     "ikon": "images/kommunaltjelen.png",
     "url": "jelenlet.html",
-    "tip": 0}];
+    "tip": 0
+  },
+  {
+    "text": "Befizetések",
+    "ikon": "images/kasszajo.png",
+    "url": "fizetnikell.html",
+    "tip": 0
+  }];
 
 
 /* menü_json ból menüpontokat generál id="menu1_ul" ba
