@@ -49,6 +49,11 @@ table.display tbody tr:hover {
     cursor: pointer;
 }
 
+#currentDate{
+    font-size: 20px;
+
+}
+
 /* Responsive Styling */
 @media (max-width: 600px) {
     table.display {

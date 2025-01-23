@@ -29,7 +29,7 @@ var menü_json = [{
   {
     "text": "Befizetések",
     "ikon": "images/kasszajo.png",
-    "url": "fizetnikell.html",
+    "url": "kassza.html",
     "tip": 0
   }];
 

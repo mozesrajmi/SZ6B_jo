@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ellátottak Táblázata</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css" />
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
+    <link rel="stylesheet" href="kassza.css">
+</head>
+<body>
+    <div class="container">
+        <div class="table-wrapper">
+            <div class="header">
+                <h1 class="display-6">Napi jelenléti ív</h1>
+                <p id="currentDate" class="text-muted"></p>
+            </div>
+
+            <div class="bixi">
+                <div class="box"> 
+                    <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." autocomplete="off" spellcheck="false" />
+                    <img src="images/eleg.png" class="bixi-image">
+                </div>
+            </div>
+            
+
+            <div class="table-responsive">
+                <table id="myTable" class="display" >
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">NÉV</th>
+                            <th scope="col">TAJ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted dynamically here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Első modál -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title w-100" id="modalTitle">Páciens adatai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Név:</strong> <span id="modalName"></span></p>
+                    <p><strong>TAJ szám:</strong> <span id="modalTaj"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button id="nextModalButton" class="btn btn-primary">Tovább a befizetésre</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Második modál -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalTitle" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-center">
+                    <h5 class="modal-title w-100" id="paymentModalTitle">Befizetési összeg</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Fizetendő összeg:</strong> <span id="fizetendoAmount"></span> Ft</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+   $(document).ready(function () {
+    const table = $('#myTable').DataTable({
+        autoWidth: false,
+        responsive: true,
+        dom: 't',
+        pageLength: 150,
+    });
+
+    let selectedTaj = null;
+
+    // Keresési funkció: valós idejű keresés a táblázatban
+    $('#searchBox').on('input', function () {
+        const searchValue = this.value.slice(0, 50); // Legfeljebb 50 karakter
+        table.search(searchValue).draw(); // Keresés DataTable-ben
+    });
+
+     // Adatok betöltése
+     function loadData() {
+        $.ajax({
+            url: '/getEllatottPatients',
+            method: 'GET',
+            success: function (data) {
+                table.clear();
+                data.forEach((patient, index) => {
+                    table.row.add([
+                        index + 1,
+                        patient.NEV,
+                        patient.TAJ
+                    ]).draw(false);
+                });
+
+                // Hozzáadjuk a kattintási eseményt minden sorhoz
+                $('#myTable tbody').on('click', 'tr', function () {
+                    const rowData = table.row(this).data();
+                    selectedTaj = rowData[2]; // TAJ szám mentése
+                    openModal(rowData[1], rowData[2]);
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error('Hiba történt az adatok betöltésekor:', error);
+            }
+        });
+    }
+
+    // Első modál megnyitása
+    function openModal(name, taj) {
+        $('#modalName').text(name);
+        $('#modalTaj').text(taj);
+        $('#detailsModal').modal('show');
+    }
+
+    // "Tovább a befizetésre" gomb eseménye
+    $('#nextModalButton').on('click', function () {
+    if (selectedTaj) {
+        // Lekérjük az aktuális év és hónap értékét
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1; // JavaScript hónapok 0-indexeltek
+
+        $.ajax({
+            url: '/getPatientIdByTaj',
+            method: 'GET',
+            data: { taj: selectedTaj },
+            success: function (response) {
+                const patientId = response.id;
+
+                // Lekérjük az FIZETENDO értéket az aktuális év és hónap alapján
+                $.ajax({
+                    url: '/getFizetendoById',
+                    method: 'GET',
+                    data: { id: patientId, year: currentYear, month: currentMonth },
+                    success: function (response) {
+                        $('#fizetendoAmount').text(response.fizetendo); // Fizetendő összeg beállítása
+                        $('#detailsModal').modal('hide'); // Első modál bezárása
+                        $('#paymentModal').modal('show'); // Második modál megnyitása
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Hiba történt a fizetendő összeg lekérésekor:', error);
+                        alert('Nem sikerült lekérni a fizetendő összeget.');
+                    }
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error('Hiba történt az ID lekérése során:', error);
+                alert('Nem sikerült lekérni a páciens ID-ját.');
+            }
+        });
+    }
+});
+
+
+    // Adatok betöltése oldal betöltésekor
+    loadData();
+});
+
+        
+    </script>
+</body>
+</html>

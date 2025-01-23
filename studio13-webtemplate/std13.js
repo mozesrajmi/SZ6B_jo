@@ -19,9 +19,6 @@ app.use(express.json()); // JSON adatok feldolgozása
 app.use(express.urlencoded({ extended: true })); // URL-encoded adatok feldolgozása
 
 
-
-
-
 //npm install node-schedule mysql
 
 
@@ -1123,6 +1120,51 @@ app.get('/getEllatottPatients', (req, res) => {
         }
     });
 });
+
+
+// Új végpont a fizetéshez
+app.get('/getFizetendoById', (req, res) => {
+    const { id, year, month } = req.query;
+
+    // Ellenőrizzük, hogy a szükséges paraméterek jelen vannak
+    if (!id || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek! (id, év, hónap szükséges)' });
+    }
+
+    // SQL lekérdezés létrehozása
+    const sql = `
+        SELECT FIZETENDO 
+        FROM ellatas 
+        WHERE ID_PACIENS = ${id} AND EV = ${year} AND HO = ${month} 
+        LIMIT 1
+    `;
+
+    // Adatbázis lekérdezés
+    DB.query(sql, (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        // Ellenőrizzük az eredményt
+        if (!results || results.length === 0) {
+            console.log('Nincs találat az adatbázisban');
+            return res.status(404).json({ error: 'Nincs ilyen ID-hoz tartozó adat az adott évre és hónapra!' });
+        }
+
+        // Kibontjuk az adatot a RowDataPacket objektumból
+        const fizetendo = results[0]?.FIZETENDO; // Biztonságos hozzáférés
+        if (fizetendo === undefined) {
+            return res.status(500).json({ error: 'Nem található FIZETENDO érték az eredményben!' });
+        }
+
+        // Küldjük vissza a megfelelő választ
+        console.log('Fizetendő összeg:', fizetendo);
+        return res.json({ fizetendo });
+    });
+});
+
+
 
                                                           
 
