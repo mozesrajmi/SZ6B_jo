@@ -144,34 +144,40 @@
         const today = new Date();
         const currentYear = today.getFullYear();
         const currentMonth = today.getMonth() + 1; // JavaScript hónapok 0-indexeltek
-
+        console.log("taj", selectedTaj)
         $.ajax({
             url: '/getPatientIdByTaj',
             method: 'GET',
             data: { taj: selectedTaj },
             success: function (response) {
                 const patientId = response.id;
-
+                console.log("id", { id: patientId, year: currentYear, month: currentMonth })
                 // Lekérjük az FIZETENDO értéket az aktuális év és hónap alapján
-                $.ajax({
-                    url: '/getFizetendoById',
-                    method: 'GET',
-                    data: { id: patientId, year: currentYear, month: currentMonth },
-                    success: function (response) {
-                        $('#fizetendoAmount').text(response.fizetendo); // Fizetendő összeg beállítása
-                        $('#detailsModal').modal('hide'); // Első modál bezárása
-                        $('#paymentModal').modal('show'); // Második modál megnyitása
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Hiba történt a fizetendő összeg lekérésekor:', error);
-                        alert('Nem sikerült lekérni a fizetendő összeget.');
-                    }
-                });
             },
             error: function (xhr, status, error) {
                 console.error('Hiba történt az ID lekérése során:', error);
                 alert('Nem sikerült lekérni a páciens ID-ját.');
             }
+        }).then(response =>{
+            console.log("response", response)
+            $.ajax({
+                url: '/getFizetendoById',
+                method: 'GET',
+                data: { id: response.id, year: currentYear, month: currentMonth },
+                success: function (response) {
+                    $('#fizetendoAmount').text(response.fizetendo); // Fizetendő összeg beállítása
+                    $('#detailsModal').modal('hide'); // Első modál bezárása
+                    $('#paymentModal').modal('show'); // Második modál megnyitása
+                },
+                error: function (xhr, status, error) {
+                    console.error('Hiba történt a fizetendő összeg lekérésekor:', error);
+                    alert('Nem sikerült lekérni a fizetendő összeget.');
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Hiba történt az adatok lekérésekor:', error);
+            alert('Nem sikerült lekérni a befizetendő összeget.');
         });
     }
 });
@@ -185,3 +191,5 @@
     </script>
 </body>
 </html>
+
+Szia Gege

@@ -167,7 +167,6 @@ table.display tbody tr:hover {
 }
 
 #fizetendoAmount {
-    font-size: 1.5em;
-    color: #0056b3;
-    font-weight: bold;
+    font-size: 20px;
+    color: #dfbc72;
 }
