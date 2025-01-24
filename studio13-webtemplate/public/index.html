@@ -95,38 +95,54 @@ function login() {
 
 /* ---- felhasználó kijelentkezik, de megerősítést kérünk előtte ---- */ 
 function logout() {
-  // Felhasználói megerősítés kérése
-  myQuestion({ text: `Biztosan ki szeretne jelentkezni?` });
-  
-  // Ha a felhasználó az "OK" gombra kattint
-  $("#myQuestion").on("click", ".ok", function () {
-    var session_response = ajax_post("logout", 1);
-    mySend({ text: session_response, tip: "info", mp: 3 });
+  // Ellenőrizd, hogy van-e aktív munkamenet
+  $.ajax({
+    url: '/checkSession', // Backend végpont a munkamenet ellenőrzésére
+    method: 'GET',
+    success: function(session_data) {
+      if (!session_data || !session_data.NEV) {
+        // Ha nincs bejelentkezve, jeleníts meg egy értesítést
+        mySend({ text: 'Nem vagy bejelentkezve, ezért nem tudsz kijelentkezni!', tip: 'warning', mp: 3 });
+      } else {
+        // Ha be van jelentkezve, kérj megerősítést a kijelentkezéshez
+        myQuestion({ text: `Biztosan ki szeretne jelentkezni?` });
 
-    // Navigációs sáv letiltása
-    disableNavbar();
+        // Ha a felhasználó az "OK" gombra kattint
+        $("#myQuestion").on("click", ".ok", function () {
+          var session_response = ajax_post("logout", 1);
 
-    // Bejelentkezési szöveg visszaállítása
-    $("#login1_user").html("Bejelentkezés");
+          // Értesítés a sikeres kijelentkezésről
+          mySend({ text: 'Sikeres kijelentkezés!', tip: 'info', mp: 1 });
 
-    // Modal bezárása
-    $('#login1_modal').modal('hide');
+          // Navigációs sáv letiltása
+          disableNavbar();
 
-    // Átirányítás a főoldalra
-    window.location.href = '/';
-  });
+          // Bejelentkezési szöveg visszaállítása
+          $("#login1_user").html("Bejelentkezés");
 
-  // Ha a felhasználó a "Mégse" gombra kattint
-  $("#myQuestion").on("click", ".cancel", function () {
-    // Megerősítés, hogy a felhasználó bejelentkezve marad
-    mySend({ text: `Kijelentkezés megszakítva.`, tip: "warning", mp: 3 });
-    $('#login1_user').html(`Bejelentkezve: ${sessionStorage.getItem('username')}`); // Frissíti a kijelentkezési szöveget
-    $('#login1_modal').modal('hide'); // Modal bezárása
-    enableNavbar(); // Navigációs sáv újbóli engedélyezése
+          // Modal bezárása
+          $('#login1_modal').modal('hide');
+
+          // Átirányítás késleltetése, hogy az értesítés látszódjon
+          setTimeout(function () {
+            window.location.href = '/';
+          }, 1000); // 3 másodperc késleltetés
+        });
+
+        // Ha a felhasználó a "Mégse" gombra kattint
+        $("#myQuestion").on("click", ".cancel", function () {
+          mySend({ text: `Kijelentkezés megszakítva.`, tip: "warning", mp: 3 });
+          $('#login1_user').html(`Bejelentkezve: ${sessionStorage.getItem('username')}`); 
+          $('#login1_modal').modal('hide');
+          enableNavbar();
+        });
+      }
+    },
+    error: function() {
+      mySend({ text: 'Hiba történt a munkamenet ellenőrzésekor.', tip: 'danger', mp: 5 });
+    }
   });
 }
-
-
 
 
 
@@ -172,16 +188,16 @@ function logout() {
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-            <form id="user1_form">
-              <div class="mb-3" >
-                <label for="user1_login_field" class="form-label">Felhasználó</label>
-                <input type="email" class="form-control" id="user1_login_field" name="user1_login_field" placeholder="usernév" value="admin">
-              </div>
-              <div class="mb-3">
-                <label for="user1_passwd_field" class="form-label">Jelszó:</label>
-                <input type="password" class="form-control" id="user1_passwd_field" name="user1_passwd_field" placeholder="Jelszó" value="admin">
-              </div>
-            </form>
+          <form id="user1_form">
+            <div class="mb-3">
+              <label for="user1_login_field" class="form-label"></label>
+              <input type="email" class="form-control" id="user1_login_field" name="user1_login_field" placeholder="Felhasználónév" value="">
+            </div>
+            <div class="mb-3">
+              <label for="user1_passwd_field" class="form-label"></label>
+              <input type="password" class="form-control" id="user1_passwd_field" name="user1_passwd_field" placeholder="Jelszó" value="">
+            </div>
+          </form>          
         </div>
         <div class="modal-footer">  
             <div id="user1_login_button"  class="button login">Login</div>
@@ -282,8 +298,9 @@ $("#user1_logout_button").click(function () {
 
 
 
+
 $(document).ready(function () {
-  // Munkamenet-ellenőrzés 5 másodpercenként
+  // Munkamenet-ellenőrzés 1 percenkénti ellenőrzés
   setInterval(function () {
     $.ajax({
       url: '/checkSession',
@@ -291,17 +308,23 @@ $(document).ready(function () {
       success: function (session_data) {
         if (!session_data || !session_data.NEV) {
           // Ha nincs érvényes munkamenet, átirányítjuk a főoldalra
-          //alert('Nincs érvényes munkamenet! Kérjük, jelentkezzen be újra.');
           window.location.href = '/';
         }
       }
     });
-  }, 10000); // 10 másodpercenkénti ellenőrzés (10000 ms)
+  }, 60000); // 1 percenkénti ellenőrzés
+});
+
+
+// Enter gomb lenyomására történő bejelentkezés
+document.getElementById("user1_form").addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault(); // Alapértelmezett működés megakadályozása
+    document.getElementById("user1_login_button").click(); // Kattintás szimulálása a login gombra
+  }
 });
 
   </script>
-
-
 
   <div class="loader" id="loader1"><img src="images/ajaxloader3.gif" alt="loader"/></div>      <!-- ajax loader -->
 </body>

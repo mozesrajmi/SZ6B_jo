@@ -18,7 +18,7 @@
     <div class="container">
         <div class="table-wrapper">
             <div class="header">
-                <h1 class="display-6">Napi jelenléti ív</h1>
+                <h1 class="display-6">Befizetés</h1>
                 <p id="currentDate" class="text-muted"></p>
             </div>
 
@@ -76,13 +76,20 @@
                 </div>
                 <div class="modal-body">
                     <p><strong>Fizetendő összeg:</strong> <span id="fizetendoAmount"></span> Ft</p>
+                    <!-- Új beviteli mező -->
+                    <div class="mb-3">
+                        <label for="paymentInput" class="form-label">Befizetett összeg:</label>
+                        <input type="number" class="form-control" id="paymentInput" placeholder="Írja be a befizetett összeget" />
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <!-- Mentés gomb -->
+                    <button type="button" class="btn btn-primary" id="savePaymentButton">Mentés</button>
                 </div>
             </div>
         </div>
     </div>
+
 
 
     <script>
@@ -180,6 +187,49 @@
             alert('Nem sikerült lekérni a befizetendő összeget.');
         });
     }
+    });
+
+    $(document).ready(function () {
+    // Function to format numbers with a thousands separator
+    function formatNumber(number) {
+        return new Intl.NumberFormat('hu-HU', { maximumFractionDigits: 0 }).format(number);
+    }
+
+    // Example: Updating fizetendoAmount
+    $('#savePaymentButton').on('click', function () {
+        const enteredAmount = parseFloat($('#paymentInput').val());
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+
+        if (!enteredAmount || isNaN(enteredAmount) || enteredAmount <= 0) {
+            alert('Kérjük, adjon meg egy érvényes összeget!');
+            return;
+        }
+
+        $.ajax({
+            url: '/savePayment',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                id: selectedTaj,
+                amount: enteredAmount,
+                year: currentYear,
+                month: currentMonth
+            }),
+            success: function (response) {
+                // Update the displayed amount with formatting
+                $('#fizetendoAmount').text(formatNumber(enteredAmount) + ' Ft');
+                alert('Befizetés sikeresen mentve!');
+                $('#paymentModal').modal('hide');
+                $('#paymentInput').val('');
+            },
+            error: function (xhr, status, error) {
+                console.error('Hiba történt a mentés során:', error);
+                alert('Nem sikerült menteni a befizetést.');
+            }
+        });
+    });
 });
 
 
@@ -191,5 +241,3 @@
     </script>
 </body>
 </html>
-
-Szia Gege

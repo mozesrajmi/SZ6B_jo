@@ -22,58 +22,97 @@ app.use(express.urlencoded({ extended: true })); // URL-encoded adatok feldolgoz
 //npm install node-schedule mysql
 
 
-app.post('/logout', (req, res) => {
+app.post("/logout", (req, res) => {
   session_data = req.session;
+
+  if (!session_data || !session_data.NEV) {
+    // User is not logged in
+    res.set("Content-Type", "application/json; charset=UTF-8");
+    return res.json("Hiba: Nincs bejelentkezve, kijelentkezés sikertelen.");
+  }
+
+  // Destroy session if user is logged in
   session_data.destroy(function (err) {
-    res.set('Content-Type', 'application/json; charset=UTF-8');
-    res.json('Sikeres kijelentkezés');
+    res.set("Content-Type", "application/json; charset=UTF-8");
+    res.json("Sikeres kijelentkezés");
     res.end();
   });
 });
 
 // Bejelentkezés POST kérés kezelése
+// Bejelentkezés POST kérés kezelése
 app.post('/login', (req, res) => {
-  session_data = req.session;
-
-  // Ellenőrizzük, hogy a felhasználó már be van-e jelentkezve
-  if (session_data && session_data.NEV) {
-    // Ha a felhasználó már be van jelentkezve, hibát küldünk
-    res.set('Content-Type', 'application/json; charset=UTF-8');
-    return res.json({
-      count: 0,
-      error: `Hiba: Már be van jelentkezve mint ${session_data.NEV}!`,
-    });
-  }
-
-  // Bejelentkezési adatok lekérdezése
-  var user = (req.query.user1_login_field ? req.query.user1_login_field : "");
-  var psw = (req.query.user1_passwd_field ? req.query.user1_passwd_field : "");
-  var sql = `select ID_OPERATOR, LOGIN, NEV FROM operator WHERE NEV='Adminisztrátor' AND PASSWORD=md5('${psw}')`;
-
-  // SQL lekérdezés futtatása és adatok kezelése
-  DB.query(sql, napló(req), (json_data, error) => {
-    var data = error ? error : JSON.parse(json_data);
-
-    if (!error && data.count === 1) {
-      // Sikeres bejelentkezés: munkamenet adatok beállítása
-      session_data = req.session;
-      session_data.ID_OPERATOR = data.rows[0].ID_OPERATOR || "N/A";
-      session_data.LOGIN = data.rows[0].LOGIN || "N/A";
-      session_data.NEV = data.rows[0].NEV || "N/A";
-      session_data.MOST = Date.now();
-
+    session_data = req.session;
+  
+    // Ellenőrizzük, hogy a felhasználó már be van-e jelentkezve
+    if (session_data && session_data.NEV) {
       res.set('Content-Type', 'application/json; charset=UTF-8');
-      res.send(data);
-    } else {
-      // Hibás bejelentkezés
-      data = { error: 'Sikertelen bejelentkezés: Hibás felhasználónév vagy jelszó' };
-      res.set('Content-Type', 'application/json; charset=UTF-8');
-      res.send(data);
+      return res.json({
+        count: 0,
+        error: `Hiba: Már be van jelentkezve mint ${session_data.NEV}!`,
+      });
     }
-    res.end();
-  });
+  
+    // Bejelentkezési adatok lekérdezése
+    var user = (req.query.user1_login_field ? req.query.user1_login_field.trim() : "");
+    var psw = (req.query.user1_passwd_field ? req.query.user1_passwd_field.trim() : "");
+  
+    // Mindkét mező ellenőrzése
+    if ((!user || user === "") && (!psw || psw === "")) {
+      res.set('Content-Type', 'application/json; charset=UTF-8');
+      return res.json({
+        count: 0,
+        error: "Hiba: A felhasználó nevet és a jelszót kötelező tölteni!",
+      });
+    }
+  
+    // Felhasználónév ellenőrzése
+    if (!user || user === "") {
+      res.set('Content-Type', 'application/json; charset=UTF-8');
+      return res.json({
+        count: 0,
+        error: "Hiba: A felhasználónév nem lehet üres!",
+      });
+    }
+  
+    // Jelszó ellenőrzése
+    if (!psw || psw === "") {
+      res.set('Content-Type', 'application/json; charset=UTF-8');
+      return res.json({
+        count: 0,
+        error: "Hiba: A jelszó megadása kötelező!",
+      });
+    }
+  
+    // SQL lekérdezés az azonosításhoz
+    var sql = `SELECT ID_OPERATOR, LOGIN, NEV 
+               FROM operator 
+               WHERE LOGIN='${user}' AND PASSWORD=md5('${psw}')`;
+  
+    // SQL futtatás és eredmény kezelése
+    DB.query(sql, napló(req), (json_data, error) => {
+      var data = error ? error : JSON.parse(json_data);
+  
+      if (!error && data.count === 1) {
+        session_data = req.session;
+        session_data.ID_OPERATOR = data.rows[0].ID_OPERATOR || "N/A";
+        session_data.LOGIN = data.rows[0].LOGIN || "N/A";
+        session_data.NEV = data.rows[0].NEV || "N/A";
+        session_data.MOST = Date.now();
+  
+        res.set('Content-Type', 'application/json; charset=UTF-8');
+        res.send(data);
+      } else {
+        data = { error: 'Sikertelen bejelentkezés: Hibás felhasználónév vagy jelszó' };
+        res.set('Content-Type', 'application/json; charset=UTF-8');
+        res.send(data);
+      }
+      res.end();
+    });
 });
-
+  
+  
+  
 // Kijelentkezés POST kérés kezelése
 app.post('/logout', (req, res) => {
   session_data = req.session;
@@ -1136,7 +1175,6 @@ app.get('/getFizetendoById', (req, res) => {
             WHERE ID_PACIENS = ${id} AND EV = ${year} AND HO = ${month} 
             LIMIT 1
         `;
-        console.log('SQL lekérdezés:', sql);
         // Adatbázis lekérdezés
         DB.query(sql, napló(req), (results, err) => {
             x++
@@ -1161,6 +1199,38 @@ app.get('/getFizetendoById', (req, res) => {
     }
 
 });
+
+app.post('/savePayment', (req, res) => {
+    const { id, amount, year, month } = req.body;
+
+    // Check if all necessary parameters are provided
+    if (!id || !amount || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó adatok!' });
+    }
+
+    // SQL query to update the FIZETETT field
+    const sql = `
+        UPDATE ellatas
+        SET FIZETETT = FIZETETT + ${amount}
+        WHERE ID_PACIENS = '${id}' AND EV = ${year} AND HO = ${month};
+    `;
+
+    // Execute the query
+    DB.query(sql, (err, result) => {
+        if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        // Check if any rows were updated
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Nincs ilyen rekord a megadott évre és hónapra!' });
+        }
+
+        res.json({ success: true, message: 'Befizetés sikeresen mentve!' });
+    });
+});
+
 
 
 
