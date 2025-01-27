@@ -1200,7 +1200,6 @@ app.get('/getFizetendoById', (req, res) => {
 
 });
 app.post('/savePayment', (req, res) => {
-    console.log('Request body:', req.body); // Ellenőrizd, hogy az `id` szerepel-e a beérkező adatok között
 
     const { id, amount, year, month } = req.body;
 
@@ -1242,7 +1241,263 @@ app.post('/savePayment', (req, res) => {
 });
 
 
-                                                          
+
+// Új végpont a FIZETENDO mező nullázásához
+app.post('/resetFizetendo', (req, res) => {
+    const { id, year, month } = req.body;
+
+    if (!id || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    const resetQuery = `
+        UPDATE ellatas
+        SET FIZETENDO = 0
+        WHERE ID_PACIENS = '${id}' AND EV = '${year}' AND HO = '${month}';
+    `;
+
+    DB.query(resetQuery, (err) => {
+        if (err) {
+            console.error('Hiba a FIZETENDO nullázásakor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        res.json({ success: true, message: 'FIZETENDO sikeresen nullázva!' });
+    });
+});
+
+// Új végpont a FIZETENDO újraszámolásához
+app.post('/recalculateFizetendo', (req, res) => {
+    const { id, year, month } = req.body;
+
+    if (!id || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    const recalculateQuery = `
+        SELECT NAPOK, NAPIDIJ
+        FROM ellatas
+        WHERE ID_PACIENS = '${id}' AND EV = '${year}' AND HO = '${month}';
+    `;
+
+    DB.query(recalculateQuery, (err, results) => {
+        if (err) {
+            console.error('Hiba az újraszámoláskor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba!' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Nincs adat a kiválasztott ID-hoz!' });
+        }
+
+        const { NAPOK, NAPIDIJ } = results[0];
+        let totalCost = 0;
+
+        NAPOK.split('').forEach((dayStatus) => {
+            if (dayStatus === '0') {
+                return; // Nem számolunk díjat
+            } else if (dayStatus === '2') {
+                totalCost += NAPIDIJ * 0.2; // Példa: kórház 20%
+            } else if (dayStatus === '3') {
+                totalCost += NAPIDIJ * 0.6; // Példa: helyfoglalás 60%
+            } else {
+                totalCost += NAPIDIJ; // Alapértelmezett napidíj
+            }
+        });
+
+        const updateQuery = `
+            UPDATE ellatas
+            SET FIZETENDO = '${totalCost}'
+            WHERE ID_PACIENS = '${id}' AND EV = '${year}' AND HO = '${month}';
+        `;
+
+        DB.query(updateQuery, (updateErr) => {
+            if (updateErr) {
+                console.error('Hiba a FIZETENDO frissítésekor:', updateErr);
+                return res.status(500).json({ error: 'Adatbázis hiba a FIZETENDO frissítésekor!' });
+            }
+
+            res.json({ success: true, message: 'FIZETENDO sikeresen újraszámolva!', totalCost });
+        });
+    });
+});
+
+// FIZETETT érték frissítése, beleértve negatív értékeket
+app.post('/updateFizetett', (req, res) => {
+    const { id, amount, year, month } = req.body;
+
+    if (!id || amount === undefined || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    const query = `
+        UPDATE ellatas
+        SET FIZETETT = ${amount}
+        WHERE ID_PACIENS = ${id} AND EV = ${year} AND HO = ${month};
+    `;
+
+    DB.query(query, (err) => {
+        if (err) {
+            console.error('Hiba a befizetés frissítésekor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba!' });
+        }
+
+        res.json({ success: true, message: 'Befizetés sikeresen frissítve!' });
+    });
+});
+
+
+
+app.post('/updateFizetendo', (req, res) => {
+    const { id, newFizetendo } = req.body;
+
+    if (!id || newFizetendo === undefined) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    // Közvetlen változók használata a lekérdezésben
+    const query = `
+        UPDATE ellatas
+        SET FIZETENDO = ${newFizetendo}
+        WHERE ID_PACIENS = ${id};
+    `;
+
+    DB.query(query, (err) => {
+        if (err) {
+            console.error('Hiba a fizetendő összeg frissítésekor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba!' });
+        }
+
+        res.json({ success: true, message: 'Fizetendő összeg sikeresen frissítve!' });
+    });
+});
+
+
+app.post('/updateHatralek', (req, res) => {
+    const { id, hatralek, year, month } = req.body;
+
+    if (!id || hatralek === undefined || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    const query = `
+    UPDATE ellatas
+    SET HATRALEK = ?
+    WHERE ID_PACIENS = ? AND EV = ? AND HONAP = ?;
+`;
+
+
+    DB.query(query, [hatralek, id, year, month], (err) => {
+        if (err) {
+            console.error('Hiba a hátralék frissítésekor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba!' });
+        }
+
+        res.json({ success: true, message: 'Hátralék sikeresen frissítve!' });
+    });
+
+});
+
+
+
+app.post('/updateTobblet', (req, res) => {
+    const { id, tobblet, year, month } = req.body;
+
+    if (!id || tobblet === undefined || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    const query = `
+        UPDATE ellatas
+        SET TOBBLET = ${tobblet}
+        WHERE ID_PACIENS = ${id} AND EV = ${year} AND HO = ${month};
+    `;
+
+    DB.query(query, (err) => {
+        if (err) {
+            console.error('Hiba a többlet frissítésekor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba!' });
+        }
+
+        res.json({ success: true, message: 'Többlet sikeresen frissítve!' });
+    });
+});
+
+app.get('/getHatralekTobblet', (req, res) => {
+    console.log('Beérkező kérés:', req.query); // Logold a paramétereket
+    // További kód itt...
+
+
+    const { id, year, month } = req.query;
+
+    if (!id || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    const query = `
+        SELECT HATRALEK, TOBBLET
+        FROM ellatas
+        WHERE ID_PACIENS = ${id} AND EV = ${year} AND HO = ${month};
+    `;
+
+    DB.query(query, (err, results) => {
+        if (err) {
+            console.error('Hiba a hátralék és többlet lekérésekor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba!' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Nincsenek adatok a megadott hónapra.' });
+        }
+
+        const { HATRALEK, TOBBLET } = results[0];
+        res.json({ hatralek: HATRALEK || 0, tobblet: TOBBLET || 0 });
+    });
+});
+
+
+
+
+app.get('/getPatientsByStatus', (req, res) => {
+    const { status } = req.query; // `status` could be 'Várakozó', 'Előgondozott', 'Ellátott', 'Távozott'
+    
+    if (!status) {
+        return res.status(400).json({ error: 'Hiányzó státusz paraméter!' });
+    }
+
+    let dateField;
+    if (status === 'Várakozó') {
+        dateField = 'VARAKOZO_DATUM';
+    } else if (status === 'Előgondozott') {
+        dateField = 'ELOGOND_DATUM';
+    } else if (status === 'Ellátott') {
+        dateField = 'ELLATOTT_DATUM';
+    } else if (status === 'Távozott') {
+        dateField = 'TAVOZOTT_DATUM';
+    } else {
+        return res.status(400).json({ error: 'Érvénytelen státusz paraméter!' });
+    }
+
+    const sql = `
+        SELECT NEV, TAJ, DATE_FORMAT(${dateField}, '%Y.%m.%d') AS DATUM, STATUS
+        FROM paciensek
+        WHERE STATUS = '${status}'
+        ${status === 'Várakozó' ? 'ORDER BY SURGOS_VARAKOZO DESC, VARAKOZO_DATUM ASC' : ''}
+    `;
+
+    DB.query(sql, (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+        res.json({ rows: results });
+    });
+});
+
+
+
+
+
 
 /* ---------------------------- log 'fájl' naplózás ------------------  */
 function napló (req) {

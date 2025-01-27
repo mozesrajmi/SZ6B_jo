@@ -359,3 +359,39 @@ h2 {
     font-size: 1.1rem; /* Optional: slightly increase font size */
 }
 
+.manual-payment-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 10px 0;
+}
+
+#manualPaymentButton {
+    background-color: #ffc107;
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#manualPaymentButton:hover {
+    background-color: #e0a800;
+}
+
+#manualPaymentModal .modal-header {
+    background-color: #ffc107;
+    color: white;
+    border-bottom: none;
+}
+
+#manualPaymentModal .btn-warning {
+    background-color: #ffc107;
+    color: white;
+}
+
+#manualPaymentModal .btn-warning:hover {
+    background-color: #e0a800;
+}

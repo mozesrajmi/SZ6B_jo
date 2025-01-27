@@ -19,6 +19,9 @@
             <option value="50">50</option>
             <option value="100">100</option>  
         </select>
+        <div class="manual-payment-wrapper">
+            <button id="manualPaymentButton" class="btn btn-warning">Manuális biztosítási fizetés</button>
+        </div>        
         <div class="box"> 
             <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." autocomplete="off" spellcheck="false" />
             <img src="images/eleg.png" class="bixi-image"> 
@@ -77,6 +80,26 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Structure biztfiz -->
+    <div class="modal fade" id="manualPaymentModal" tabindex="-1" aria-labelledby="manualPaymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manualPaymentModalLabel">Megerősítés</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Bezárás"></button>
+                </div>
+                <div class="modal-body">
+                    Biztosan elindítja a manuális biztosítási fizetést?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" id="confirmManualPayment" class="btn btn-warning">Igen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
 
     
@@ -272,6 +295,30 @@
             // Initial button update
             updateNavButtons();
         }); 
+
+       // Event listener for the manual payment button
+       $('#manualPaymentButton').on('click', function () {
+            // Megerősítő modal megjelenítése
+            $('#manualPaymentModal').modal('show');
+
+            $('#confirmManualPayment').on('click', function () {
+                // Indítsd el a zárást egy POST kéréssel
+                $.ajax({
+                    url: '/manualCloseMonth',
+                    method: 'POST',
+                    success: function (response) {
+                        alert(response.message); // Sikeres zárás üzenet
+                        $('#manualPaymentModal').modal('hide'); // Modal bezárása
+                    },
+                    error: function (xhr) {
+                        alert('Hiba történt a manuális havi zárás során. Próbáld újra később.');
+                        console.error('Hiba:', xhr.responseText);
+                        $('#manualPaymentModal').modal('hide'); // Modal bezárása
+                    }
+                });
+            });
+        });
+
 
     </script>
     
