@@ -34,8 +34,8 @@ var menü_json = [{
   },
   {
     "text": "status lista",
-    "ikon": "images/patientstatus.jpg",
-    "url": "paciensstaus.html",
+    "ikon": "images/help-32.png",
+    "url": "paciensstatus.html",
     "tip": 0
   }];
 
