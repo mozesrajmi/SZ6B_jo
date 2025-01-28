@@ -1495,8 +1495,367 @@ app.get('/getPatientsByStatus', (req, res) => {
 });
 
 
+app.get('/checkIfPaid', (req, res) => {
+    const { id, year, month } = req.query;
+
+    if (!id || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    const sql = `
+        SELECT FIZETETT 
+        FROM ellatas 
+        WHERE ID_PACIENS = '${id}' AND EV = '${year}' AND HO = '${month}'
+        LIMIT 1;
+    `;
+
+    DB.query(sql, (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba a befizetés ellenőrzésekor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        if (results.length === 0 || !results[0].FIZETETT) {
+            return res.json({ paid: false });
+        }
+
+        res.json({ paid: true });
+    });
+});
+
+app.post('/revertPayment', (req, res) => {
+    const { id, year, month } = req.body;
+
+    if (!id || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    // Számoljuk ki a következő hónapot és évet
+    const nextMonth = month === 12 ? 1 : month + 1;
+    const nextYear = month === 12 ? year + 1 : year;
+
+    // Lekérdezzük az aktuális hónap többletét és hátralékát
+    const selectQuery = `
+        SELECT HATRALEK, TOBBLET
+        FROM ellatas
+        WHERE ID_PACIENS = '${id}' AND EV = '${year}' AND HO = '${month}'
+        LIMIT 1;
+    `;
+
+    DB.query(selectQuery, (err, results) => {
+        if (err) {
+            console.error('Hiba a hátralék és többlet lekérdezésekor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Nem található adat az aktuális hónaphoz!' });
+        }
+
+        const hatralek = results[0].HATRALEK || 0;
+        const tobblet = results[0].TOBBLET || 0;
+
+        // Töröljük az aktuális hónap adatait (NULL helyett 0-t állítunk be)
+        const updateCurrentMonthQuery = `
+            UPDATE ellatas
+            SET FIZETETT = 0, HATRALEK = 0, TOBBLET = 0
+            WHERE ID_PACIENS = '${id}' AND EV = '${year}' AND HO = '${month}';
+        `;
+
+        DB.query(updateCurrentMonthQuery, (updateErr) => {
+            if (updateErr) {
+                console.error('Hiba az aktuális hónap adatok törlésekor:', updateErr);
+                return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+            }
+
+            // Mentjük a hátralékot és a többletet a következő hónaphoz
+            const insertNextMonthQuery = `
+                INSERT INTO ellatas (ID_PACIENS, EV, HO, HATRALEK, TOBBLET)
+                VALUES ('${id}', '${nextYear}', '${nextMonth}', '${hatralek}', '${tobblet}')
+                ON DUPLICATE KEY UPDATE 
+                HATRALEK = '${hatralek}', 
+                TOBBLET = '${tobblet}';
+            `;
+
+            DB.query(insertNextMonthQuery, (insertErr) => {
+                if (insertErr) {
+                    console.error('Hiba a következő hónap adatok mentésekor:', insertErr);
+                    return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+                }
+
+                res.json({ success: true, message: 'Befizetés, hátralék és többlet sikeresen visszavonva és a következő hónaphoz mentve!' });
+            });
+        });
+    });
+});
 
 
+app.get('/getPaidAmount', (req, res) => {
+    const { id, year, month } = req.query;
+
+    if (!id || !year || !month) {
+        return res.status(400).json({ error: 'Hiányzó paraméterek!' });
+    }
+
+    const sql = `
+        SELECT FIZETETT 
+        FROM ellatas 
+        WHERE ID_PACIENS = '${id}' AND EV = '${year}' AND HO = '${month}'
+        LIMIT 1;
+    `;
+
+    DB.query(sql, (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba a befizetett összeg lekérdezésekor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Nincs adat a megadott pácienshez!' });
+        }
+
+        const paid = results[0].FIZETETT || 0; // Ha nincs érték, alapértelmezettként 0-t adunk vissza
+        res.json({ paid });
+    });
+});
+
+
+
+// Havi forgalmi adatok lekérdezése
+app.get('/getMonthlyFinancialData', (req, res) => {
+    const { year, month } = req.query;
+
+    if (!year || !month) {
+        console.error('Hiányzó év vagy hónap!');
+        return res.status(400).json({ error: 'Hiányzó év vagy hónap!' });
+    }
+
+    console.log(`Lekérdezés: év = ${year}, hónap = ${month}`);
+
+    const query = `
+        SELECT
+            paciensek.NEV AS nev,
+            ellatas.NAPIDIJ AS napidij,
+            ellatas.FIZETETT AS fizetett,
+            ellatas.FIZETENDO AS fizetendo,
+            ellatas.HATRALEK AS hatralek,
+            ellatas.TOBBLET AS tobblet
+        FROM paciensek
+        INNER JOIN ellatas ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE ellatas.EV = ? AND ellatas.HO = ?;
+    `;
+
+    DB.query(query, [year, month], (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        console.log('Lekérdezés eredménye:', results);
+
+        const summary = {
+            totalPatients: results.length,
+            totalRevenue: results.reduce((sum, row) => sum + (row.fizetett || 0), 0),
+            totalDebt: results.reduce((sum, row) => sum + (row.hatralek || 0), 0),
+            totalOverpayment: results.reduce((sum, row) => sum + (row.tobblet || 0), 0)
+        };
+
+        console.log('Összegzés:', summary);
+
+        res.json({ details: results, summary });
+    });
+});
+
+// Éves forgalmi adatok lekérdezése
+app.get('/getYearlyFinancialData', (req, res) => {
+    const { year } = req.query;
+
+    if (!year) {
+        return res.status(400).json({ error: 'Hiányzó év!' });
+    }
+
+    const query = `
+        SELECT
+            paciensek.NEV AS nev,
+            ellatas.HO AS honap,
+            ellatas.NAPIDIJ AS napidij,
+            ellatas.FIZETETT AS fizetett,
+            ellatas.FIZETENDO AS fizetendo,
+            ellatas.HATRALEK AS hatralek,
+            ellatas.TOBBLET AS tobblet
+        FROM paciensek
+        INNER JOIN ellatas ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE ellatas.EV = ?;
+    `;
+
+    DB.query(query, [year], (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        const summary = results.reduce((acc, row) => {
+            const month = row.honap;
+            if (!acc[month]) {
+                acc[month] = {
+                    totalPatients: 0,
+                    totalRevenue: 0,
+                    totalDebt: 0,
+                    totalOverpayment: 0
+                };
+            }
+
+            acc[month].totalPatients++;
+            acc[month].totalRevenue += row.fizetett || 0;
+            acc[month].totalDebt += row.hatralek || 0;
+            acc[month].totalOverpayment += row.tobblet || 0;
+
+            return acc;
+        }, {});
+
+        res.json({ details: results, summary });
+    });
+});
+
+app.get('/api/getEllatottPatients', (req, res) => {
+    const { year, month } = req.query;
+
+    // Ellenőrizzük, hogy az év és hónap paraméterek meg vannak-e adva
+    if (!year || !month) {
+        return res.status(400).json({ error: 'Év és hónap megadása kötelező!' });
+    }
+
+    // SQL lekérdezés, string interpolációval
+    const query = `
+        SELECT 
+            paciensek.NEV, 
+            paciensek.TAJ, 
+            ellatas.NAPIDIJ, 
+            ellatas.FIZETENDO, 
+            ellatas.FIZETETT, 
+            ellatas.HATRALEK, 
+            ellatas.TOBBLET
+        FROM paciensek
+        INNER JOIN ellatas ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE paciensek.STATUS = 'ellátott'
+          AND ellatas.EV = ${year}
+          AND ellatas.HO = ${month};
+    `;
+
+    // Adatbázis-lekérdezés végrehajtása
+    DB.query(query, (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba!', details: err });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Nincsenek adatok az adott időszakra.' });
+        }
+
+        res.json(results);
+    });
+});
+
+
+app.get('/api/getKumulaltPatients', (req, res) => {
+    const { year, month } = req.query;
+
+    // Ellenőrizzük, hogy az év és hónap paraméterek meg vannak-e adva
+    if (!year || !month) {
+        return res.status(400).json({ error: 'Év és hónap megadása kötelező!' });
+    }
+
+    // SQL lekérdezés a kumulált adatokhoz
+    const query = `
+        SELECT 
+            COUNT(paciensek.ID_PACIENS) AS LETSZAM,
+            SUM(ellatas.FIZETENDO) AS OSSZES_FIZETENDO,
+            SUM(ellatas.FIZETETT) AS OSSZES_FIZETETT,
+            SUM(ellatas.HATRALEK) AS OSSZES_HATRALEK,
+            SUM(ellatas.TOBBLET) AS OSSZES_TOBBLET
+        FROM paciensek
+        INNER JOIN ellatas ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE paciensek.STATUS = 'ellátott'
+          AND ellatas.EV = ${year}
+          AND ellatas.HO = ${month};
+    `;
+
+    // Adatbázis-lekérdezés végrehajtása
+    DB.query(query, (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba!', details: err });
+        }
+
+        res.json(results[0]); // Az eredményeket JSON-ként küldjük vissza
+    });
+});
+
+
+app.get('/api/getEgyeniOsszesitettAdatok', (req, res) => {
+    const year = req.query.year;
+
+    if (!year) {
+        return res.status(400).json({ error: 'Hiányzó év paraméter!' });
+    }
+
+    // Lekérdezés készítése változókkal
+    const query = `
+        SELECT 
+            paciensek.NEV, 
+            paciensek.TAJ, 
+            SUM(ellatas.NAPIDIJ) AS osszes_napidij,
+            SUM(ellatas.FIZETENDO) AS osszes_fizetendo, 
+            SUM(ellatas.FIZETETT) AS osszes_fizetett, 
+            SUM(ellatas.HATRALEK) AS osszes_hatralek, 
+            SUM(ellatas.TOBBLET) AS osszes_tobblet
+        FROM paciensek
+        INNER JOIN ellatas ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE ellatas.EV = ${year}
+        GROUP BY paciensek.NEV, paciensek.TAJ;
+    `;
+
+    // Adatbázis lekérdezés
+    DB.query(query, (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        // Az eredmények visszaadása rows formában
+        res.json({ rows: results });
+    });
+});
+
+app.get('/api/getEvesKumulaltAdatok', (req, res) => {
+    const year = req.query.year;
+
+    if (!year) {
+        return res.status(400).json({ error: 'Hiányzó év paraméter!' });
+    }
+
+    const query = `
+        SELECT
+            COUNT(DISTINCT paciensek.ID_PACIENS) AS letszam,
+            SUM(ellatas.FIZETENDO) AS osszes_tartozik,
+            SUM(ellatas.FIZETETT) AS osszes_kovetel,
+            SUM(ellatas.HATRALEK) AS osszes_hatralek,
+            SUM(ellatas.TOBBLET) AS osszes_tobblet
+        FROM paciensek
+        INNER JOIN ellatas ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE ellatas.EV = ${year};
+    `;
+
+    DB.query(query, (err, results) => {
+        if (err) {
+            console.error('Adatbázis hiba:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+        }
+
+        res.json(results[0]);
+    });
+});
 
 
 /* ---------------------------- log 'fájl' naplózás ------------------  */

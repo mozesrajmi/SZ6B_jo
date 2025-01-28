@@ -77,6 +77,7 @@
                 <div class="modal-body">
                     <p><strong>Aktuális hónap:</strong> <span id="currentMonth"></span></p> <!-- Hozzáadott sor -->
                     <p><strong>Fizetendő összeg:</strong> <span id="fizetendoAmount"></span> Ft</p>
+                    <p><strong>Fizetett összeg:</strong> <span id="paidAmount">0 Ft</span></p>
                     <p><strong>Hátralék:</strong> <span id="hatralekAmount" style="color: red; font-weight: bold;">0 Ft</span></p>
                     <p><strong>Többlet:</strong> <span id="tobbletAmount" style="color: green; font-weight: bold;">0 Ft</span></p>
                     <p><strong>Frissített összeg:</strong> <span id="updatedAmount" style="color: blue; font-weight: bold;">0 Ft</span></p>
@@ -90,6 +91,7 @@
                     <!-- Új gombok -->
                     <button type="button" class="btn btn-secondary" id="resetFizetendoButton">Nullázd a FIZETENDŐT</button>
                     <button type="button" class="btn btn-warning" id="recalculateFizetendoButton">Számold újra</button>
+                    <button type="button" class="btn btn-danger" id="revertPaymentButton">Befizetés visszavonása</button>
                     <button type="button" class="btn btn-success" id="savePaymentButton">Mentés</button>
                 </div>
             </div>
@@ -181,10 +183,49 @@
 
     // Első modál megnyitása
     function openModal(name, taj) {
-        $('#modalName').text(name);
-        $('#modalTaj').text(taj);
-        $('#detailsModal').modal('show');
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+
+        $.ajax({
+            url: '/getPatientIdByTaj',
+            method: 'GET',
+            data: { taj },
+            success: function (response) {
+                const patientId = response.id;
+
+                // Ellenőrizzük, hogy történt-e már befizetés
+                $.ajax({
+                    url: '/checkIfPaid',
+                    method: 'GET',
+                    data: { id: patientId, year: currentYear, month: currentMonth },
+                    success: function (data) {
+                        if (data.paid) {
+                            // Ha már befizetett, kérdezzük meg, hogy módosítani akarja-e
+                            if (confirm('Ez a páciens már befizetett az aktuális hónapra! Szeretné módosítani a befizetést?')) {
+                                // Engedélyezzük a módosítást, és nyissuk meg a modált
+                                $('#modalName').text(name);
+                                $('#modalTaj').text(taj);
+                                $('#detailsModal').modal('show');
+                            }
+                        } else {
+                            // Ha még nem fizetett, nyissuk meg a modált
+                            $('#modalName').text(name);
+                            $('#modalTaj').text(taj);
+                            $('#detailsModal').modal('show');
+                        }
+                    },
+                    error: function () {
+                        alert('Hiba történt a befizetés állapotának ellenőrzésekor.');
+                    }
+                });
+            },
+            error: function () {
+                alert('Nem sikerült lekérni a páciens ID-ját.');
+            }
+        });
     }
+
 
     // "Tovább a befizetésre" gomb
     $('#nextModalButton').on('click', function () {
@@ -226,9 +267,23 @@
             data: { id: patientId, year, month },
             success: function (response) {
                 const fizetendoAmount = parseFloat(response.fizetendo || 0);
-                $('#fizetendoAmount').text(formatNumber(fizetendoAmount)); // Kiolvasott összeg megjelenítése
+                $('#fizetendoAmount').text(formatNumber(fizetendoAmount) + ' Ft');
 
-                // Hátralék és többlet lekérése
+                // Lekérjük a fizetett összeget
+                $.ajax({
+                    url: '/getPaidAmount',
+                    method: 'GET',
+                    data: { id: patientId, year, month },
+                    success: function (paidResponse) {
+                        const paidAmount = parseFloat(paidResponse.paid || 0);
+                        $('#paidAmount').text(formatNumber(paidAmount) + ' Ft');
+                    },
+                    error: function () {
+                        alert('Még nincs befizetett összeg.');
+                    }
+                });
+
+                // További adatok (hátralék, többlet) kezelése
                 $.ajax({
                     url: '/getHatralekTobblet',
                     method: 'GET',
@@ -237,31 +292,55 @@
                         const hatralek = parseFloat(response.hatralek || 0);
                         const tobblet = parseFloat(response.tobblet || 0);
 
-                        // Hátralék és többlet értékek frissítése a modalban
                         $('#hatralekAmount').text(formatNumber(hatralek) + ' Ft');
                         $('#tobbletAmount').text(formatNumber(tobblet) + ' Ft');
 
-                        // Frissített összeg kiszámítása
                         const updatedAmount = fizetendoAmount + hatralek - tobblet;
-
-                        // Frissített összeg megjelenítése a modalban
-                        $('#updatedAmount').text(formatNumber(updatedAmount) + ' Ft'); // Új mező a frissített összeghez
+                        $('#updatedAmount').text(formatNumber(updatedAmount) + ' Ft');
                     },
                     error: function () {
                         alert('Nem sikerült lekérni a hátralékot és többletet.');
                     }
                 });
 
-                // Modal megnyitása
                 $('#detailsModal').modal('hide');
                 $('#paymentModal').modal('show');
             },
-            error: function (xhr, status, error) {
-                console.error('Hiba történt a fizetendő összeg lekérésekor:', error);
-                alert('Még nincs Fizetendő összeg.');
+            error: function () {
+                alert('Nem sikerült lekérni a fizetendő összeget.');
             }
         });
     }
+    // Befizetés visszavonása
+    $('#revertPaymentButton').on('click', function () {
+        if (!patientId) {
+            alert('Nincs kiválasztva páciens!');
+            return;
+        }
+
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+
+        if (confirm('Biztosan visszavonja a befizetést, hátralékot és többletet? A többlet és a hátralék a következő hónaphoz kerül!')) {
+            $.ajax({
+                url: '/revertPayment',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ id: patientId, year: currentYear, month: currentMonth }),
+                success: function (response) {
+                    alert(response.message);
+                    $('#paymentModal').modal('hide');
+                    fetchFizetendo(patientId, currentYear, currentMonth); // Adatok frissítése az aktuális hónapra
+                },
+                error: function () {
+                    alert('Hiba történt a befizetés visszavonása során.');
+                }
+            });
+        }
+    });
+
+
 
     // Segédfüggvény: szám formázása
     function formatNumber(number) {
@@ -374,25 +453,37 @@
 
 
     // FIZETENDO nullázása
-    function resetFizetendo(patientId, year, month) {
-        $.ajax({
-            url: '/resetFizetendo',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                id: patientId,
-                year,
-                month
-            }),
-            success: function (response) {
-                alert(response.message);
-            },
-            error: function (xhr, status, error) {
-                console.error('Hiba történt a nullázás során:', error);
-                alert('Nem sikerült nullázni a FIZETENDŐ mezőt.');
-            }
-        });
-    }
+    $('#resetFizetendoButton').on('click', function () {
+        if (!patientId) {
+            alert('Nincs kiválasztva páciens!');
+            return;
+        }
+
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+
+        if (confirm('Biztosan nullázni szeretné a fizetendő összeget?')) {
+            $.ajax({
+                url: '/resetFizetendo',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    id: patientId,
+                    year: currentYear,
+                    month: currentMonth,
+                }),
+                success: function (response) {
+                    alert(response.message);
+                    $('#fizetendoAmount').text('0 Ft'); // Frissítjük a modális nézetet
+                },
+                error: function () {
+                    alert('Hiba történt a FIZETENDO nullázásakor.');
+                }
+            });
+        }
+    });
+
 
      // FIZETENDO újraszámolása
      $('#recalculateFizetendoButton').on('click', function () {

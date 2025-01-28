@@ -37,6 +37,18 @@ var menü_json = [{
     "ikon": "images/help-32.png",
     "url": "paciensstatus.html",
     "tip": 0
+  },
+  {
+    "text": "Havi statisztika",
+    "ikon": "images/evihavikikutatas.png",
+    "url": "havieviforgadat.html",
+    "tip": 0
+  },
+  {
+    "text": "Éves statisztika",
+    "ikon": "images/evihavikikutatas.png",
+    "url": "eveskimutatas.html",
+    "tip": 0
   }];
 
 

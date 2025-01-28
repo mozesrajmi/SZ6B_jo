@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Havi Kimutatás</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="jelenlet.css">
+    <script>
+        function initializeDateSelectors() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+
+            document.getElementById('yearSelect').value = currentYear;
+            document.getElementById('monthSelect').value = currentMonth;
+        }
+
+        async function refreshData() {
+            // Frissítjük mind az egyéni, mind a kumulált adatokat
+            toggleIndividualData(true);
+            toggleKumulaltData(true);
+        }
+
+        async function toggleIndividualData(forceRefresh = false) {
+            const table = document.getElementById('individualTable');
+            if (!forceRefresh && !table.classList.contains('hidden')) {
+                table.classList.add('hidden');
+                return;
+            }
+
+            const tbody = document.getElementById('individualTableBody');
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+
+            if (!year || !month) {
+                alert('Kérlek válassz évet és hónapot!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/getEllatottPatients?year=${year}&month=${month}`);
+                const data = await response.json();
+
+                if (!Array.isArray(data)) {
+                    console.error('Nem tömb típusú adatok:', data);
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                data.forEach(patient => {
+                    const row = `
+                        <tr>
+                            <td class="border border-gray-300 px-4 py-2">${patient.NEV}</td>
+                            <td class="border border-gray-300 px-4 py-2">${patient.TAJ}</td>
+                            <td class="border border-gray-300 px-4 py-2">${patient.NAPIDIJ || '0'} Ft</td>
+                            <td class="border border-gray-300 px-4 py-2">${patient.FIZETENDO || '0'} Ft</td>
+                            <td class="border border-gray-300 px-4 py-2">${patient.FIZETETT || '0'} Ft</td>
+                            <td class="border border-gray-300 px-4 py-2">${patient.HATRALEK || '0'} Ft</td>
+                            <td class="border border-gray-300 px-4 py-2">${patient.TOBBLET || '0'} Ft</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+                table.classList.remove('hidden');
+            } catch (error) {
+                console.error('Hiba történt:', error);
+            }
+        }
+
+        async function toggleKumulaltData(forceRefresh = false) {
+            const kumulaltDiv = document.getElementById('kumulaltData');
+            if (!forceRefresh && !kumulaltDiv.classList.contains('hidden')) {
+                kumulaltDiv.classList.add('hidden');
+                return;
+            }
+
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+
+            try {
+                const response = await fetch(`/api/getKumulaltPatients?year=${year}&month=${month}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('Hiba:', data.error);
+                    return;
+                }
+
+                // Töltsük fel a kumulált adatokat
+                document.getElementById('kumulaltLetszam').textContent = (data.LETSZAM || 0) + ' db';
+                document.getElementById('kumulaltFizetendo').textContent = (data.OSSZES_FIZETENDO || 0) + ' Ft';
+                document.getElementById('kumulaltFizetett').textContent = (data.OSSZES_FIZETETT || 0) + ' Ft';
+                document.getElementById('kumulaltHatralek').textContent = (data.OSSZES_HATRALEK || 0) + ' Ft';
+                document.getElementById('kumulaltTobblet').textContent = (data.OSSZES_TOBBLET || 0) + ' Ft';
+
+                kumulaltDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error('Hiba történt:', error);
+            }
+        }
+
+        // Inicializálás
+        window.onload = initializeDateSelectors;
+    </script>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div class="text-center px-4">
+        <h1 class="text-3xl font-bold mb-6">Havi Kimutatás</h1>
+
+        <!-- Dátum kiválasztása -->
+        <div id="dateSelectors" class="mt-6 flex flex-col items-center">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6">
+                <div>
+                    <label for="yearSelect" class="block text-lg font-bold mb-2">Év:</label>
+                    <select id="yearSelect" class="w-full sm:w-48 border border-gray-300 px-4 py-2 rounded-lg">
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="monthSelect" class="block text-lg font-bold mb-2">Hónap:</label>
+                    <select id="monthSelect" class="w-full sm:w-48 border border-gray-300 px-4 py-2 rounded-lg">
+                        <option value="1">Január</option>
+                        <option value="2">Február</option>
+                        <option value="3">Március</option>
+                        <option value="4">Április</option>
+                        <option value="5">Május</option>
+                        <option value="6">Június</option>
+                        <option value="7">Július</option>
+                        <option value="8">Augusztus</option>
+                        <option value="9">Szeptember</option>
+                        <option value="10">Október</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Adatok lekérése gomb -->
+            <button onclick="refreshData()" class="bg-blue-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-blue-600 focus:outline-none mb-4">
+                Adatok Lekérése
+            </button>
+
+            <!-- Egyéni és Kumulált adatok gombok egymás mellett -->
+            <div class="flex space-x-4">
+                <button onclick="toggleIndividualData()" class="bg-green-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-green-600 focus:outline-none">
+                    Egyéni Adatok
+                </button>
+
+                <button onclick="toggleKumulaltData()" class="bg-purple-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-purple-600 focus:outline-none">
+                    Kumulált Adatok
+                </button>
+                   <!-- Kép hozzáadása -->
+                
+            </div>
+
+            <!-- Kép hozzáadása -->
+            <a href="#" onclick="saveTablesAsCSV()">
+                <img src="images/csvbementes.png" alt="Sample Image" class="float-right mt-4">
+            </a>
+
+            <script>
+                function saveTablesAsCSV() {
+                    const year = document.getElementById('yearSelect').value;
+                    const month = document.getElementById('monthSelect').value;
+
+                    const individualTable = document.getElementById('individualDataTable');
+                    const kumulaltTable = document.getElementById('kumulaltDataTable');
+
+                    const individualCSV = tableToCSV(individualTable);
+                    const kumulaltCSV = tableToCSV(kumulaltTable);
+
+                    const combinedCSV = `Egyéni Adatok\n${individualCSV}\n\nKumulált Adatok\n${kumulaltCSV}`;
+
+                    const blob = new Blob([combinedCSV], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `adatok_${year}_${month}_osszesitett.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+
+                function tableToCSV(table) {
+                    const rows = table.querySelectorAll('tr');
+                    const csv = [];
+                    rows.forEach(row => {
+                        const cols = row.querySelectorAll('td, th');
+                        const rowCSV = [];
+                        cols.forEach(col => rowCSV.push(col.textContent));
+                        csv.push(rowCSV.join(','));
+                    });
+                    return csv.join('\n');
+                }
+            </script>
+         
+        </div>
+    </div>
+
+    
+     <!-- Egyéni Adatok Táblázat -->
+     <div id="individualTable" class="hidden">
+        <h2 class="text-xl font-bold mb-4 text-center">Egyéni Adatok</h2>
+        <table id="individualDataTable" class="display">
+            <thead>
+                <tr>
+                    <th>Név</th>
+                    <th>TAJ</th>
+                    <th>Napidíj</th>
+                    <th>Fizetendő</th>
+                    <th>Fizetett</th>
+                    <th>Hátralék</th>
+                    <th>Túlfizetés</th>
+                </tr>
+            </thead>
+            <tbody id="individualTableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Kumulált Adatok -->
+    <div id="kumulaltData" class="hidden">
+        <h2 class="text-xl font-bold mb-4 text-center">Kumulált Adatok</h2>
+        <table id="kumulaltDataTable" class="display">
+            <thead>
+                <tr>
+                    <th>Létszám</th>
+                    <th>Összes Fizetendő</th>
+                    <th>Összes Fizetett</th>
+                    <th>Összes Hátralék</th>
+                    <th>Összes Túlfizetés</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="kumulaltLetszam"></td>
+                    <td id="kumulaltFizetendo"></td>
+                    <td id="kumulaltFizetett"></td>
+                    <td id="kumulaltHatralek"></td>
+                    <td id="kumulaltTobblet"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>
