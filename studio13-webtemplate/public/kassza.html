@@ -258,7 +258,7 @@
             },
             error: function (xhr, status, error) {
                 console.error('Hiba történt a fizetendő összeg lekérésekor:', error);
-                alert('Nem sikerült lekérni a fizetendő összeget.');
+                alert('Még nincs Fizetendő összeg.');
             }
         });
     }
@@ -289,7 +289,7 @@
             return;
         }
 
-        const difference = enteredAmount - currentFizetendo;
+        const difference = currentFizetendo-enteredAmount;
 
         // 1. Az aktuális hónap FIZETETT mezőjének frissítése
         $.ajax({
@@ -303,49 +303,47 @@
                 month: currentMonth
             }),
             success: function () {
-                alert('Fizetés sikeresen mentve az aktuális hónapra!');
+                alert(`Fizetés sikeresen mentve az aktuális hónapra! ${difference} Ft maradt hátra.`);
 
                 // 2. Hátralék mentése a következő hónapra (ha van)
-                if (difference < 0) {
+                if (difference > 0) {
                     const requestData = {
                     id: patientId.toString(), // Ha az ID stringként szükséges
-                    amount: parseFloat(difference), // Biztosan számként küldjük
+                    hatralek: parseFloat(difference), // Biztosan számként küldjük
                     year: parseInt(nextYear, 10), // Egész szám az év
                     month: parseInt(nextMonth, 10) // Egész szám a hónap
                 };
-
                 console.log('Küldött adat:', JSON.stringify(requestData, null, 2)); // Szépen formázott JSON logolása
 
                     // Ellenőrzés
-                    if (!requestData.id || !requestData.amount || !requestData.year || !requestData.month) {
+                    if (!requestData.id || !requestData.hatralek || !requestData.year || !requestData.month) {
                         console.error('Hiányzó vagy érvénytelen adat:', requestData);
                         alert('Nem lehet elküldeni a hátralékot, mert hiányzó vagy érvénytelen adat található.');
-                        return;
+                    }else{
+                        $.ajax({
+                            url: '/updateHatralek',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(requestData),
+                            success: function () {
+                                alert('Hátralék sikeresen mentve!');
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Hiba történt a mentés során:', xhr.responseText);
+                                alert(`Nem sikerült menteni a hátralék összeget. Szerver válasza: ${xhr.responseText}`);
+                            }
+                        });
                     }
-
-                    $.ajax({
-                        url: '/updateHatralek',
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify(requestData),
-                        success: function () {
-                            alert('Hátralék sikeresen mentve!');
-                        },
-                        error: function (xhr, status, error) {
-                            console.error('Hiba történt a mentés során:', xhr.responseText);
-                            alert(`Nem sikerült menteni a hátralék összeget. Szerver válasza: ${xhr.responseText}`);
-                        }
-                    });
-                } else if (difference > 0) {
+                } else if (difference < 0) {
                     // Többlet mentése a következő hónapra
-                    const value = difference; // Többlet összege
+                    //const value = difference; // Többlet összege
                     $.ajax({
                         url: '/updateTobblet',
                         method: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
                             id: patientId,
-                            amount: value,
+                            tobblet: difference*-1,
                             year: nextYear,
                             month: nextMonth
                         }),

@@ -225,3 +225,7 @@ table.display tbody tr:hover {
     font-size: 1.5rem; /* Nagyobb betűméret */
     font-weight: bold; /* Félkövér szöveg */
 }
+
+#navbar, .navbar-expand-lg, .navbar-dark {
+    background-color: #293C5D; 
+}

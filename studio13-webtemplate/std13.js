@@ -1382,12 +1382,12 @@ app.post('/updateHatralek', (req, res) => {
 
     const query = `
     UPDATE ellatas
-    SET HATRALEK = ?
-    WHERE ID_PACIENS = ? AND EV = ? AND HONAP = ?;
+    SET HATRALEK = ${hatralek}
+    WHERE ID_PACIENS = ${id} AND EV = ${year} AND HO = ${month};
 `;
 
 
-    DB.query(query, [hatralek, id, year, month], (err) => {
+    DB.query(query, (err) => {
         if (err) {
             console.error('Hiba a hátralék frissítésekor:', err);
             return res.status(500).json({ error: 'Adatbázis hiba!' });
@@ -1402,7 +1402,7 @@ app.post('/updateHatralek', (req, res) => {
 
 app.post('/updateTobblet', (req, res) => {
     const { id, tobblet, year, month } = req.body;
-
+    console.log('Beérkező kérés:', id, tobblet, year, month); // Logold a beérkező kérést
     if (!id || tobblet === undefined || !year || !month) {
         return res.status(400).json({ error: 'Hiányzó paraméterek!' });
     }
