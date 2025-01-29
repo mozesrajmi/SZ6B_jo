@@ -348,10 +348,11 @@
     }
 
 
-    // Befizetés mentése
-        $('#savePaymentButton').on('click', function () {
+   // Befizetés mentése
+    $('#savePaymentButton').on('click', function () {
         const enteredAmount = parseFloat($('#paymentInput').val());
         const currentFizetendo = parseFloat($('#fizetendoAmount').text().replace(/[^0-9]/g, ''));
+        const currentPaid = parseFloat($('#paidAmount').text().replace(/[^0-9]/g, '')) || 0;
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth() + 1; // Aktuális hónap
@@ -368,7 +369,7 @@
             return;
         }
 
-        const difference = currentFizetendo-enteredAmount;
+        const difference = currentFizetendo - enteredAmount;
 
         // 1. Az aktuális hónap FIZETETT mezőjének frissítése
         $.ajax({
@@ -384,53 +385,50 @@
             success: function () {
                 alert(`Fizetés sikeresen mentve az aktuális hónapra! ${difference} Ft maradt hátra.`);
 
+                // Fizetett összeg azonnali frissítése 
+                const newPaidAmount = currentPaid + enteredAmount;
+                $('#paidAmount').text(newPaidAmount.toLocaleString() + ' Ft');
+
+            
+
                 // 2. Hátralék mentése a következő hónapra (ha van)
                 if (difference > 0) {
                     const requestData = {
-                    id: patientId.toString(), // Ha az ID stringként szükséges
-                    hatralek: parseFloat(difference), // Biztosan számként küldjük
-                    year: parseInt(nextYear, 10), // Egész szám az év
-                    month: parseInt(nextMonth, 10) // Egész szám a hónap
-                };
-                console.log('Küldött adat:', JSON.stringify(requestData, null, 2)); // Szépen formázott JSON logolása
+                        id: patientId.toString(),
+                        hatralek: parseFloat(difference),
+                        year: parseInt(nextYear, 10),
+                        month: parseInt(nextMonth, 10)
+                    };
 
-                    // Ellenőrzés
-                    if (!requestData.id || !requestData.hatralek || !requestData.year || !requestData.month) {
-                        console.error('Hiányzó vagy érvénytelen adat:', requestData);
-                        alert('Nem lehet elküldeni a hátralékot, mert hiányzó vagy érvénytelen adat található.');
-                    }else{
-                        $.ajax({
-                            url: '/updateHatralek',
-                            method: 'POST',
-                            contentType: 'application/json',
-                            data: JSON.stringify(requestData),
-                            success: function () {
-                                alert('Hátralék sikeresen mentve!');
-                            },
-                            error: function (xhr, status, error) {
-                                console.error('Hiba történt a mentés során:', xhr.responseText);
-                                alert(`Nem sikerült menteni a hátralék összeget. Szerver válasza: ${xhr.responseText}`);
-                            }
-                        });
-                    }
+                    $.ajax({
+                        url: '/updateHatralek',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(requestData),
+                        success: function () {
+                            alert('Hátralék sikeresen mentve!');
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Hiba történt a mentés során:', xhr.responseText);
+                            alert(`Nem sikerült menteni a hátralék összeget. Szerver válasza: ${xhr.responseText}`);
+                        }
+                    });
                 } else if (difference < 0) {
-                    // Többlet mentése a következő hónapra
-                    //const value = difference; // Többlet összege
                     $.ajax({
                         url: '/updateTobblet',
                         method: 'POST',
                         contentType: 'application/json',
                         data: JSON.stringify({
                             id: patientId,
-                            tobblet: difference*-1,
+                            tobblet: difference * -1,
                             year: nextYear,
                             month: nextMonth
                         }),
                         success: function () {
                             alert('Többlet sikeresen mentve a következő hónapra!');
-                            fetchFizetendo(patientId, currentYear, currentMonth); // Adatok frissítése
-                            $('#paymentInput').val(''); // Beviteli mező törlése
-                            $('#paymentModal').modal('hide'); // Modal bezárása
+                            fetchFizetendo(patientId, currentYear, currentMonth);
+                            $('#paymentInput').val('');
+                            $('#paymentModal').modal('hide');
                         },
                         error: function (xhr, status, error) {
                             console.error('Hiba történt a többlet mentése során:', error);
@@ -438,10 +436,9 @@
                         }
                     });
                 } else {
-                    // Nincs különbözet (pontosan a fizetendőt fizették)
-                    fetchFizetendo(patientId, currentYear, currentMonth); // Adatok frissítése
-                    $('#paymentInput').val(''); // Beviteli mező törlése
-                    $('#paymentModal').modal('hide'); // Modal bezárása
+                    fetchFizetendo(patientId, currentYear, currentMonth);
+                    $('#paymentInput').val('');
+                    $('#paymentModal').modal('hide');
                 }
             },
             error: function (xhr, status, error) {
@@ -450,6 +447,7 @@
             }
         });
     });
+
 
 
     // FIZETENDO nullázása
