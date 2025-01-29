@@ -1479,7 +1479,7 @@ app.get('/getPatientsByStatus', (req, res) => {
     }
 
     const sql = `
-        SELECT NEV, TAJ, DATE_FORMAT(${dateField}, '%Y.%m.%d') AS DATUM, STATUS
+        SELECT NEV, TAJ, DATE_FORMAT(${dateField}, '%Y.%m.%d') AS DATUM, STATUS, SURGOS_VARAKOZO
         FROM paciensek
         WHERE STATUS = '${status}'
         ${status === 'Várakozó' ? 'ORDER BY SURGOS_VARAKOZO DESC, VARAKOZO_DATUM ASC' : ''}
@@ -1493,6 +1493,7 @@ app.get('/getPatientsByStatus', (req, res) => {
         res.json({ rows: results });
     });
 });
+
 
 
 app.get('/checkIfPaid', (req, res) => {

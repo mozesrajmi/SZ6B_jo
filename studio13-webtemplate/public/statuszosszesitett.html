@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Páciens Státuszok</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css" />
     <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" />
@@ -14,8 +12,18 @@
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
-    <link rel="stylesheet" href="paciensstaus.css">
+    <link rel="stylesheet" href="statuszosszesitett.css">
 </head>
+<script>
+    // Helper function to fetch and populate data
+
+    // Fetch data for all statuses
+    fetchData('Várakozó', 'waiting-list');
+    fetchData('Előgondozott', 'precare-list');
+    fetchData('Ellátott', 'treated-list');
+    fetchData('Távozott', 'left-list');
+    
+</script>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark ">
         <div class="container-fluid">
@@ -43,16 +51,16 @@
     </nav>
 
     <div class="container mt-5">
-
+        
         <!-- Várakozók -->
         <h2 id="waiting" class="text-center">Várakozók</h2>
         <table id="myTable" class="display col-md-8">
             <thead>
                 <tr>
-                    <th>Név</th>
-                    <th>TAJ</th>
-                    <th>Felvétel Dátuma</th>
-                    <th>Sürgős</th>
+                    <th scope="col">Név</th>
+                    <th scope="col">TAJ</th>
+                    <th scope="col">Felvétel Dátuma</th>
+                    <th scope="col">Sürgős</th>
                 </tr>
             </thead>
             <tbody id="waiting-list">
@@ -65,9 +73,9 @@
         <table id="myTable" class="display" style="width:60%">
             <thead>
                 <tr>
-                    <th>Név</th>
-                    <th>TAJ</th>
-                    <th>Előgondozás Dátuma</th>
+                    <th scope="col">Név</th>
+                    <th scope="col">TAJ</th>
+                    <th scope="col">Előgondozás Dátuma</th>
                 </tr>
             </thead>
             <tbody id="precare-list">
@@ -80,9 +88,9 @@
         <table id="myTable" class="display" style="width:60%">
             <thead>
                 <tr>
-                    <th>Név</th>
-                    <th>TAJ</th>
-                    <th>Ellátás Dátuma</th>
+                    <th scope="col">Név</th>
+                    <th scope="col">TAJ</th>
+                    <th scope="col">Ellátás Dátuma</th>
                 </tr>
             </thead>
             <tbody id="treated-list">
@@ -95,9 +103,9 @@
         <table id="myTable" class="display" style="width:60%">
             <thead>
                 <tr>
-                    <th>Név</th>
-                    <th>TAJ</th>
-                    <th>Távozás Dátuma</th>
+                    <th scope="col">Név</th>
+                    <th scope="col">TAJ</th>
+                    <th scope="col">Távozás Dátuma</th>
                 </tr>
             </thead>
             <tbody id="left-list">
@@ -105,34 +113,5 @@
             </tbody>
         </table>
     </div>
-
-    <script>
-        // Helper function to fetch and populate data
-        const fetchData = (status, tableId) => {
-            fetch(`/getPatientsByStatus?status=${status}`)
-                .then(response => response.json())
-                .then(data => {
-                    const tableBody = document.getElementById(tableId);
-                    tableBody.innerHTML = ''; // Clear existing rows
-                    data.rows.forEach(patient => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${patient.NEV}</td>
-                            <td>${patient.TAJ}</td>
-                            <td>${patient.DATUM}</td>
-                            ${status === 'Várakozó' ? `<td>${patient.SURGOS_VARAKOZO === 'Y' ? 'Igen' : 'Nem'}</td>` : ''}
-                        `;
-                        tableBody.appendChild(row);
-                    });
-                })
-                .catch(err => console.error(`Hiba a ${status} adatok betöltésekor:`, err));
-        };
-
-        // Fetch data for all statuses
-        fetchData('Várakozó', 'waiting-list');
-        fetchData('Előgondozott', 'precare-list');
-        fetchData('Ellátott', 'treated-list');
-        fetchData('Távozott', 'left-list');
-    </script>
 </body>
 </html>

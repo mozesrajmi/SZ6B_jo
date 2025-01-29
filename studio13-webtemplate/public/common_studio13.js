@@ -34,8 +34,8 @@ var menü_json = [{
   },
   {
     "text": "status lista",
-    "ikon": "images/help-32.png",
-    "url": "paciensstatus.html",
+    "ikon": "images/mentoovhelyett.png",
+    "url": "statuszosszesitett.html",
     "tip": 0
   },
   {
@@ -47,7 +47,7 @@ var menü_json = [{
   {
     "text": "Éves statisztika",
     "ikon": "images/evihavikikutatas.png",
-    "url": "eveskimutatas.html",
+    "url": "eveskimutatas.html#",
     "tip": 0
   }];
 

@@ -18,6 +18,31 @@
 </head>
 
 <script type="text/javascript">
+   const fetchData = (status, tableId) => {
+    console.log('Fetching data for', status);
+    fetch(`/getPatientsByStatus?status=${status}`)
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById(tableId);
+            tableBody.innerHTML = ''; // Törli az előző sorokat
+            console.log("d:", data);
+
+            data.rows.forEach(patient => {
+                let dateField = patient.DATUM ? patient.DATUM : "-"; // Ha null, akkor "-"
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${patient.NEV}</td>
+                    <td>${patient.TAJ}</td>
+                    <td>${dateField}</td>
+                    ${status === 'Várakozó' ? `<td>${patient.SURGOS_VARAKOZO === 'Y' ? 'Igen' : 'Nem'}</td>` : ''}
+                `;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(err => console.error(`Hiba a ${status} adatok betöltésekor:`, err));
+};
+
   /*-----------------------------*/
   $(document).ready(function() {
       ajax_get( "studio13webtemplatedoksi.html", '#main1', 0, true);    // doksi 
