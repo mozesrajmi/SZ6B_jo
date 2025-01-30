@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Havi Kimutatás</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="jelenlet.css">
+    <link rel="stylesheet" href="havieviforgadat.css">
     <script>
         function initializeDateSelectors() {
             const now = new Date();
@@ -23,84 +23,84 @@
         }
 
         async function toggleIndividualData(forceRefresh = false) {
-            const table = document.getElementById('individualTable');
-            if (!forceRefresh && !table.classList.contains('hidden')) {
-                table.classList.add('hidden');
-                return;
-            }
-
-            const tbody = document.getElementById('individualTableBody');
-            const year = document.getElementById('yearSelect').value;
-            const month = document.getElementById('monthSelect').value;
-
-            if (!year || !month) {
-                alert('Kérlek válassz évet és hónapot!');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/getEllatottPatients?year=${year}&month=${month}`);
-                const data = await response.json();
-
-                if (!Array.isArray(data)) {
-                    console.error('Nem tömb típusú adatok:', data);
-                    return;
-                }
-
-                tbody.innerHTML = '';
-                data.forEach(patient => {
-                    const row = `
-                        <tr>
-                            <td class="border border-gray-300 px-4 py-2">${patient.NEV}</td>
-                            <td class="border border-gray-300 px-4 py-2">${patient.TAJ}</td>
-                            <td class="border border-gray-300 px-4 py-2">${(patient.NAPIDIJ || 0).toLocaleString()} Ft</td>
-                            <td class="border border-gray-300 px-4 py-2">${(patient.FIZETENDO || 0).toLocaleString()} Ft</td>
-                            <td class="border border-gray-300 px-4 py-2">${(patient.FIZETETT || 0).toLocaleString()} Ft</td>
-                            <td class="border border-gray-300 px-4 py-2">${(patient.HATRALEK || 0).toLocaleString()} Ft</td>
-                            <td class="border border-gray-300 px-4 py-2">${(patient.TOBBLET || 0).toLocaleString()} Ft</td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += row;
-                });
-
-                table.classList.remove('hidden');
-            } catch (error) {
-                console.error('Hiba történt:', error);
-            }
+        const table = document.getElementById('individualTable');
+        if (!forceRefresh && !table.classList.contains('hidden')) {
+            table.classList.add('hidden');
+            return;
         }
 
+        const tbody = document.getElementById('individualTableBody');
+        const year = document.getElementById('yearSelect').value;
+        const month = document.getElementById('monthSelect').value;
 
-        async function toggleKumulaltData(forceRefresh = false) {
-            const kumulaltDiv = document.getElementById('kumulaltData');
-            if (!forceRefresh && !kumulaltDiv.classList.contains('hidden')) {
-                kumulaltDiv.classList.add('hidden');
+        if (!year || !month) {
+            alert('Kérlek válassz évet és hónapot!');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/getEllatottPatients?year=${year}&month=${month}`);
+            const data = await response.json();
+
+            if (!Array.isArray(data) || data.length === 0) {
+                alert('Nincs megjeleníthető adat az adott évhez vagy hónaphoz!');
                 return;
             }
 
-            const year = document.getElementById('yearSelect').value;
-            const month = document.getElementById('monthSelect').value;
+            tbody.innerHTML = '';
+            data.forEach(patient => {
+                const row = `
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2">${patient.NEV}</td>
+                        <td class="border border-gray-300 px-4 py-2">${patient.TAJ}</td>
+                        <td class="border border-gray-300 px-4 py-2">${(patient.NAPIDIJ || 0).toLocaleString()} Ft</td>
+                        <td class="border border-gray-300 px-4 py-2">${(patient.FIZETENDO || 0).toLocaleString()} Ft</td>
+                        <td class="border border-gray-300 px-4 py-2">${(patient.FIZETETT || 0).toLocaleString()} Ft</td>
+                        <td class="border border-gray-300 px-4 py-2">${(patient.HATRALEK || 0).toLocaleString()} Ft</td>
+                        <td class="border border-gray-300 px-4 py-2">${(patient.TOBBLET || 0).toLocaleString()} Ft</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
 
-            try {
-                const response = await fetch(`/api/getKumulaltPatients?year=${year}&month=${month}`);
-                const data = await response.json();
-
-                if (data.error) {
-                    console.error('Hiba:', data.error);
-                    return;
-                }
-
-                // Formázott számok beállítása
-                document.getElementById('kumulaltLetszam').textContent = (data.LETSZAM || 0).toLocaleString() + ' fő';
-                document.getElementById('kumulaltFizetendo').textContent = (data.OSSZES_FIZETENDO || 0).toLocaleString() + ' Ft';
-                document.getElementById('kumulaltFizetett').textContent = (data.OSSZES_FIZETETT || 0).toLocaleString() + ' Ft';
-                document.getElementById('kumulaltHatralek').textContent = (data.OSSZES_HATRALEK || 0).toLocaleString() + ' Ft';
-                document.getElementById('kumulaltTobblet').textContent = (data.OSSZES_TOBBLET || 0).toLocaleString() + ' Ft';
-
-                kumulaltDiv.classList.remove('hidden');
-            } catch (error) {
-                console.error('Hiba történt:', error);
-            }
+            table.classList.remove('hidden');
+        } catch (error) {
+            console.error('Hiba történt:', error);
         }
+    }
+
+
+    async function toggleKumulaltData(forceRefresh = false) {
+        const kumulaltDiv = document.getElementById('kumulaltData');
+        if (!forceRefresh && !kumulaltDiv.classList.contains('hidden')) {
+            kumulaltDiv.classList.add('hidden');
+            return;
+        }
+
+        const year = document.getElementById('yearSelect').value;
+        const month = document.getElementById('monthSelect').value;
+
+        try {
+            const response = await fetch(`/api/getKumulaltPatients?year=${year}&month=${month}`);
+            const data = await response.json();
+
+            if (!data || Object.keys(data).length === 0 || data.LETSZAM === 0) {
+                alert('Nincs megjeleníthető adat az adott évhez vagy hónaphoz!');
+                return;
+            }
+
+            document.getElementById('kumulaltLetszam').textContent = (data.LETSZAM || 0).toLocaleString() + ' fő';
+            document.getElementById('kumulaltFizetendo').textContent = (data.OSSZES_FIZETENDO || 0).toLocaleString() + ' Ft';
+            document.getElementById('kumulaltFizetett').textContent = (data.OSSZES_FIZETETT || 0).toLocaleString() + ' Ft';
+            document.getElementById('kumulaltHatralek').textContent = (data.OSSZES_HATRALEK || 0).toLocaleString() + ' Ft';
+            document.getElementById('kumulaltTobblet').textContent = (data.OSSZES_TOBBLET || 0).toLocaleString() + ' Ft';
+
+            kumulaltDiv.classList.remove('hidden');
+        } catch (error) {
+            console.error('Hiba történt:', error);
+        }
+    }
+
 
 
         // Inicializálás
@@ -115,7 +115,7 @@
         <div id="dateSelectors" class="mt-6 flex flex-col items-center">
             <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6">
                 <div>
-                    <label for="yearSelect" class="block text-lg font-bold mb-2">Év:</label>
+                    <label for="yearSelect" class="block text-lg font-bold mb-2"></label>
                     <select id="yearSelect" class="w-full sm:w-48 border border-gray-300 px-4 py-2 rounded-lg">
                         <option value="2023">2023</option>
                         <option value="2024">2024</option>
@@ -124,7 +124,7 @@
                 </div>
 
                 <div>
-                    <label for="monthSelect" class="block text-lg font-bold mb-2">Hónap:</label>
+                    <label for="monthSelect" class="block text-lg font-bold mb-2"></label>
                     <select id="monthSelect" class="w-full sm:w-48 border border-gray-300 px-4 py-2 rounded-lg">
                         <option value="1">Január</option>
                         <option value="2">Február</option>
