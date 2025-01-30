@@ -15,12 +15,6 @@ var menü_json = [{
     "tip": 0
   },
   {
-    "text": "Manuális fizetés",
-    "ikon": "images/moneybag.png",
-    "url": "fizetes.html",
-    "tip": 0
-  },
-  {
     "text": "Kommuált napi jelenléti ív",
     "ikon": "images/kommunaltjelen.png",
     "url": "jelenlet.html",
@@ -154,10 +148,3 @@ function myQuestion( ops ) {
   $("body").append(s); 
   $(idx).modal('show');   
 };
-
-
-
-
-
-
-

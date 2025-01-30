@@ -514,16 +514,11 @@ app.get('/getNapidij', (req, res) => {
   });
 });
 
-
-
-
-
-
 const schedule = require('node-schedule');
 
-// Napi feladat ütemezése éjfélkor
+//  Napi feladat ütemezése éjfélkor (minden nap)
 schedule.scheduleJob('0 0 * * *', () => {
-    console.log('Napi Napok frissítés indítása...');
+    console.log('=== Napi Napok frissítés indítása ===');
 
     // SQL lekérdezés az "Ellátott" státuszú rekordokhoz
     const selectQuery = `
@@ -541,31 +536,30 @@ schedule.scheduleJob('0 0 * * *', () => {
 
         const currentDate = new Date();
         const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth() + 1; // Hónap (1 alapú)
-        const maxDaysInMonth = new Date(currentYear, currentMonth, 0).getDate(); // Hónap napjainak száma
+        const currentMonth = currentDate.getMonth() + 1;
+        const maxDaysInMonth = new Date(currentYear, currentMonth, 0).getDate();
 
         results.forEach(record => {
             const { ID_PACIENS, EV, HO, NAPOK } = record;
 
+            console.log(`\n🔎 Vizsgálat: ID_PACIENS=${ID_PACIENS}, EV=${EV}, HO=${HO}`);
+            console.log(`   🔹 Aktuális hónap napjainak száma: ${NAPOK.length}/${maxDaysInMonth}`);
+
             if (HO !== currentMonth || EV !== currentYear) {
-                // Csak az aktuális hónapot frissítjük
-                console.log(`Rekord kihagyva: ID_PACIENS=${ID_PACIENS}, EV=${EV}, HO=${HO}`);
+                console.log(`   ⚠ Rekord kihagyva: Nem az aktuális hónap.`);
                 return;
             }
 
-            // Ellenőrizzük, hogy van-e még hely az adott hónapra
             if (NAPOK.length >= maxDaysInMonth) {
-                console.log(`Hónap tele: ID_PACIENS=${ID_PACIENS}, EV=${EV}, HO=${HO}`);
+                console.log(`    Hónap tele: ID_PACIENS=${ID_PACIENS}. A hónapváltáskor létrejön az új hónap.`);
                 return;
             }
 
-            // Az utolsó számjegy alapján új nap érték hozzáadása (0–3 tartományban)
-            const lastDayValue = NAPOK.slice(-1); // Utolsó számjegy
-            const updatedNapok = NAPOK + lastDayValue; // Új érték
+            const lastDayValue = NAPOK.slice(-1);
+            const updatedNapok = NAPOK + lastDayValue;
 
-            console.log(`Frissítés: ID_PACIENS=${ID_PACIENS}, Új NAPOK=${updatedNapok}`);
+            console.log(`    Frissítés: ID_PACIENS=${ID_PACIENS}, Új NAPOK=${updatedNapok}`);
 
-            // Frissítjük az adatbázist
             const updateQuery = `
                 UPDATE ellatas
                 SET NAPOK = '${updatedNapok}'
@@ -574,16 +568,99 @@ schedule.scheduleJob('0 0 * * *', () => {
 
             DB.query(updateQuery, (err) => {
                 if (err) {
-                    console.error(`Hiba a NAPOK frissítésekor: ID_PACIENS=${ID_PACIENS}`, err);
+                    console.error(`    Hiba a NAPOK frissítésekor: ID_PACIENS=${ID_PACIENS}`, err);
                 } else {
-                    console.log(`Sikeres frissítés: ID_PACIENS=${ID_PACIENS}`);
+                    console.log(`    **Sikeres frissítés**: ID_PACIENS=${ID_PACIENS}`);
                 }
             });
         });
     });
 });
 
+//  Hónapváltás kezelése éjfélkor, minden hónap első napján
+schedule.scheduleJob('0 0 1 * *', () => {
+    console.log('=== Új hónap indul, adatok átvitele ===');
 
+    const selectQuery = `
+        SELECT paciensek.ID_PACIENS, ellatas.EV, ellatas.HO, ellatas.NAPOK
+        FROM paciensek
+        INNER JOIN ellatas ON paciensek.ID_PACIENS = ellatas.ID_PACIENS
+        WHERE paciensek.STATUS = 'Ellátott'
+    `;
+
+    DB.query(selectQuery, (err, results) => {
+        if (err) {
+            console.error('Hiba az "Ellátott" rekordok lekérdezésekor:', err);
+            return;
+        }
+
+        const currentDate = new Date();
+        let newMonth = currentDate.getMonth() + 1;
+        let newYear = currentDate.getFullYear();
+
+        if (newMonth === 1) {
+            newYear += 1;
+        }
+
+        results.forEach(record => {
+            const { ID_PACIENS, EV, HO, NAPOK } = record;
+
+            if (HO !== (newMonth === 1 ? 12 : newMonth - 1) || EV !== (newMonth === 1 ? newYear - 1 : newYear)) {
+                console.log(`    ID_PACIENS=${ID_PACIENS}: Nem előző hónap, kihagyás.`);
+                return;
+            }
+
+            const lastDayValue = NAPOK.slice(-1);
+            console.log(`    ID_PACIENS=${ID_PACIENS}: Új hónap (${newYear}-${newMonth}) kezdő érték = ${lastDayValue}`);
+
+            // Ellenőrizzük, hogy már létezik-e az új hónap
+            const checkQuery = `
+                SELECT 1 FROM ellatas 
+                WHERE ID_PACIENS = ${ID_PACIENS} AND EV = ${newYear} AND HO = ${newMonth}
+            `;
+
+            DB.query(checkQuery, (err, result) => {
+                if (err) {
+                    console.error(`    Hiba az új hónap ellenőrzésekor: ID_PACIENS=${ID_PACIENS}`, err);
+                    return;
+                }
+
+                if (result.length > 0) {
+                    console.log(`    ID_PACIENS=${ID_PACIENS}: Már létezik az új hónap, frissítés...`);
+
+                    const updateQuery = `
+                        UPDATE ellatas
+                        SET NAPOK = '${lastDayValue}'
+                        WHERE ID_PACIENS = ${ID_PACIENS} AND EV = ${newYear} AND HO = ${newMonth}
+                    `;
+
+                    DB.query(updateQuery, (err) => {
+                        if (err) {
+                            console.error(`    Hiba az új hónap frissítésekor: ID_PACIENS=${ID_PACIENS}`, err);
+                        } else {
+                            console.log(`    **Sikeresen frissítettük az új hónapot**: ID_PACIENS=${ID_PACIENS}`);
+                        }
+                    });
+                } else {
+                    console.log(`    ID_PACIENS=${ID_PACIENS}: Új hónap létrehozása...`);
+
+                    const insertNewMonthQuery = `
+                        INSERT INTO ellatas (ID_PACIENS, EV, HO, NAPOK)
+                        VALUES (${ID_PACIENS}, ${newYear}, ${newMonth}, '${lastDayValue}')
+                    `;
+
+                    DB.query(insertNewMonthQuery, (err) => {
+                        if (err) {
+                            console.error(`   Hiba az új hónap létrehozásakor: ID_PACIENS=${ID_PACIENS}`, err);
+                        } else {
+                            console.log(` **Sikeresen létrejött az új hónap**: ID_PACIENS=${ID_PACIENS}, EV=${newYear}, HO=${newMonth}`);
+                        }
+                    });
+                }
+            });
+        });
+    });
+});
 
 
 app.get('/presencePage', (req, res) => {
@@ -639,7 +716,6 @@ app.get('/getTreatmentDays', (req, res) => {
 
 
 
-
 app.post('/updateDayValue', (req, res) => {
   const { id, day, newValue, month, year } = req.body;
 
@@ -668,16 +744,6 @@ app.post('/updateDayValue', (req, res) => {
 });
 
 
-
-
-
-
-
-
-
-
-
-
 // Új végpont a napok számokkal történő kiírásához
 app.post('/addTreatmentDays', (req, res) => {
   const { name, hónap, napok } = req.body;
@@ -704,28 +770,6 @@ app.post('/addTreatmentDays', (req, res) => {
 });
 
 
-/*
-// Új végpont az adott páciens ID-jének lekéréséhez TAJ alapján
-app.get('/getPatientIdByTaj', (req, res) => {
-  const taj = req.query.taj; // TAJ lekérése a query paraméterekből
-  if (!taj) {
-      return res.status(400).json({ error: 'A TAJ szám hiányzik!' });
-  }
-
-  const sql = `SELECT ID_PACIENS FROM paciensek WHERE TAJ = '${taj}' LIMIT 1`;
-
-  DB.query(sql, [], (json_data, error) => {
-      const data = error ? null : JSON.parse(json_data);
-      if (error || !data || data.rows.length === 0) {
-          return res.status(404).json({ error: 'Nem található páciens a megadott TAJ számmal!' });
-      }
-      const id = data.rows[0].ID_PACIENS;
-      res.json({ id });
-  });
-});
-*/
-
-// Új végpont a státusz lekérdezésére TAJ szám alapján
 // Új végpont a státusz lekérdezésére ID alapján
 app.get('/getStatusById', (req, res) => {
   const id = req.query.id; // ID-t kérjük a query paraméterből
@@ -752,9 +796,6 @@ app.get('/getStatusById', (req, res) => {
       res.json({ status }); // Státusz visszaküldése
   });
 });
-
-
-
 
 
 // Új végpont az adott páciens ID-jének lekéréséhez TAJ alapján
@@ -1454,7 +1495,6 @@ app.get('/getHatralekTobblet', (req, res) => {
         res.json({ hatralek: HATRALEK || 0, tobblet: TOBBLET || 0 });
     });
 });
-
 
 
 
