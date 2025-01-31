@@ -9,13 +9,13 @@ var menü_json = [{
   "url": "datatables.html",
   "tip": 0},
   {
-    "text": "Páciens státusz",
+    "text": "Páciens státusz módosítás",
     "ikon": "images/jomeret.png",
     "url": "status.html",
     "tip": 0
   },
   {
-    "text": "Kommuált napi jelenléti ív",
+    "text": "Kummulált napi jelenléti ív",
     "ikon": "images/kommunaltjelen.png",
     "url": "jelenlet.html",
     "tip": 0
@@ -27,7 +27,7 @@ var menü_json = [{
     "tip": 0
   },
   {
-    "text": "status lista",
+    "text": "Státusz lista",
     "ikon": "images/mentoovhelyett.png",
     "url": "statuszosszesitett.html",
     "tip": 0

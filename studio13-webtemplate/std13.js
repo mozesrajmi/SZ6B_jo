@@ -26,12 +26,12 @@ app.post("/logout", (req, res) => {
   session_data = req.session;
 
   if (!session_data || !session_data.NEV) {
-    // User is not logged in
+    // felhasznalo nincs bejelentkezve
     res.set("Content-Type", "application/json; charset=UTF-8");
     return res.json("Hiba: Nincs bejelentkezve, kijelentkezés sikertelen.");
   }
 
-  // Destroy session if user is logged in
+  // Session törlése ha bejelentkezve van
   session_data.destroy(function (err) {
     res.set("Content-Type", "application/json; charset=UTF-8");
     res.json("Sikeres kijelentkezés");
@@ -39,7 +39,6 @@ app.post("/logout", (req, res) => {
   });
 });
 
-// Bejelentkezés POST kérés kezelése
 // Bejelentkezés POST kérés kezelése
 app.post('/login', (req, res) => {
     session_data = req.session;
@@ -174,7 +173,6 @@ app.get('/getData', (req, res) => {
 });
 
 // Adatok lekérése MySQL adatbázisból és visszaadása JSON formátumban bővített státusszal
-// Adatok lekérése MySQL adatbázisból és visszaadása JSON formátumban, státusszal
 app.get('/getDataWithStatus', (req, res) => {
   const sql = `
     SELECT 
@@ -213,14 +211,14 @@ app.get('/getWaitingData', (req, res) => {
 
     let data;
     try {
-      data = JSON.parse(json_data); // Parse MySQL results to JSON format
+      data = JSON.parse(json_data); 
     } catch (err) {
       res.status(500).json({ error: 'JSON feldolgozási hiba', details: err });
       return;
     }
 
     res.set('Content-Type', 'application/json; charset=UTF-8');
-    res.send(data); // Send filtered data back to the client
+    res.send(data); 
   });
 });
 
@@ -245,14 +243,14 @@ app.get('/getPreCareData', (req, res) => {
 
     let data;
     try {
-      data = JSON.parse(json_data); // Parse MySQL results to JSON format
+      data = JSON.parse(json_data); 
     } catch (err) {
       res.status(500).json({ error: 'JSON feldolgozási hiba', details: err });
       return;
     }
 
     res.set('Content-Type', 'application/json; charset=UTF-8');
-    res.send(data); // Send filtered data back to the client
+    res.send(data); 
   });
 });
 
@@ -276,14 +274,14 @@ app.get('/getCareData', (req, res) => {
 
     let data;
     try {
-      data = JSON.parse(json_data); // Parse MySQL results to JSON format
+      data = JSON.parse(json_data); 
     } catch (err) {
       res.status(500).json({ error: 'JSON feldolgozási hiba', details: err });
       return;
     }
 
     res.set('Content-Type', 'application/json; charset=UTF-8');
-    res.send(data); // Send filtered data back to the client
+    res.send(data); 
   });
 });
 
@@ -305,32 +303,6 @@ app.get('/getLeftData', (req, res) => {
   });
 });
 
-/*
-//mentés státusz és ido és datum
-app.post('/updateStatus', (req, res) => {
-  const { id, status, timestamp } = req.body;
-
-  if (!id || !status || !timestamp) {
-      return res.status(400).json({ error: 'Hiányzó adatok!' });
-  }
-
-  // Construct SQL query with variable interpolation
-  const sql = `
-      UPDATE paciensek
-      SET STATUS = '${status}', ELOGOND_DATUM = '${timestamp}'
-      WHERE TAJ = '${id}'
-  `;
-
-  DB.query(sql, (err, results) => {
-      if (err) {
-          console.error('Database update error:', err);
-          return res.status(500).json({ error: 'Adatbázis hiba történt.' });
-      }
-
-      res.json({ success: true, message: 'Státusz sikeresen frissítve!' });
-  });
-});
-*/
 /*HATALMAStesztek*/
 app.post('/updateStatus', (req, res) => {
     const { id, status, timestamp, year, month, day } = req.body;
@@ -483,10 +455,8 @@ app.post('/updateStatus', (req, res) => {
   });
   
 
-
-// Endpoint to get napidij for a patient
 app.get('/getNapidij', (req, res) => {
-  const patientId = req.query.id; // Retrieve the patient ID from query parameters
+  const patientId = req.query.id; 
 
   if (!patientId) {
       return res.status(400).json({ error: 'A páciens ID hiányzik!' });
@@ -542,11 +512,11 @@ schedule.scheduleJob('0 0 * * *', () => {
         results.forEach(record => {
             const { ID_PACIENS, EV, HO, NAPOK } = record;
 
-            console.log(`\n🔎 Vizsgálat: ID_PACIENS=${ID_PACIENS}, EV=${EV}, HO=${HO}`);
-            console.log(`   🔹 Aktuális hónap napjainak száma: ${NAPOK.length}/${maxDaysInMonth}`);
+            console.log(` Vizsgálat: ID_PACIENS=${ID_PACIENS}, EV=${EV}, HO=${HO}`);
+            console.log(` Aktuális hónap napjainak száma: ${NAPOK.length}/${maxDaysInMonth}`);
 
             if (HO !== currentMonth || EV !== currentYear) {
-                console.log(`   ⚠ Rekord kihagyva: Nem az aktuális hónap.`);
+                console.log(` Rekord kihagyva: Nem az aktuális hónap.`);
                 return;
             }
 
@@ -568,9 +538,9 @@ schedule.scheduleJob('0 0 * * *', () => {
 
             DB.query(updateQuery, (err) => {
                 if (err) {
-                    console.error(`    Hiba a NAPOK frissítésekor: ID_PACIENS=${ID_PACIENS}`, err);
+                    console.error(` Hiba a NAPOK frissítésekor: ID_PACIENS=${ID_PACIENS}`, err);
                 } else {
-                    console.log(`    **Sikeres frissítés**: ID_PACIENS=${ID_PACIENS}`);
+                    console.log(` Sikeres frissítés**: ID_PACIENS=${ID_PACIENS}`);
                 }
             });
         });
@@ -678,8 +648,6 @@ app.get('/fizetesprog', (req, res) => {
   res.sendFile(__dirname + '/public/fizetesprog.html');
 });
 
-// Új végpont a napok számokkal történő kiírásához
-// Új végpont a napok számokkal történő kiírásához
 app.get('/getTreatmentDays', (req, res) => {
   const id = req.query.id; 
   const year = req.query.year || new Date().getFullYear(); 
@@ -772,13 +740,12 @@ app.post('/addTreatmentDays', (req, res) => {
 
 // Új végpont a státusz lekérdezésére ID alapján
 app.get('/getStatusById', (req, res) => {
-  const id = req.query.id; // ID-t kérjük a query paraméterből
+  const id = req.query.id; 
 
   if (!id) {
       return res.status(400).json({ error: 'A páciens ID hiányzik!' });
   }
 
-  // SQL lekérdezés az ID alapján
   const sql = `SELECT STATUS FROM paciensek WHERE ID_PACIENS = '${id}' LIMIT 1`;
 
   DB.query(sql, [], (json_data, error) => {
@@ -793,14 +760,14 @@ app.get('/getStatusById', (req, res) => {
       }
 
       const status = data.rows[0].STATUS;
-      res.json({ status }); // Státusz visszaküldése
+      res.json({ status }); 
   });
 });
 
 
 // Új végpont az adott páciens ID-jének lekéréséhez TAJ alapján
 app.get('/getPatientIdByTaj', (req, res) => {
-  const taj = req.query.taj; // TAJ lekérése a query paraméterekből
+  const taj = req.query.taj; 
   if (!taj) {
       return res.status(400).json({ error: 'A TAJ szám hiányzik!' });
   }
@@ -818,7 +785,7 @@ app.get('/getPatientIdByTaj', (req, res) => {
 });
 
 app.get('/getLastMonthAndDays', (req, res) => {
-  const { id } = req.query; // Az ID-t lekérjük a query paraméterekből
+  const { id } = req.query; 
   if (!id) {
       return res.status(400).json({ error: 'Páciens ID szükséges!' });
   }
@@ -854,7 +821,7 @@ app.get('/getLastMonthAndDays', (req, res) => {
 
 
 app.post('/fillMissingMonths', (req, res) => {
-  const { id } = req.body; // Páciens ID-t a kérésből olvassuk ki
+  const { id } = req.body; 
   if (!id) {
       return res.status(400).json({ error: 'Páciens ID szükséges!' });
   }
@@ -937,7 +904,7 @@ app.post('/fillMissingMonths', (req, res) => {
 
 
 app.get('/getLastMonthAndDays', (req, res) => {
-    const { id } = req.query; // Az ID-t lekérjük a query paraméterekből
+    const { id } = req.query; 
     if (!id) {
         return res.status(400).json({ error: 'Páciens ID szükséges!' });
     }
@@ -970,15 +937,13 @@ app.get('/getLastMonthAndDays', (req, res) => {
 
 // Új végpont: Kezelési napok lekérése adott évre
 app.get('/getTreatmentDaysByYear', (req, res) => {
-  const id = req.query.id; // Páciens ID
+  const id = req.query.id; 
   const year = req.query.year; // Kiválasztott év
 
-  // Ellenőrzések
   if (!id || !year) {
       return res.status(400).json({ error: 'Páciens ID és év megadása kötelező!' });
   }
 
-  // SQL lekérdezés: évszűrés
   const query = `
       SELECT 
           HO AS hónap, 
@@ -991,7 +956,7 @@ app.get('/getTreatmentDaysByYear', (req, res) => {
       ORDER BY HO ASC;
   `;
 
-  // Lekérdezés futtatása
+  
   DB.query(query, (err, results) => {
       if (err) {
           console.error('Adatbázis hiba a kezelési napok lekérdezésekor:', err);
@@ -1002,12 +967,12 @@ app.get('/getTreatmentDaysByYear', (req, res) => {
           return res.status(404).json({ error: 'Nincs adat a kiválasztott évre!' });
       }
 
-      // Eredmény visszaadása
+      
       res.json({ days: results });
   });
 });
 
-                                                            //tesztafafadfdasfasdfasdfadsfafafafafaf
+
 // Havi zárás ütemezése minden hónap elsején hajnali 1 órakor
 schedule.scheduleJob('0 1 1 * *', () => {
   console.log('Havi zárás indítása...');
@@ -1048,7 +1013,7 @@ schedule.scheduleJob('0 1 1 * *', () => {
               let dailyCost = row.NAPIDIJ;
 
               if (status === '0') {
-                  dailyCost = 0; // Set daily cost to 0 for status '0'
+                  dailyCost = 0; 
               } else if (status === '2') { // Kórházban
                   yearlyHospitalDays++;
                   dailyCost *= yearlyHospitalDays >= 40 ? 0.4 : 0.2;
@@ -1113,7 +1078,7 @@ app.post('/recalculate', (req, res) => {
               let dailyCost = row.NAPIDIJ;
 
               if (status === '0') {
-                  dailyCost = 0; // Set daily cost to 0 for status '0'
+                  dailyCost = 0; 
               } else if (status === '2') { // Kórházban
                   yearlyHospitalDays++;
                   dailyCost *= yearlyHospitalDays >= 40 ? 0.4 : 0.2;
@@ -1209,23 +1174,20 @@ app.get('/getFizetendoById', (req, res) => {
     if (!id || !year || !month) {
         res.status(400).json({ error: 'Hiányzó paraméterek! (id, év, hónap szükséges)' });
     }else{
-        // SQL lekérdezés létrehozása
         const sql = `
             SELECT FIZETENDO 
             FROM ellatas 
             WHERE ID_PACIENS = ${id} AND EV = ${year} AND HO = ${month} 
             LIMIT 1
         `;
-        // Adatbázis lekérdezés
         DB.query(sql, napló(req), (results, err) => {
             x++
             results = JSON.parse(results);
-            const fizetendo = results.rows ? results.rows[0]?.FIZETENDO:undefined; // Biztonságos hozzáférés
+            const fizetendo = results.rows ? results.rows[0]?.FIZETENDO:undefined; 
             if (err) {
                 res.status(500).json({ error: 'Adatbázis hiba történt!' });
             }
     
-            // Ellenőrizzük az eredményt
             else if (!results || results.length === 0) {
                 res.status(404).json({ error: 'Nincs ilyen ID-hoz tartozó adat az adott évre és hónapra!' });
             }
@@ -1235,7 +1197,6 @@ app.get('/getFizetendoById', (req, res) => {
                 res.json({ fizetendo });
             }
     
-            // Küldjük vissza a megfelelő választ
         });
     }
 
@@ -1244,12 +1205,10 @@ app.post('/savePayment', (req, res) => {
 
     const { id, amount, year, month } = req.body;
 
-    // Ellenőrzés: ha nincs `id`, hibát dobunk
     if (!id) {
         return res.status(400).json({ error: 'Hiányzó páciens ID!' });
     }
 
-    // Ellenőrzés a `paciensek` táblában
     const checkPatientSql = `SELECT 1 FROM paciensek WHERE ID_PACIENS = '${id}' LIMIT 1;`;
 
     DB.query(checkPatientSql, (err, result) => {
@@ -1338,9 +1297,9 @@ app.post('/recalculateFizetendo', (req, res) => {
             if (dayStatus === '0') {
                 return; // Nem számolunk díjat
             } else if (dayStatus === '2') {
-                totalCost += NAPIDIJ * 0.2; // Példa: kórház 20%
+                totalCost += NAPIDIJ * 0.2; //kórház 20%
             } else if (dayStatus === '3') {
-                totalCost += NAPIDIJ * 0.6; // Példa: helyfoglalás 60%
+                totalCost += NAPIDIJ * 0.6; //helyfoglalás 60%
             } else {
                 totalCost += NAPIDIJ; // Alapértelmezett napidíj
             }
@@ -1396,7 +1355,6 @@ app.post('/updateFizetendo', (req, res) => {
         return res.status(400).json({ error: 'Hiányzó paraméterek!' });
     }
 
-    // Közvetlen változók használata a lekérdezésben
     const query = `
         UPDATE ellatas
         SET FIZETENDO = ${newFizetendo}
@@ -1443,7 +1401,7 @@ app.post('/updateHatralek', (req, res) => {
 
 app.post('/updateTobblet', (req, res) => {
     const { id, tobblet, year, month } = req.body;
-    console.log('Beérkező kérés:', id, tobblet, year, month); // Logold a beérkező kérést
+    console.log('Beérkező kérés:', id, tobblet, year, month); 
     if (!id || tobblet === undefined || !year || !month) {
         return res.status(400).json({ error: 'Hiányzó paraméterek!' });
     }
@@ -1465,9 +1423,7 @@ app.post('/updateTobblet', (req, res) => {
 });
 
 app.get('/getHatralekTobblet', (req, res) => {
-    console.log('Beérkező kérés:', req.query); // Logold a paramétereket
-    // További kód itt...
-
+    console.log('Beérkező kérés:', req.query); 
 
     const { id, year, month } = req.query;
 
@@ -1499,7 +1455,7 @@ app.get('/getHatralekTobblet', (req, res) => {
 
 
 app.get('/getPatientsByStatus', (req, res) => {
-    const { status } = req.query; // `status` could be 'Várakozó', 'Előgondozott', 'Ellátott', 'Távozott'
+    const { status } = req.query; // `status` lehet 'Várakozó', 'Előgondozott', 'Ellátott', 'Távozott'
     
     if (!status) {
         return res.status(400).json({ error: 'Hiányzó státusz paraméter!' });
@@ -1766,7 +1722,6 @@ app.get('/api/getEllatottPatients', (req, res) => {
         return res.status(400).json({ error: 'Év és hónap megadása kötelező!' });
     }
 
-    // SQL lekérdezés, string interpolációval
     const query = `
         SELECT 
             paciensek.NEV, 
@@ -1783,7 +1738,6 @@ app.get('/api/getEllatottPatients', (req, res) => {
           AND ellatas.HO = ${month};
     `;
 
-    // Adatbázis-lekérdezés végrehajtása
     DB.query(query, (err, results) => {
         if (err) {
             console.error('Adatbázis hiba:', err);
@@ -1802,12 +1756,10 @@ app.get('/api/getEllatottPatients', (req, res) => {
 app.get('/api/getKumulaltPatients', (req, res) => {
     const { year, month } = req.query;
 
-    // Ellenőrizzük, hogy az év és hónap paraméterek meg vannak-e adva
     if (!year || !month) {
         return res.status(400).json({ error: 'Év és hónap megadása kötelező!' });
     }
 
-    // SQL lekérdezés a kumulált adatokhoz
     const query = `
         SELECT 
             COUNT(paciensek.ID_PACIENS) AS LETSZAM,
@@ -1822,14 +1774,13 @@ app.get('/api/getKumulaltPatients', (req, res) => {
           AND ellatas.HO = ${month};
     `;
 
-    // Adatbázis-lekérdezés végrehajtása
     DB.query(query, (err, results) => {
         if (err) {
             console.error('Adatbázis hiba:', err);
             return res.status(500).json({ error: 'Adatbázis hiba!', details: err });
         }
 
-        res.json(results[0]); // Az eredményeket JSON-ként küldjük vissza
+        res.json(results[0]); 
     });
 });
 
@@ -1841,7 +1792,6 @@ app.get('/api/getEgyeniOsszesitettAdatok', (req, res) => {
         return res.status(400).json({ error: 'Hiányzó év paraméter!' });
     }
 
-    // Lekérdezés készítése változókkal
     const query = `
         SELECT 
             paciensek.NEV, 
@@ -1857,7 +1807,6 @@ app.get('/api/getEgyeniOsszesitettAdatok', (req, res) => {
         GROUP BY paciensek.NEV, paciensek.TAJ;
     `;
 
-    // Adatbázis lekérdezés
     DB.query(query, (err, results) => {
         if (err) {
             console.error('Adatbázis hiba:', err);
