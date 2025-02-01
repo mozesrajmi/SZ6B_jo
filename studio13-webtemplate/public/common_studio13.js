@@ -31,6 +31,12 @@ var menü_json = [{
     "ikon": "images/kasszajo.png",
     "url": "kassza.html",
     "tip": 0
+  },
+  {
+    "text": "status lista",
+    "ikon": "images/patientstatus.jpg",
+    "url": "paciensstaus.html",
+    "tip": 0
   }];
 
 

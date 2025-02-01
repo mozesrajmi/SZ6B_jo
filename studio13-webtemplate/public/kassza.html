@@ -84,7 +84,7 @@
                 </div>
                 <div class="modal-footer">
                     <!-- Mentés gomb -->
-                    <button type="button" class="btn btn-primary" id="savePaymentButton">Mentés</button>
+                    <button type="button" class="btn btn-success" id="savePaymentButton">Mentés</button>
                 </div>
             </div>
         </div>
@@ -119,17 +119,20 @@
                 data.forEach((patient, index) => {
                     table.row.add([
                         index + 1,
-                        patient.NEV,
+                        `<span class="clickable-name">${patient.NEV}</span>`, // Kattinthatóvá tesszük a nevet
                         patient.TAJ
                     ]).draw(false);
                 });
 
+
                 // Hozzáadjuk a kattintási eseményt minden sorhoz
-                $('#myTable tbody').on('click', 'tr', function () {
-                    const rowData = table.row(this).data();
-                    selectedTaj = rowData[2]; // TAJ szám mentése
-                    openModal(rowData[1], rowData[2]);
-                });
+                $('#myTable tbody').on('click', '.clickable-name', function () {
+                const rowData = table.row($(this).closest('tr')).data();
+                selectedTaj = rowData[2]; // TAJ szám mentése
+                const name = $(this).text(); // Csak a szöveges név tartalmat olvassuk ki
+                openModal(name, rowData[2]); // Modal megnyitása
+            });
+
             },
             error: function (xhr, status, error) {
                 console.error('Hiba történt az adatok betöltésekor:', error);
@@ -139,10 +142,11 @@
 
     // Első modál megnyitása
     function openModal(name, taj) {
-        $('#modalName').text(name);
-        $('#modalTaj').text(taj);
-        $('#detailsModal').modal('show');
+    $('#modalName').text(name); // Csak a szöveget állítjuk be
+    $('#modalTaj').text(taj);
+    $('#detailsModal').modal('show');
     }
+
 
     // "Tovább a befizetésre" gomb eseménye
     $('#nextModalButton').on('click', function () {
@@ -196,7 +200,7 @@
     }
 
     // Example: Updating fizetendoAmount
-    $('#savePaymentButton').on('click', function () {
+        $('#savePaymentButton').on('click', function () {
         const enteredAmount = parseFloat($('#paymentInput').val());
         const today = new Date();
         const currentYear = today.getFullYear();
@@ -208,28 +212,42 @@
         }
 
         $.ajax({
-            url: '/savePayment',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                id: selectedTaj,
-                amount: enteredAmount,
-                year: currentYear,
-                month: currentMonth
-            }),
+            url: '/getPatientIdByTaj', // Lekérdezi az ID-t a TAJ alapján
+            method: 'GET',
+            data: { taj: selectedTaj }, // TAJ-ot küldi
             success: function (response) {
-                // Update the displayed amount with formatting
-                $('#fizetendoAmount').text(formatNumber(enteredAmount) + ' Ft');
-                alert('Befizetés sikeresen mentve!');
-                $('#paymentModal').modal('hide');
-                $('#paymentInput').val('');
+                const patientId = response.id; // Az ID-t lekéri
+                console.log('Patient ID:', patientId);
+
+                // Ezután menti a befizetést
+                $.ajax({
+                    url: '/savePayment',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id: patientId, // Átadjuk az ID-t
+                        amount: enteredAmount,
+                        year: currentYear,
+                        month: currentMonth
+                    }),
+                    success: function (response) {
+                        alert('Befizetés sikeresen mentve!');
+                        $('#paymentModal').modal('hide');
+                        $('#paymentInput').val('');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Hiba történt a mentés során:', error);
+                        alert('Nem sikerült menteni a befizetést.');
+                    }
+                });
             },
             error: function (xhr, status, error) {
-                console.error('Hiba történt a mentés során:', error);
-                alert('Nem sikerült menteni a befizetést.');
+                console.error('Hiba történt az ID lekérése során:', error);
+                alert('Nem sikerült lekérni a páciens ID-ját.');
             }
         });
     });
+
 });
 
 

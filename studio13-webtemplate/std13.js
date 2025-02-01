@@ -1199,39 +1199,47 @@ app.get('/getFizetendoById', (req, res) => {
     }
 
 });
-
 app.post('/savePayment', (req, res) => {
+    console.log('Request body:', req.body); // Ellenőrizd, hogy az `id` szerepel-e a beérkező adatok között
+
     const { id, amount, year, month } = req.body;
 
-    // Check if all necessary parameters are provided
-    if (!id || !amount || !year || !month) {
-        return res.status(400).json({ error: 'Hiányzó adatok!' });
+    // Ellenőrzés: ha nincs `id`, hibát dobunk
+    if (!id) {
+        return res.status(400).json({ error: 'Hiányzó páciens ID!' });
     }
 
-    // SQL query to update the FIZETETT field
-    const sql = `
-        UPDATE ellatas
-        SET FIZETETT = FIZETETT + ${amount}
-        WHERE ID_PACIENS = '${id}' AND EV = ${year} AND HO = ${month};
-    `;
+    // Ellenőrzés a `paciensek` táblában
+    const checkPatientSql = `SELECT 1 FROM paciensek WHERE ID_PACIENS = '${id}' LIMIT 1;`;
 
-    // Execute the query
-    DB.query(sql, (err, result) => {
+    DB.query(checkPatientSql, (err, result) => {
         if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+            console.error('Adatbázis hiba a páciens ellenőrzésekor:', err);
+            return res.status(500).json({ error: 'Adatbázis hiba!' });
         }
 
-        // Check if any rows were updated
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Nincs ilyen rekord a megadott évre és hónapra!' });
+        if (result.length === 0) {
+            return res.status(404).json({ error: 'A megadott ID_PACIENS nem található a paciensek táblában!' });
         }
 
-        res.json({ success: true, message: 'Befizetés sikeresen mentve!' });
+        // Folytasd az `ellatas` tábla frissítését, ha a páciens létezik
+        const sql = `
+            INSERT INTO ellatas (ID_PACIENS, EV, HO, FIZETETT) 
+            VALUES ('${id}', ${year}, ${month}, ${amount}) 
+            ON DUPLICATE KEY UPDATE 
+            FIZETETT = ${amount};
+        `;
+
+        DB.query(sql, (err, result) => {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ error: 'Adatbázis hiba történt!' });
+            }
+
+            res.json({ success: true, message: 'Befizetés sikeresen mentve!' });
+        });
     });
 });
-
-
 
 
                                                           
