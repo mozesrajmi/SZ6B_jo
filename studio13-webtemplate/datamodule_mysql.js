@@ -12,8 +12,8 @@ var pool = mysql.createPool({
     connectionLimit : 250,
     host    : '193.227.198.214',
     user    : 'user',
-    port    : "9306",
-    password: 'Pite137',     
+    port    : "3306",
+    password: 'almaspite8888',     
     database: 'studio13_gondozohaz',
 });
 
