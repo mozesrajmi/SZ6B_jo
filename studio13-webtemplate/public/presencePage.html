@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="hu">
+
 <head>
     <meta charset="UTF-8">
     <title>Kezelési Napok</title>
@@ -10,11 +11,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="presencePage.css">
 </head>
+
 <body>
     <div class="container">
         <h2 id="patientNameTitle">Kezelési napok</h2>
         <table id="daysTable" class="display table table-striped table-bordered" style="width:100%">
-            
+
             <thead>
                 <tr id="daysHeaderRow">
                     <th>Hónap</th>
@@ -27,17 +29,17 @@
             <!-- Év választó és kép egymás mellett -->
             <div class="d-flex justify-content-between align-items-center mb-3">
 
-            <!-- Év választó Select -->
-            <div class="year-selector">
-                <label for="yearSelect" class="form-label"><strong></strong></label>
-                <select id="yearSelect" class="form-select"></select>
-            </div>
+                <!-- Év választó Select -->
+                <div class="year-selector">
+                    <label for="yearSelect" class="form-label"><strong></strong></label>
+                    <select id="yearSelect" class="form-select"></select>
+                </div>
 
-            <!-- Kép -->
-            <div>
-                <img src="images/kepkoonyv.png" alt="Description of image" class="img-fluid" id="konyvkep">
+                <!-- Kép -->
+                <div>
+                    <img src="images/kepkoonyv.png" alt="Description of image" class="img-fluid" id="konyvkep">
+                </div>
             </div>
-        </div>
         </table>
     </div>
     <!-- Modal Structure -->
@@ -65,7 +67,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Modal Structure a Kép szövegéhez -->
     <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -83,418 +85,418 @@
 
 
 
-  
+
 
     <script type="text/javascript">
-    var patientId = null; // Globális változó
-    var patientName = null; // Globális változó
+        var patientId = null; // Globális változó
+        var patientName = null; // Globális változó
 
-    document.addEventListener('DOMContentLoaded', function () {
-    // Lekérjük az id és a név paramétereket az URL-ből
-    const urlParams = new URLSearchParams(window.location.search);
-    patientId = urlParams.get('id'); // A páciens ID-je
-    patientName = urlParams.get('name'); // A páciens neve
+        document.addEventListener('DOMContentLoaded', function () {
+            // Lekérjük az id és a név paramétereket az URL-ből
+            const urlParams = new URLSearchParams(window.location.search);
+            patientId = urlParams.get('id'); // A páciens ID-je
+            patientName = urlParams.get('name'); // A páciens neve
 
-    if (!patientId) {
-        alert('Nem található páciens azonosító!');
-        return;
-    }
-
-    // Frissítsük az oldal címét a páciens nevével
-    if (patientName) {
-        document.getElementById('patientNameTitle').textContent = `${patientName} kezelési napjai`;
-    }
-
-    // Kezelési napok betöltése
-     loadTreatmentDays(patientId);
-    });
-
-// Kezelési napok lekérése év alapján (alapértelmezett: aktuális év)
-function loadTreatmentDays(patientId, year = new Date().getFullYear()) {
-    $.ajax({
-        url: '/getTreatmentDays',
-        method: 'GET',
-        data: { id: patientId, year: year },
-        success: function (response) {
-            if (!response || !response.days || response.days.length === 0) {
-                alert('A kiválasztott évben a páciens még nem volt felvéve!');
-                $('#yearSelect').val(new Date().getFullYear()); // Visszaállítás az aktuális évre
+            if (!patientId) {
+                alert('Nem található páciens azonosító!');
                 return;
             }
 
-            const tableHeaderRow = $('#daysHeaderRow');
-            const tableBody = $('#daysTable tbody');
-
-            // Teljes táblázat újrarajzolása
-            $('#daysTable').DataTable().clear().destroy(); // Táblázat törlése
-
-            tableBody.empty(); // Töröljük a táblázat sorait
-            tableHeaderRow.empty(); // Töröljük a táblázat fejlécét
-
-            // Új fejléc létrehozása
-            tableHeaderRow.append('<th>Hónap</th>');
-            for (let day = 1; day <= 31; day++) {
-                tableHeaderRow.append(`<th>${day}</th>`);
+            // Frissítsük az oldal címét a páciens nevével
+            if (patientName) {
+                document.getElementById('patientNameTitle').textContent = `${patientName} kezelési napjai`;
             }
 
-            // Hónapok szöveges nevei
-            const monthNames = {
-                "1": "Január", "2": "Február", "3": "Március",
-                "4": "Április", "5": "Május", "6": "Június",
-                "7": "Július", "8": "Augusztus", "9": "Szeptember",
-                "10": "Október", "11": "November", "12": "December"
-            };
+            // Kezelési napok betöltése
+            loadTreatmentDays(patientId);
+        });
 
-            // Tooltip szövegek és színek
-            const statusDescriptions = {
-                '0': 'Nem volt felvéve', '1': 'Jelen van',
-                '2': 'Kórházban tartózkodik', '3': 'Állományban van, de otthon tartózkodik'
-            };
-            const colorMap = {
-                '0': '#fe8a8a', '1': '#cdfcba',
-                '2': '#96d2f9', '3': '#fffd88'
-            };
+        // Kezelési napok lekérése év alapján (alapértelmezett: aktuális év)
+        function loadTreatmentDays(patientId, year = new Date().getFullYear()) {
+            $.ajax({
+                url: '/getTreatmentDays',
+                method: 'GET',
+                data: { id: patientId, year: year },
+                success: function (response) {
+                    if (!response || !response.days || response.days.length === 0) {
+                        alert('A kiválasztott évben a páciens még nem volt felvéve!');
+                        $('#yearSelect').val(new Date().getFullYear()); // Visszaállítás az aktuális évre
+                        return;
+                    }
 
-            // Sorok hozzáadása a táblázathoz
-            response.days.forEach(dayRecord => {
-                const row = $('<tr></tr>');
-                const monthName = monthNames[parseInt(dayRecord.hónap, 10)] || "Ismeretlen";
-                row.append(`<td>${monthName}</td>`);
+                    const tableHeaderRow = $('#daysHeaderRow');
+                    const tableBody = $('#daysTable tbody');
 
-                const daysArray = dayRecord.NAPOK.split('');
-                for (let i = 0; i < 31; i++) {
-                    const dayValue = daysArray[i] || '';
-                    const color = colorMap[dayValue] || '';
-                    const tooltipText = statusDescriptions[dayValue] || 'Ismeretlen';
+                    // Teljes táblázat újrarajzolása
+                    $('#daysTable').DataTable().clear().destroy(); // Táblázat törlése
 
-                    const cell = $(`<td>${dayValue}</td>`).css('background-color', color);
+                    tableBody.empty(); // Töröljük a táblázat sorait
+                    tableHeaderRow.empty(); // Töröljük a táblázat fejlécét
 
-                    cell.hover(
-                        function (e) {
-                            const tooltip = $('<div class="custom-tooltip"></div>')
-                                .text(tooltipText)
-                                .appendTo('body');
+                    // Új fejléc létrehozása
+                    tableHeaderRow.append('<th>Hónap</th>');
+                    for (let day = 1; day <= 31; day++) {
+                        tableHeaderRow.append(`<th>${day}</th>`);
+                    }
 
-                            $(this).on('mousemove', function (e) {
-                                tooltip.css({ left: e.pageX + 10 + 'px', top: e.pageY + 10 + 'px' });
-                            });
-                        },
-                        function () {
-                            $('.custom-tooltip').remove();
-                        }
-                    );
+                    // Hónapok szöveges nevei
+                    const monthNames = {
+                        "1": "Január", "2": "Február", "3": "Március",
+                        "4": "Április", "5": "Május", "6": "Június",
+                        "7": "Július", "8": "Augusztus", "9": "Szeptember",
+                        "10": "Október", "11": "November", "12": "December"
+                    };
 
-                    row.append(cell);
-                }
-
-                tableBody.append(row);
-            });
-
-            // DataTable újrainicializálása
-            $('#daysTable').DataTable({
-                searching: false, paging: false, info: false, ordering: false, responsive: true
-            });
-
-        },
-        error: function () {
-            alert('Ekkor még nem volt ellátott páciens ezért nincs megjeleníthető adat!');
-            $('#yearSelect').val(new Date().getFullYear()); // Visszaállítás az aktuális évre
-        }
-    });
-}
-
-var selectedCell = null; // Globális változó a kiválasztott cella tárolására
-
-
-$(document).ready(function () {
-    const currentDate = new Date();
-    const currentDay = currentDate.getDate();        // Today's day (e.g., 7)
-    const currentMonth = currentDate.getMonth() + 1; // Current month (1-indexed)
-    const currentYear = currentDate.getFullYear();   // Current year
-
-    // Table cell click event
-    $('#daysTable tbody').on('click', 'td', function () {
-        const row = $(this).closest('tr');
-        const monthText = row.find('td:first').text().trim(); // Get the month name
-        const monthNames = {
-            "Január": 1,
-            "Február": 2,
-            "Március": 3,
-            "Április": 4,
-            "Május": 5,
-            "Június": 6,
-            "Július": 7,
-            "Augusztus": 8,
-            "Szeptember": 9,
-            "Október": 10,
-            "November": 11,
-            "December": 12
-        };
-        const selectedMonth = monthNames[monthText]; // Convert month name to number
-        const dayIndex = $(this).index(); // Get the day index (column index in the row)
-        const selectedYear = parseInt($('#yearSelect').val()); // Get selected year
-
-        // Prevent editing if the selected year is not the current year
-        if (selectedYear !== currentYear) {
-            alert('Csak az aktuális év táblázata szerkeszthető!');
-            return;
-        }
-
-        // Prevent editing for days outside the current month
-        if (selectedMonth !== currentMonth) {
-            alert('Csak a jelenlegi hónap napjai szerkeszthetők!');
-            return;
-        }
-
-        // Prevent editing beyond today's date in the current month
-        if (selectedMonth === currentMonth && dayIndex > currentDay) {
-            alert('A mai dátumnál későbbi napokat nem lehet módosítani!');
-            return;
-        }
-
-        // Continue with the rest of the logic for editing
-        const selectedValue = $(this).text().trim(); // Get the current value
-        $('#currentDayValue').text(selectedValue || 'Nincs érték');
-        $('#dayValueInput').val(selectedValue || 0);
-        $('#editMonthModal').modal('show');
-
-
-        
-        $(document).ready(function () {
-            $('#daysTable tbody').off('click').on('click', 'td', function () {
-                // FONTOS: A kiválasztott cellát azonnal elmentjük
-                selectedCell = $(this); 
-                
-                if (!selectedCell || selectedCell.length === 0) {
-                    console.warn('HIBA: Nem sikerült cellát kiválasztani!');
-                    return;
-                }
-
-                const row = selectedCell.closest('tr');
-                const monthText = row.find('td:first').text().trim(); // Hónap neve
-                const monthNames = {
-                    "Január": 1, "Február": 2, "Március": 3, "Április": 4,
-                    "Május": 5, "Június": 6, "Július": 7, "Augusztus": 8,
-                    "Szeptember": 9, "Október": 10, "November": 11, "December": 12
-                };
-
-                const selectedMonth = monthNames[monthText]; // Konvertálás számmá
-                const selectedDay = selectedCell.index(); // Nap sorszáma
-                const selectedYear = parseInt($('#yearSelect').val()); // Kiválasztott év
-                const today = new Date();
-                const currentDay = today.getDate();
-                const currentMonth = today.getMonth() + 1;
-                const currentYear = today.getFullYear();
-
-                console.log(`Kiválasztott év: ${selectedYear}, hónap: ${selectedMonth}, nap: ${selectedDay}`);
-                console.log(`Aktuális dátum: ${currentYear}-${currentMonth}-${currentDay}`);
-
-                // Ellenőrizzük, hogy az év az aktuális év-e
-                if (selectedYear !== currentYear) {
-                    alert('Csak az aktuális év táblázata szerkeszthető!');
-                    selectedCell = null; // Reseteljük a kiválasztott cellát
-                    return;
-                }
-
-                // Ellenőrizzük, hogy a hónap az aktuális hónap-e
-                if (selectedMonth !== currentMonth) {
-                    alert('Csak a jelenlegi hónap napjai szerkeszthetők!');
-                    selectedCell = null; // Reseteljük a kiválasztott cellát
-                    return;
-                }
-
-                // Ellenőrizzük, hogy a mai dátum után van-e
-                if (selectedMonth === currentMonth && selectedDay > currentDay) {
-                    alert('A mai dátumnál későbbi napokat nem lehet módosítani!');
-                    selectedCell = null; // Reseteljük a kiválasztott cellát
-                    return;
-                }
-
-                // Ha minden ellenőrzés sikeres, beállítjuk az értékeket
-                const selectedValue = selectedCell.text().trim(); // Jelenlegi érték
-                $('#currentDayValue').text(selectedValue || 'Nincs érték');
-                $('#dayValueInput').val(selectedValue || 0);
-                $('#editMonthModal').modal('show');
-            });
-
-            // Mentés gomb eseménykezelője
-            $('#saveDayEditBtn').off('click').on('click', function () {
-                if (!selectedCell || selectedCell.length === 0) {
-                    alert('Nincs kiválasztott cella, vagy a módosítás nem engedélyezett!');
-                    return;
-                }
-
-                const newValue = $('#dayValueInput').val().trim();
-
-                if (/^[0-3]$/.test(newValue)) {
+                    // Tooltip szövegek és színek
+                    const statusDescriptions = {
+                        '0': 'Nem volt felvéve', '1': 'Jelen van',
+                        '2': 'Kórházban tartózkodik', '3': 'Állományban van, de otthon tartózkodik'
+                    };
                     const colorMap = {
                         '0': '#fe8a8a', '1': '#cdfcba',
                         '2': '#96d2f9', '3': '#fffd88'
                     };
 
-                    const statusDescriptions = {
-                        '0': 'Nem volt felvéve', '1': 'Jelen van',
-                        '2': 'Kórházban tartózkodik', '3': 'Állományban van, de otthon tartózkodik'
-                    };
+                    // Sorok hozzáadása a táblázathoz
+                    response.days.forEach(dayRecord => {
+                        const row = $('<tr></tr>');
+                        const monthName = monthNames[parseInt(dayRecord.hónap, 10)] || "Ismeretlen";
+                        row.append(`<td>${monthName}</td>`);
 
-                    // Frissítsük a cellát
-                    selectedCell.css('background-color', colorMap[newValue] || '');
-                    selectedCell.text(newValue);
-                    selectedCell.attr('data-tooltip', statusDescriptions[newValue] || 'Ismeretlen');
+                        const daysArray = dayRecord.NAPOK.split('');
+                        for (let i = 0; i < 31; i++) {
+                            const dayValue = daysArray[i] || '';
+                            const color = colorMap[dayValue] || '';
+                            const tooltipText = statusDescriptions[dayValue] || 'Ismeretlen';
 
-                    // Tooltip események újraindítása
-                    selectedCell.off('mouseenter mouseleave').hover(
-                        function (e) {
-                            const tooltipText = $(this).attr('data-tooltip');
-                            const tooltip = $('<div class="custom-tooltip"></div>')
-                                .text(tooltipText)
-                                .appendTo('body');
+                            const cell = $(`<td>${dayValue}</td>`).css('background-color', color);
 
-                            $(this).on('mousemove', function (e) {
-                                tooltip.css({ left: e.pageX + 10 + 'px', top: e.pageY + 10 + 'px' });
-                            });
-                        },
-                        function () {
-                            $('.custom-tooltip').remove();
+                            cell.hover(
+                                function (e) {
+                                    const tooltip = $('<div class="custom-tooltip"></div>')
+                                        .text(tooltipText)
+                                        .appendTo('body');
+
+                                    $(this).on('mousemove', function (e) {
+                                        tooltip.css({ left: e.pageX + 10 + 'px', top: e.pageY + 10 + 'px' });
+                                    });
+                                },
+                                function () {
+                                    $('.custom-tooltip').remove();
+                                }
+                            );
+
+                            row.append(cell);
                         }
-                    );
 
-                    // API hívás a módosítás mentésére
-                    $.ajax({
-                        url: '/updateDayValue',
-                        method: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({
-                            id: patientId,
-                            day: selectedCell.index(),
-                            newValue: Number(newValue),
-                            month: currentMonth,
-                            year: selectedYear
-                        }),
-                        success: function () {
-                            alert('Nap értéke sikeresen frissítve!');
-                            $('#editMonthModal').modal('hide');
-                            selectedCell = null; // Kijelölt cella törlése sikeres módosítás után
-                        },
-                        error: function () {
-                            alert('Hiba történt az érték frissítése során.');
-                        }
+                        tableBody.append(row);
                     });
 
-                } else {
-                    alert('Az értéknek 0 és 3 közötti egész számnak kell lennie!');
+                    // DataTable újrainicializálása
+                    $('#daysTable').DataTable({
+                        searching: false, paging: false, info: false, ordering: false, responsive: true
+                    });
+
+                },
+                error: function () {
+                    alert('Ekkor még nem volt ellátott páciens ezért nincs megjeleníthető adat!');
+                    $('#yearSelect').val(new Date().getFullYear()); // Visszaállítás az aktuális évre
                 }
             });
+        }
+
+        var selectedCell = null; // Globális változó a kiválasztott cella tárolására
+
+
+        $(document).ready(function () {
+            const currentDate = new Date();
+            const currentDay = currentDate.getDate();        // Today's day (e.g., 7)
+            const currentMonth = currentDate.getMonth() + 1; // Current month (1-indexed)
+            const currentYear = currentDate.getFullYear();   // Current year
+
+            // Table cell click event
+            $('#daysTable tbody').on('click', 'td', function () {
+                const row = $(this).closest('tr');
+                const monthText = row.find('td:first').text().trim(); // Get the month name
+                const monthNames = {
+                    "Január": 1,
+                    "Február": 2,
+                    "Március": 3,
+                    "Április": 4,
+                    "Május": 5,
+                    "Június": 6,
+                    "Július": 7,
+                    "Augusztus": 8,
+                    "Szeptember": 9,
+                    "Október": 10,
+                    "November": 11,
+                    "December": 12
+                };
+                const selectedMonth = monthNames[monthText]; // Convert month name to number
+                const dayIndex = $(this).index(); // Get the day index (column index in the row)
+                const selectedYear = parseInt($('#yearSelect').val()); // Get selected year
+
+                // Prevent editing if the selected year is not the current year
+                if (selectedYear !== currentYear) {
+                    alert('Csak az aktuális év táblázata szerkeszthető!');
+                    return;
+                }
+
+                // Prevent editing for days outside the current month
+                if (selectedMonth !== currentMonth) {
+                    alert('Csak a jelenlegi hónap napjai szerkeszthetők!');
+                    return;
+                }
+
+                // Prevent editing beyond today's date in the current month
+                if (selectedMonth === currentMonth && dayIndex > currentDay) {
+                    alert('A mai dátumnál későbbi napokat nem lehet módosítani!');
+                    return;
+                }
+
+                // Continue with the rest of the logic for editing
+                const selectedValue = $(this).text().trim(); // Get the current value
+                $('#currentDayValue').text(selectedValue || 'Nincs érték');
+                $('#dayValueInput').val(selectedValue || 0);
+                $('#editMonthModal').modal('show');
+
+
+
+                $(document).ready(function () {
+                    $('#daysTable tbody').off('click').on('click', 'td', function () {
+                        // FONTOS: A kiválasztott cellát azonnal elmentjük
+                        selectedCell = $(this);
+
+                        if (!selectedCell || selectedCell.length === 0) {
+                            console.warn('HIBA: Nem sikerült cellát kiválasztani!');
+                            return;
+                        }
+
+                        const row = selectedCell.closest('tr');
+                        const monthText = row.find('td:first').text().trim(); // Hónap neve
+                        const monthNames = {
+                            "Január": 1, "Február": 2, "Március": 3, "Április": 4,
+                            "Május": 5, "Június": 6, "Július": 7, "Augusztus": 8,
+                            "Szeptember": 9, "Október": 10, "November": 11, "December": 12
+                        };
+
+                        const selectedMonth = monthNames[monthText]; // Konvertálás számmá
+                        const selectedDay = selectedCell.index(); // Nap sorszáma
+                        const selectedYear = parseInt($('#yearSelect').val()); // Kiválasztott év
+                        const today = new Date();
+                        const currentDay = today.getDate();
+                        const currentMonth = today.getMonth() + 1;
+                        const currentYear = today.getFullYear();
+
+                        console.log(`Kiválasztott év: ${selectedYear}, hónap: ${selectedMonth}, nap: ${selectedDay}`);
+                        console.log(`Aktuális dátum: ${currentYear}-${currentMonth}-${currentDay}`);
+
+                        // Ellenőrizzük, hogy az év az aktuális év-e
+                        if (selectedYear !== currentYear) {
+                            alert('Csak az aktuális év táblázata szerkeszthető!');
+                            selectedCell = null; // Reseteljük a kiválasztott cellát
+                            return;
+                        }
+
+                        // Ellenőrizzük, hogy a hónap az aktuális hónap-e
+                        if (selectedMonth !== currentMonth) {
+                            alert('Csak a jelenlegi hónap napjai szerkeszthetők!');
+                            selectedCell = null; // Reseteljük a kiválasztott cellát
+                            return;
+                        }
+
+                        // Ellenőrizzük, hogy a mai dátum után van-e
+                        if (selectedMonth === currentMonth && selectedDay > currentDay) {
+                            alert('A mai dátumnál későbbi napokat nem lehet módosítani!');
+                            selectedCell = null; // Reseteljük a kiválasztott cellát
+                            return;
+                        }
+
+                        // Ha minden ellenőrzés sikeres, beállítjuk az értékeket
+                        const selectedValue = selectedCell.text().trim(); // Jelenlegi érték
+                        $('#currentDayValue').text(selectedValue || 'Nincs érték');
+                        $('#dayValueInput').val(selectedValue || 0);
+                        $('#editMonthModal').modal('show');
+                    });
+
+                    // Mentés gomb eseménykezelője
+                    $('#saveDayEditBtn').off('click').on('click', function () {
+                        if (!selectedCell || selectedCell.length === 0) {
+                            alert('Nincs kiválasztott cella, vagy a módosítás nem engedélyezett!');
+                            return;
+                        }
+
+                        const newValue = $('#dayValueInput').val().trim();
+
+                        if (/^[0-3]$/.test(newValue)) {
+                            const colorMap = {
+                                '0': '#fe8a8a', '1': '#cdfcba',
+                                '2': '#96d2f9', '3': '#fffd88'
+                            };
+
+                            const statusDescriptions = {
+                                '0': 'Nem volt felvéve', '1': 'Jelen van',
+                                '2': 'Kórházban tartózkodik', '3': 'Helyfoglalás'
+                            };
+
+                            // Frissítsük a cellát
+                            selectedCell.css('background-color', colorMap[newValue] || '');
+                            selectedCell.text(newValue);
+                            selectedCell.attr('data-tooltip', statusDescriptions[newValue] || 'Ismeretlen');
+
+                            // Tooltip események újraindítása
+                            selectedCell.off('mouseenter mouseleave').hover(
+                                function (e) {
+                                    const tooltipText = $(this).attr('data-tooltip');
+                                    const tooltip = $('<div class="custom-tooltip"></div>')
+                                        .text(tooltipText)
+                                        .appendTo('body');
+
+                                    $(this).on('mousemove', function (e) {
+                                        tooltip.css({ left: e.pageX + 10 + 'px', top: e.pageY + 10 + 'px' });
+                                    });
+                                },
+                                function () {
+                                    $('.custom-tooltip').remove();
+                                }
+                            );
+
+                            // API hívás a módosítás mentésére
+                            $.ajax({
+                                url: '/updateDayValue',
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({
+                                    id: patientId,
+                                    day: selectedCell.index(),
+                                    newValue: Number(newValue),
+                                    month: currentMonth,
+                                    year: selectedYear
+                                }),
+                                success: function () {
+                                    alert('Nap értéke sikeresen frissítve!');
+                                    $('#editMonthModal').modal('hide');
+                                    selectedCell = null; // Kijelölt cella törlése sikeres módosítás után
+                                },
+                                error: function () {
+                                    alert('Hiba történt az érték frissítése során.');
+                                }
+                            });
+
+                        } else {
+                            alert('Az értéknek 0 és 3 közötti egész számnak kell lennie!');
+                        }
+                    });
+                });
+            });
         });
-    });
-});
 
 
 
-// Évek dinamikus feltöltése: aktuális év és két korábbi év
-document.addEventListener('DOMContentLoaded', function () {
-    const yearSelect = document.getElementById('yearSelect');
-    const currentYear = new Date().getFullYear();
+        // Évek dinamikus feltöltése: aktuális év és két korábbi év
+        document.addEventListener('DOMContentLoaded', function () {
+            const yearSelect = document.getElementById('yearSelect');
+            const currentYear = new Date().getFullYear();
 
-    // Évek feltöltése (aktuális év és egy évvel korábbi év)
-    for (let i = 0; i < 2; i++) {
-        const option = document.createElement('option');
-        option.value = currentYear - i;
-        option.textContent = currentYear - i;
-        yearSelect.appendChild(option);
-    }
-
-    yearSelect.value = currentYear;
-
-    // Alapértelmezett év betöltése
-    loadTreatmentDays(patientId, currentYear);
-
-    // Év változás eseménykezelő
-    yearSelect.addEventListener('change', function () {
-        const selectedYear = yearSelect.value;
-        loadTreatmentDays(patientId, selectedYear);
-    });
-    document.addEventListener('DOMContentLoaded', function () {
-    const yearSelect = document.getElementById('yearSelect');
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
-    const currentDay = currentDate.getDate();
-
-    /**
-     * Ellenőrzi, hogy a cella szerkeszthető-e
-     * @param {number} selectedYear 
-     * @param {number} selectedMonth 
-     * @param {number} selectedDay 
-     * @returns {boolean}
-     */
-    function isEditable(selectedYear, selectedMonth, selectedDay) {
-        // Csak akkor szerkeszthető, ha év és hónap egyezik, és a nap nem jövőbeli
-        return selectedYear === currentYear && 
-               selectedMonth === currentMonth && 
-               selectedDay <= currentDay;
-    }
-
-    /**
-     * Táblázat celláinak kattintási esemény kezelése
-     */
-    function handleTableCellClick() {
-        $('#daysTable tbody').off('click', 'td').on('click', 'td', function () {
-            const selectedYear = parseInt(yearSelect.value);
-
-            const row = $(this).closest('tr');
-            const monthText = row.find('td:first').text().trim();
-            const monthNames = {
-                "Január": 1, "Február": 2, "Március": 3, "Április": 4,
-                "Május": 5, "Június": 6, "Július": 7, "Augusztus": 8,
-                "Szeptember": 9, "Október": 10, "November": 11, "December": 12
-            };
-            const selectedMonth = monthNames[monthText];
-            const selectedDay = $(this).index();
-
-            if (!isEditable(selectedYear, selectedMonth, selectedDay)) {
-                alert('Csak az aktuális év, hónap és nap napjai szerkeszthetők!');
-                return;
+            // Évek feltöltése (aktuális év és egy évvel korábbi év)
+            for (let i = 0; i < 2; i++) {
+                const option = document.createElement('option');
+                option.value = currentYear - i;
+                option.textContent = currentYear - i;
+                yearSelect.appendChild(option);
             }
 
-            // Megnyitjuk a modal ablakot
-            $('#currentDayValue').text($(this).text().trim() || 'Nincs érték');
-            $('#dayValueInput').val($(this).text().trim() || 0);
-            $('#editMonthModal').modal('show');
+            yearSelect.value = currentYear;
+
+            // Alapértelmezett év betöltése
+            loadTreatmentDays(patientId, currentYear);
+
+            // Év változás eseménykezelő
+            yearSelect.addEventListener('change', function () {
+                const selectedYear = yearSelect.value;
+                loadTreatmentDays(patientId, selectedYear);
+            });
+            document.addEventListener('DOMContentLoaded', function () {
+                const yearSelect = document.getElementById('yearSelect');
+                const currentDate = new Date();
+                const currentYear = currentDate.getFullYear();
+                const currentMonth = currentDate.getMonth() + 1;
+                const currentDay = currentDate.getDate();
+
+                /**
+                 * Ellenőrzi, hogy a cella szerkeszthető-e
+                 * @param {number} selectedYear 
+                 * @param {number} selectedMonth 
+                 * @param {number} selectedDay 
+                 * @returns {boolean}
+                 */
+                function isEditable(selectedYear, selectedMonth, selectedDay) {
+                    // Csak akkor szerkeszthető, ha év és hónap egyezik, és a nap nem jövőbeli
+                    return selectedYear === currentYear &&
+                        selectedMonth === currentMonth &&
+                        selectedDay <= currentDay;
+                }
+
+                /**
+                 * Táblázat celláinak kattintási esemény kezelése
+                 */
+                function handleTableCellClick() {
+                    $('#daysTable tbody').off('click', 'td').on('click', 'td', function () {
+                        const selectedYear = parseInt(yearSelect.value);
+
+                        const row = $(this).closest('tr');
+                        const monthText = row.find('td:first').text().trim();
+                        const monthNames = {
+                            "Január": 1, "Február": 2, "Március": 3, "Április": 4,
+                            "Május": 5, "Június": 6, "Július": 7, "Augusztus": 8,
+                            "Szeptember": 9, "Október": 10, "November": 11, "December": 12
+                        };
+                        const selectedMonth = monthNames[monthText];
+                        const selectedDay = $(this).index();
+
+                        if (!isEditable(selectedYear, selectedMonth, selectedDay)) {
+                            alert('Csak az aktuális év, hónap és nap napjai szerkeszthetők!');
+                            return;
+                        }
+
+                        // Megnyitjuk a modal ablakot
+                        $('#currentDayValue').text($(this).text().trim() || 'Nincs érték');
+                        $('#dayValueInput').val($(this).text().trim() || 0);
+                        $('#editMonthModal').modal('show');
+                    });
+                }
+
+                /**
+                 * Év választás kezelése
+                 */
+                yearSelect.addEventListener('change', function () {
+                    const selectedYear = parseInt(yearSelect.value);
+
+                    if (selectedYear !== currentYear) {
+                        $('#daysTable tbody td').addClass('disabled-month'); // CSS osztály a letiltáshoz
+                        $('#daysTable tbody').off('click', 'td'); // Kattintási esemény eltávolítása
+                    } else {
+                        $('#daysTable tbody td').removeClass('disabled-month'); // CSS osztály eltávolítása
+                        handleTableCellClick(); // Újraaktiváljuk az eseménykezelőt
+                    }
+                });
+
+                // Alapértelmezett eseménykezelő inicializálása
+                handleTableCellClick();
+            });
+
         });
-    }
 
-    /**
-     * Év választás kezelése
-     */
-    yearSelect.addEventListener('change', function () {
-        const selectedYear = parseInt(yearSelect.value);
-
-        if (selectedYear !== currentYear) {
-            $('#daysTable tbody td').addClass('disabled-month'); // CSS osztály a letiltáshoz
-            $('#daysTable tbody').off('click', 'td'); // Kattintási esemény eltávolítása
-        } else {
-            $('#daysTable tbody td').removeClass('disabled-month'); // CSS osztály eltávolítása
-            handleTableCellClick(); // Újraaktiváljuk az eseménykezelőt
-        }
-    });
-
-    // Alapértelmezett eseménykezelő inicializálása
-    handleTableCellClick();
-});
-
-});
-
-// Kép eseménykezelője
-document.addEventListener('DOMContentLoaded', function () {
-    // Click esemény a képre
-    const imageElement = document.getElementById('konyvkep');
-    imageElement.addEventListener('click', function () {
-        // Modal megjelenítése
-        $('#infoModal').modal('show');
-    });
-});
-</script>
+        // Kép eseménykezelője
+        document.addEventListener('DOMContentLoaded', function () {
+            // Click esemény a képre
+            const imageElement = document.getElementById('konyvkep');
+            imageElement.addEventListener('click', function () {
+                // Modal megjelenítése
+                $('#infoModal').modal('show');
+            });
+        });
+    </script>
 </body>
-</html>
 
+</html>

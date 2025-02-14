@@ -8,7 +8,7 @@ table.display {
 }
 
 table.display thead th {
-    background-color: #759fcb; 
+    background-color: #759fcb;
     color: white;
     font-weight: bold;
     text-align: center;
@@ -23,11 +23,11 @@ table.display tbody td {
 }
 
 table.display tbody tr:nth-child(even) {
-    background-color: #f8f8f8; 
+    background-color: #f8f8f8;
 }
 
 table.display tbody tr:hover {
-    background-color: #e6f7ff; 
+    background-color: #e6f7ff;
     cursor: pointer;
 }
 
@@ -52,7 +52,7 @@ table.display tbody td.dt-type-numeric {
     font-family: 'Arial', sans-serif;
 }
 
-.modal-header{
+.modal-header {
     border-bottom: 0;
     background-color: #759fcb;
     color: #fff;
@@ -69,14 +69,14 @@ table.display tbody td.dt-type-numeric {
 }
 
 .btn-primary {
-    background-color: #759fcb; 
+    background-color: #759fcb;
     padding: 10px 20px;
     border-radius: 4px;
     transition: background-color 0.3s;
 }
 
 .btn-primary:hover {
-    background-color: #0056b3; 
+    background-color: #0056b3;
 }
 
 .dataTables_wrapper .dataTables_filter input {
@@ -95,7 +95,8 @@ table.display tbody td.dt-type-numeric {
     color: white !important;
 }
 
-th, td {
+th,
+td {
     padding: 12px 15px;
     text-align: center;
 }
@@ -123,8 +124,8 @@ h2 {
 .modal-body {
     font-size: 1em;
     color: #333;
-    font-weight: 500; 
-    font-family: 'Arial', sans-serif; 
+    font-weight: 500;
+    font-family: 'Arial', sans-serif;
 }
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap");
@@ -154,11 +155,11 @@ h2 {
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     border-radius: 20px;
     display: flex;
-    justify-content: center; 
-    align-items: center; 
-    gap: 10px; 
-    margin-top: 20px; 
-    flex-wrap: wrap; 
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
 }
 
 .button {
@@ -168,7 +169,7 @@ h2 {
     width: 40px;
     height: 40px;
     border: 1px solid;
-    border-radius: 50%; 
+    border-radius: 50%;
     cursor: pointer;
 }
 
@@ -179,7 +180,7 @@ h2 {
 
 .buttton:disabled {
     color: #b3b3b3;
-    pointer-events: none;  
+    pointer-events: none;
 }
 
 .button,
@@ -197,7 +198,7 @@ h2 {
 .links {
     column-gap: 12px;
     display: flex;
-    flex-wrap: wrap; 
+    flex-wrap: wrap;
 }
 
 .link:hover {
@@ -223,8 +224,8 @@ h2 {
 
 @media (max-width: 600px) {
     .conti {
-        flex-direction: column; 
-        gap: 15px; 
+        flex-direction: column;
+        gap: 15px;
     }
 
     .links {
@@ -232,17 +233,17 @@ h2 {
     }
 
     .button {
-        width: 50px; 
+        width: 50px;
         height: 50px;
     }
 
     .prevNext {
-        width: 60px; 
+        width: 60px;
         height: 50px;
     }
 
     .links a {
-        padding: 10px 15px; 
+        padding: 10px 15px;
     }
 }
 
@@ -250,35 +251,35 @@ h2 {
     width: 80%;
     display: flex;
     flex-direction: row;
-    justify-content: space-between; 
-    align-items: center; 
+    justify-content: space-between;
+    align-items: center;
     margin: 10px auto;
-    padding: 10px; 
-    border-radius: 20px; 
+    padding: 10px;
+    border-radius: 20px;
 }
 
 .bixi select {
     text-align: center;
     border-radius: 20px;
-    padding: 10px 20px; 
+    padding: 10px 20px;
     border: 1px solid #ccc;
-    margin: 0; 
+    margin: 0;
     width: 100%;
-    max-width: 150px; 
+    max-width: 150px;
     box-sizing: border-box;
-    height: 40px; 
+    height: 40px;
     background: #ffffff;
 }
 
-#szortirozas{
+#szortirozas {
     background: rgb(227, 227, 227);
-    border-radius: 20px; 
+    border-radius: 20px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     text-align: center;
     width: 10%;
 }
 
-.szamos{
+.szamos {
     justify-content: center;
 }
 
@@ -288,11 +289,11 @@ h2 {
     justify-content: space-between;
     width: 100%;
     max-width: 300px;
-    height: 45px; 
-    padding: 10px 20px; 
+    height: 45px;
+    padding: 10px 20px;
     cursor: pointer;
     background: rgb(227, 227, 227);
-    border-radius: 20px; 
+    border-radius: 20px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
@@ -307,7 +308,7 @@ h2 {
 
 .box input:focus,
 .box:hover input {
-    width: 100%; 
+    width: 100%;
 }
 
 .bixi-image {
@@ -317,12 +318,12 @@ h2 {
 
 @media (max-width: 600px) {
     .bixi {
-        flex-direction: column; 
-        gap: 10px; 
+        flex-direction: column;
+        gap: 10px;
     }
 
     .bixi select,
     .box {
-        width: 90%; 
+        width: 90%;
     }
 }

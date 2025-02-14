@@ -17,11 +17,12 @@
             <option value="10">10</option>
             <option value="25">25</option>
             <option value="50">50</option>
-            <option value="100">100</option>  
+            <option value="100">100</option>
         </select>
-        <div class="box"> 
-            <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." autocomplete="off" spellcheck="false" />
-            <img src="images/eleg.png" class="bixi-image"> 
+        <div class="box">
+            <input type="text" class="bixi" id="searchBox" placeholder="Keresés..." autocomplete="off"
+                spellcheck="false" />
+            <img src="images/eleg.png" class="bixi-image">
         </div>
     </div>
     <table id="myTable" class="display" style="width:80%">
@@ -90,8 +91,8 @@
                 autocapitalize: 'off',
             });
 
-         // Adatok betöltése a táblázatba
-         $.ajax({
+            // Adatok betöltése a táblázatba
+            $.ajax({
                 url: '/getCareData',
                 method: 'GET',
                 success: function (data) {
@@ -107,30 +108,30 @@
                     console.error("Hiba történt az adatok betöltése során:", status, error);
                 }
             });
-            
-            window.openModal = function (name, id, taj, szuldatum) {
-        // ID lekérése a szervertől TAJ alapján
-        $.ajax({
-            url: '/getPatientIdByTaj',
-            method: 'GET',
-            data: { taj },
-            success: function (response) {
-                selectedId = response.id; // ID mentése globális változóba
-            },
-            error: function (xhr, status, error) {
-                console.error('Hiba történt az ID lekérése során TAJ alapján:', status, error);
-                alert('Hiba történt az ID lekérése során.');
-            }
-        });
 
-        // Modal feltöltése és megnyitása
-        selectedName = name; // Név mentése
-        $('#modalName').text(name);
-        $('#modalTaj').text(taj);
-        $('#modalSzuldatum').text(szuldatum);
-        // Display the modal
-        $('#detailsModal').modal('show');
-    };
+            window.openModal = function (name, id, taj, szuldatum) {
+                // ID lekérése a szervertől TAJ alapján
+                $.ajax({
+                    url: '/getPatientIdByTaj',
+                    method: 'GET',
+                    data: { taj },
+                    success: function (response) {
+                        selectedId = response.id; // ID mentése globális változóba
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Hiba történt az ID lekérése során TAJ alapján:', status, error);
+                        alert('Hiba történt az ID lekérése során.');
+                    }
+                });
+
+                // Modal feltöltése és megnyitása
+                selectedName = name; // Név mentése
+                $('#modalName').text(name);
+                $('#modalTaj').text(taj);
+                $('#modalSzuldatum').text(szuldatum);
+                // Display the modal
+                $('#detailsModal').modal('show');
+            };
 
 
 
@@ -142,62 +143,62 @@
 
             // Reactive search across name, TAJ, and birth date
             $('#searchBox').on('input', function () {
-            // Check and limit the input length to 50 characters
-            if (this.value.length > 50) {
-                this.value = this.value.slice(0, 50); // Enforce character limit
-            }
-            table.search(this.value).draw(); // DataTable's search method filters on all columns
-         });
-
-         $('#presenceButton').on('click', function () {
-    if (selectedId) {
-        // Lekérdezés az ID alapján
-        $.ajax({
-            url: '/getTreatmentDays',
-            method: 'GET',
-            data: { id: selectedId },
-            success: function (response) {
-                if (response && response.days && response.days.length > 0) {
-                    // Továbbirányítás, ha vannak ellátási napok
-                    const url = `/presencePage?id=${encodeURIComponent(selectedId)}&name=${encodeURIComponent(selectedName)}`;
-                    window.location.href = url;
-                } else {
-                    // Ha nincsenek ellátási napok
-                    alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
+                // Check and limit the input length to 50 characters
+                if (this.value.length > 50) {
+                    this.value = this.value.slice(0, 50); // Enforce character limit
                 }
-            },
-            error: function (xhr) {
-                if (xhr.status === 404) {
-                    alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
+                table.search(this.value).draw(); // DataTable's search method filters on all columns
+            });
+
+            $('#presenceButton').on('click', function () {
+                if (selectedId) {
+                    // Lekérdezés az ID alapján
+                    $.ajax({
+                        url: '/getTreatmentDays',
+                        method: 'GET',
+                        data: { id: selectedId },
+                        success: function (response) {
+                            if (response && response.days && response.days.length > 0) {
+                                // Továbbirányítás, ha vannak ellátási napok
+                                const url = `/presencePage?id=${encodeURIComponent(selectedId)}&name=${encodeURIComponent(selectedName)}`;
+                                window.location.href = url;
+                            } else {
+                                // Ha nincsenek ellátási napok
+                                alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
+                            }
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 404) {
+                                alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
+                            } else {
+                                alert('Hiba történt az adatok lekérésekor. Próbáld újra később.');
+                            }
+                        }
+                    });
                 } else {
-                    alert('Hiba történt az adatok lekérésekor. Próbáld újra később.');
+                    alert('Nincs kiválasztott páciens!');
                 }
-            }
-        });
-    } else {
-        alert('Nincs kiválasztott páciens!');
-    }
-});
+            });
 
 
 
-    document.addEventListener('DOMContentLoaded', function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const patientName = urlParams.get('name'); // Név a query stringből
-    const patientId = urlParams.get('id'); // ID a query stringből
+            document.addEventListener('DOMContentLoaded', function () {
+                const urlParams = new URLSearchParams(window.location.search);
+                const patientName = urlParams.get('name'); // Név a query stringből
+                const patientId = urlParams.get('id'); // ID a query stringből
 
-    if (patientName && patientId) {
-        // Név megjelenítése az oldal tetején
-        document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
+                if (patientName && patientId) {
+                    // Név megjelenítése az oldal tetején
+                    document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
 
-        // Kezelési napok betöltése az ID alapján
-        loadTreatmentDays(patientId);
-    } else {
-        alert('Nincs megadva páciens név vagy ID!');
-    }
-    });
+                    // Kezelési napok betöltése az ID alapján
+                    loadTreatmentDays(patientId);
+                } else {
+                    alert('Nincs megadva páciens név vagy ID!');
+                }
+            });
 
-// HTML elements
+            // HTML elements
             const startBtn = document.querySelector("#startBtn");
             const endBtn = document.querySelector("#endBtn");
             const prevBtn = document.querySelector("#prev");
@@ -276,9 +277,10 @@
 
             // Initial button update
             updateNavButtons();
-        }); 
+        });
 
     </script>
-    
+
 </body>
+
 </html>

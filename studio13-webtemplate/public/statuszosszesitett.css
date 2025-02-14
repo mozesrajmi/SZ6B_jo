@@ -1,6 +1,7 @@
 body {
     background-color: #f8f9fa;
 }
+
 .table-wrapper {
     margin: 20px auto;
     padding: 20px;
@@ -8,6 +9,7 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .header {
     text-align: center;
     margin-bottom: 20px;
@@ -45,7 +47,8 @@ table.display tbody tr:nth-child(even) {
 }
 
 table.display tbody tr:hover {
-    background-color: #e6f7ff; /* Light blue on hover */
+    background-color: #e6f7ff;
+    /* Light blue on hover */
     cursor: pointer;
 }
 
@@ -58,11 +61,15 @@ table.display tbody tr:hover {
     width: 80%;
     display: flex;
     flex-direction: row;
-    justify-content: center; /* középen helyezkedjen el */
-    align-items: center; /* Vertikálisan középre igazítva */
+    justify-content: center;
+    /* középen helyezkedjen el */
+    align-items: center;
+    /* Vertikálisan középre igazítva */
     margin: 10px auto;
-    padding: 10px; /* Egyenlő belső térköz */
-    border-radius: 20px; /* Lekerekített sarkok */
+    padding: 10px;
+    /* Egyenlő belső térköz */
+    border-radius: 20px;
+    /* Lekerekített sarkok */
 }
 
 /* Keresősávot tartalmazó doboz */
@@ -72,11 +79,14 @@ table.display tbody tr:hover {
     justify-content: space-between;
     width: 100%;
     max-width: 300px;
-    height: 45px; /* Ugyanakkora magasság, mint a szortírozó */
-    padding: 10px 20px; /* Egyező belső térköz */
+    height: 45px;
+    /* Ugyanakkora magasság, mint a szortírozó */
+    padding: 10px 20px;
+    /* Egyező belső térköz */
     cursor: pointer;
     background: rgb(227, 227, 227);
-    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    border-radius: 20px;
+    /* Ugyanaz a lekerekítés, mint a szortírozó */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
@@ -92,7 +102,8 @@ table.display tbody tr:hover {
 
 .box input:focus,
 .box:hover input {
-    width: 100%; /* Kitágul a rendelkezésre álló helyre */
+    width: 100%;
+    /* Kitágul a rendelkezésre álló helyre */
 }
 
 /* Kép a keresősávban */
@@ -104,13 +115,16 @@ table.display tbody tr:hover {
 /* Reszponzív dizájn */
 @media (max-width: 600px) {
     .bixi {
-        flex-direction: column; /* Kisebb képernyőn egymás alá kerülnek */
-        gap: 10px; /* Távolság az elemek között */
+        flex-direction: column;
+        /* Kisebb képernyőn egymás alá kerülnek */
+        gap: 10px;
+        /* Távolság az elemek között */
     }
 
     .bixi select,
     .box {
-        width: 90%; /* Teljes szélesség kisebb képernyőkön */
+        width: 90%;
+        /* Teljes szélesség kisebb képernyőkön */
     }
 }
 
@@ -202,18 +216,22 @@ table.display tbody tr:hover {
 
 
 .modal-lg {
-    max-width: 30%; /* A modális szélessége */
+    max-width: 30%;
+    /* A modális szélessége */
 }
+
 /* Center-align the modal header text */
 #detailsTable .modal-header .modal-title {
     text-align: center;
-    width: 100%; /* Ensure the title spans the entire header */
+    width: 100%;
+    /* Ensure the title spans the entire header */
 }
 
 /* Bolden the labels in the modal body */
 #detailsTable .modal-body p strong {
     font-weight: bold;
-    font-size: 1.1rem; /* Optional: slightly increase font size */
+    font-size: 1.1rem;
+    /* Optional: slightly increase font size */
 }
 
 #totalCost {
@@ -222,10 +240,14 @@ table.display tbody tr:hover {
 }
 
 .formatted-amount {
-    font-size: 1.5rem; /* Nagyobb betűméret */
-    font-weight: bold; /* Félkövér szöveg */
+    font-size: 1.5rem;
+    /* Nagyobb betűméret */
+    font-weight: bold;
+    /* Félkövér szöveg */
 }
 
-#navbar, .navbar-expand-lg, .navbar-dark {
-    background-color: #293C5D; 
+#navbar,
+.navbar-expand-lg,
+.navbar-dark {
+    background-color: #293C5D;
 }

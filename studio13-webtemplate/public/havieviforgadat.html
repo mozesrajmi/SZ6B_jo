@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,33 +25,33 @@
         }
 
         async function toggleIndividualData(forceRefresh = false) {
-        const table = document.getElementById('individualTable');
-        if (!forceRefresh && !table.classList.contains('hidden')) {
-            table.classList.add('hidden');
-            return;
-        }
-
-        const tbody = document.getElementById('individualTableBody');
-        const year = document.getElementById('yearSelect').value;
-        const month = document.getElementById('monthSelect').value;
-
-        if (!year || !month) {
-            alert('Kérlek válassz évet és hónapot!');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/getEllatottPatients?year=${year}&month=${month}`);
-            const data = await response.json();
-
-            if (!Array.isArray(data) || data.length === 0) {
-                alert('Nincs megjeleníthető adat az adott évhez vagy hónaphoz!');
+            const table = document.getElementById('individualTable');
+            if (!forceRefresh && !table.classList.contains('hidden')) {
+                table.classList.add('hidden');
                 return;
             }
 
-            tbody.innerHTML = '';
-            data.forEach(patient => {
-                const row = `
+            const tbody = document.getElementById('individualTableBody');
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+
+            if (!year || !month) {
+                alert('Kérlek válassz évet és hónapot!');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/getEllatottPatients?year=${year}&month=${month}`);
+                const data = await response.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    alert('Nincs megjeleníthető adat az adott évhez vagy hónaphoz!');
+                    return;
+                }
+
+                tbody.innerHTML = '';
+                data.forEach(patient => {
+                    const row = `
                     <tr>
                         <td class="border border-gray-300 px-4 py-2">${patient.NEV}</td>
                         <td class="border border-gray-300 px-4 py-2">${patient.TAJ}</td>
@@ -61,46 +62,46 @@
                         <td class="border border-gray-300 px-4 py-2">${(patient.TOBBLET || 0).toLocaleString()} Ft</td>
                     </tr>
                 `;
-                tbody.innerHTML += row;
-            });
+                    tbody.innerHTML += row;
+                });
 
-            table.classList.remove('hidden');
-        } catch (error) {
-            console.error('Hiba történt:', error);
-        }
-    }
-
-
-    async function toggleKumulaltData(forceRefresh = false) {
-        const kumulaltDiv = document.getElementById('kumulaltData');
-        if (!forceRefresh && !kumulaltDiv.classList.contains('hidden')) {
-            kumulaltDiv.classList.add('hidden');
-            return;
+                table.classList.remove('hidden');
+            } catch (error) {
+                console.error('Hiba történt:', error);
+            }
         }
 
-        const year = document.getElementById('yearSelect').value;
-        const month = document.getElementById('monthSelect').value;
 
-        try {
-            const response = await fetch(`/api/getKumulaltPatients?year=${year}&month=${month}`);
-            const data = await response.json();
-
-            if (!data || Object.keys(data).length === 0 || data.LETSZAM === 0) {
-                alert('Nincs megjeleníthető adat az adott évhez vagy hónaphoz!');
+        async function toggleKumulaltData(forceRefresh = false) {
+            const kumulaltDiv = document.getElementById('kumulaltData');
+            if (!forceRefresh && !kumulaltDiv.classList.contains('hidden')) {
+                kumulaltDiv.classList.add('hidden');
                 return;
             }
 
-            document.getElementById('kumulaltLetszam').textContent = (data.LETSZAM || 0).toLocaleString() + ' fő';
-            document.getElementById('kumulaltFizetendo').textContent = (data.OSSZES_FIZETENDO || 0).toLocaleString() + ' Ft';
-            document.getElementById('kumulaltFizetett').textContent = (data.OSSZES_FIZETETT || 0).toLocaleString() + ' Ft';
-            document.getElementById('kumulaltHatralek').textContent = (data.OSSZES_HATRALEK || 0).toLocaleString() + ' Ft';
-            document.getElementById('kumulaltTobblet').textContent = (data.OSSZES_TOBBLET || 0).toLocaleString() + ' Ft';
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
 
-            kumulaltDiv.classList.remove('hidden');
-        } catch (error) {
-            console.error('Hiba történt:', error);
+            try {
+                const response = await fetch(`/api/getKumulaltPatients?year=${year}&month=${month}`);
+                const data = await response.json();
+
+                if (!data || Object.keys(data).length === 0 || data.LETSZAM === 0) {
+                    alert('Nincs megjeleníthető adat az adott évhez vagy hónaphoz!');
+                    return;
+                }
+
+                document.getElementById('kumulaltLetszam').textContent = (data.LETSZAM || 0).toLocaleString() + ' fő';
+                document.getElementById('kumulaltFizetendo').textContent = (data.OSSZES_FIZETENDO || 0).toLocaleString() + ' Ft';
+                document.getElementById('kumulaltFizetett').textContent = (data.OSSZES_FIZETETT || 0).toLocaleString() + ' Ft';
+                document.getElementById('kumulaltHatralek').textContent = (data.OSSZES_HATRALEK || 0).toLocaleString() + ' Ft';
+                document.getElementById('kumulaltTobblet').textContent = (data.OSSZES_TOBBLET || 0).toLocaleString() + ' Ft';
+
+                kumulaltDiv.classList.remove('hidden');
+            } catch (error) {
+                console.error('Hiba történt:', error);
+            }
         }
-    }
 
 
 
@@ -108,6 +109,7 @@
         window.onload = initializeDateSelectors;
     </script>
 </head>
+
 <body class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
     <div class="text-center px-4">
         <h1 class="text-3xl font-bold mb-6">Havi Kimutatás</h1>
@@ -145,15 +147,17 @@
 
             <!-- Egyéni és Kumulált adatok gombok egymás mellett -->
             <div class="flex space-x-4">
-                <button onclick="toggleIndividualData()" class="bg-green-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-green-600 focus:outline-none">
+                <button onclick="toggleIndividualData()"
+                    class="bg-green-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-green-600 focus:outline-none">
                     Egyéni Adatok
                 </button>
 
-                <button onclick="toggleKumulaltData()" class="bg-purple-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-purple-600 focus:outline-none">
+                <button onclick="toggleKumulaltData()"
+                    class="bg-purple-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-purple-600 focus:outline-none">
                     Kummulált Adatok
                 </button>
-                   <!-- Kép hozzáadása -->
-                
+                <!-- Kép hozzáadása -->
+
             </div>
 
             <!-- Kép hozzáadása -->
@@ -165,15 +169,15 @@
                 function saveTablesAsCSV() {
                     const year = document.getElementById('yearSelect').value;
                     const month = document.getElementById('monthSelect').value;
-            
+
                     const individualTable = document.getElementById('individualDataTable');
                     const kumulaltTable = document.getElementById('kumulaltDataTable');
-            
+
                     const individualCSV = tableToCSV(individualTable, "Egyéni Adatok");
                     const kumulaltCSV = tableToCSV(kumulaltTable, "Kumulált Adatok");
-            
+
                     const combinedCSV = `${individualCSV}\n\n${kumulaltCSV}`;
-            
+
                     const blob = new Blob(["\uFEFF" + combinedCSV], { type: 'text/csv;charset=utf-8;' });
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -183,36 +187,36 @@
                     a.click();
                     document.body.removeChild(a);
                 }
-            
+
                 function tableToCSV(table, title) {
                     let csv = `"${title}"\n\n`; // Táblázat neve a CSV elejére
                     const rows = table.querySelectorAll('tr');
-            
+
                     rows.forEach((row, index) => {
                         const cols = row.querySelectorAll('td, th');
                         const rowData = [];
-            
+
                         cols.forEach(col => {
                             let text = col.textContent.trim();
                             text = text.replace(/"/g, '""'); // Idézőjelek helyes kezelése
                             rowData.push(`"${text}"`); // Idézőjelek közé rakjuk az adatokat
                         });
-            
+
                         csv += rowData.join(';') + '\n';
                     });
-            
+
                     return csv;
                 }
             </script>
-            
-            
-         
+
+
+
         </div>
     </div>
 
-    
-     <!-- Egyéni Adatok Táblázat -->
-     <div id="individualTable" class="hidden">
+
+    <!-- Egyéni Adatok Táblázat -->
+    <div id="individualTable" class="hidden">
         <h2 class="text-xl font-bold mb-4 text-center">Egyéni Adatok</h2>
         <table id="individualDataTable" class="display">
             <thead>
@@ -254,7 +258,8 @@
             </tbody>
         </table>
     </div>
-</div>
+    </div>
 
 </body>
+
 </html>

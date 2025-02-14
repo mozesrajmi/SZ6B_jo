@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,20 +23,22 @@
     fetchData('Előgondozott', 'precare-list');
     fetchData('Ellátott', 'treated-list');
     fetchData('Távozott', 'left-list');
-        document.querySelector('.navbar-toggler').addEventListener('click', function () {
-            var navbarCollapse = document.querySelector('#navbarNav');
-            if (navbarCollapse.classList.contains('show')) {
-                navbarCollapse.classList.remove('show');
-            } else {
-                navbarCollapse.classList.add('show');
-            }
-        });
+    document.querySelector('.navbar-toggler').addEventListener('click', function () {
+        var navbarCollapse = document.querySelector('#navbarNav');
+        if (navbarCollapse.classList.contains('show')) {
+            navbarCollapse.classList.remove('show');
+        } else {
+            navbarCollapse.classList.add('show');
+        }
+    });
 </script>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark ">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Páciens Státuszok</a>
-            <button class="navbar-toggler" type="button" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" aria-controls="navbarNav" aria-expanded="false"
+                aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -56,10 +59,10 @@
             </div>
         </div>
     </nav>
- 
+
 
     <div class="container mt-5">
-        
+
         <!-- Várakozók -->
         <h2 id="waiting" class="text-center">Várakozók</h2>
         <table id="myTable" class="display col-md-8">
@@ -77,7 +80,7 @@
         </table>
 
         <!-- Előgondozottak -->
-        <h2 id="precare"  class="text-center">Előgondozottak</h2>
+        <h2 id="precare" class="text-center">Előgondozottak</h2>
         <table id="myTable" class="display" style="width:60%">
             <thead>
                 <tr>
@@ -92,7 +95,7 @@
         </table>
 
         <!-- Ellátottak -->
-        <h2 id="treated"  class="text-center">Ellátottak</h2>
+        <h2 id="treated" class="text-center">Ellátottak</h2>
         <table id="myTable" class="display" style="width:60%">
             <thead>
                 <tr>
@@ -107,7 +110,7 @@
         </table>
 
         <!-- Távozottak -->
-        <h2 id="left"  class="text-center">Távozottak</h2>
+        <h2 id="left" class="text-center">Távozottak</h2>
         <table id="myTable" class="display" style="width:60%">
             <thead>
                 <tr>
@@ -122,4 +125,5 @@
         </table>
     </div>
 </body>
+
 </html>

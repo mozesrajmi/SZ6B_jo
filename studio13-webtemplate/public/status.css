@@ -9,7 +9,8 @@ table.display {
 }
 
 table.display thead th {
-    background-color: #759fcb; /* A blue background */
+    background-color: #759fcb;
+    /* A blue background */
     color: white;
     font-weight: bold;
     text-align: center;
@@ -24,11 +25,13 @@ table.display tbody td {
 }
 
 table.display tbody tr:nth-child(even) {
-    background-color: #f8f8f8; /* Light gray for alternating rows */
+    background-color: #f8f8f8;
+    /* Light gray for alternating rows */
 }
 
 table.display tbody tr:hover {
-    background-color: #e6f7ff; /* Light blue on hover */
+    background-color: #e6f7ff;
+    /* Light blue on hover */
     cursor: pointer;
 }
 
@@ -63,7 +66,8 @@ table.display tbody td.dt-type-numeric {
 }
 
 /* Table column and row padding and alignment for a cleaner look */
-th, td {
+th,
+td {
     padding: 12px 15px;
     text-align: center;
 }
@@ -73,35 +77,45 @@ th, td {
     width: 80%;
     display: flex;
     flex-direction: row;
-    justify-content: space-between; /* Elején és végén helyezkedjenek el */
-    align-items: center; /* Vertikálisan középre igazítva */
+    justify-content: space-between;
+    /* Elején és végén helyezkedjenek el */
+    align-items: center;
+    /* Vertikálisan középre igazítva */
     margin: 10px auto;
-    padding: 10px; /* Egyenlő belső térköz */
-    border-radius: 20px; /* Lekerekített sarkok */
+    padding: 10px;
+    /* Egyenlő belső térköz */
+    border-radius: 20px;
+    /* Lekerekített sarkok */
 }
 
 /* Szortírozó stílusa */
 .bixi select {
     text-align: center;
     border-radius: 20px;
-    padding: 10px 20px; /* Egyező belső térköz a .box-szal */
+    padding: 10px 20px;
+    /* Egyező belső térköz a .box-szal */
     border: 1px solid #000000;
-    margin: 0; /* Margó eltávolítása */
+    margin: 0;
+    /* Margó eltávolítása */
     width: 100%;
-    max-width: 150px; /* Maximális szélesség */
+    max-width: 150px;
+    /* Maximális szélesség */
     box-sizing: border-box;
-    height: 40px; /* Ugyanakkora magasság, mint a .box */
+    height: 40px;
+    /* Ugyanakkora magasság, mint a .box */
 }
+
 /* Szortírozó stílusa */
-#szortirozas{
+#szortirozas {
     background: rgb(227, 227, 227);
-    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    border-radius: 20px;
+    /* Ugyanaz a lekerekítés, mint a szortírozó */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     text-align: center;
     width: 10%;
 }
 
-.szamos{
+.szamos {
     justify-content: center;
 }
 
@@ -112,11 +126,14 @@ th, td {
     justify-content: space-between;
     width: 100%;
     max-width: 300px;
-    height: 45px; /* Ugyanakkora magasság, mint a szortírozó */
-    padding: 10px 20px; /* Egyező belső térköz */
+    height: 45px;
+    /* Ugyanakkora magasság, mint a szortírozó */
+    padding: 10px 20px;
+    /* Egyező belső térköz */
     cursor: pointer;
     background: rgb(227, 227, 227);
-    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    border-radius: 20px;
+    /* Ugyanaz a lekerekítés, mint a szortírozó */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
@@ -132,7 +149,8 @@ th, td {
 
 .box input:focus,
 .box:hover input {
-    width: 100%; /* Kitágul a rendelkezésre álló helyre */
+    width: 100%;
+    /* Kitágul a rendelkezésre álló helyre */
 }
 
 /* Kép a keresősávban */
@@ -144,13 +162,16 @@ th, td {
 /* Reszponzív dizájn */
 @media (max-width: 600px) {
     .bixi {
-        flex-direction: column; /* Kisebb képernyőn egymás alá kerülnek */
-        gap: 10px; /* Távolság az elemek között */
+        flex-direction: column;
+        /* Kisebb képernyőn egymás alá kerülnek */
+        gap: 10px;
+        /* Távolság az elemek között */
     }
 
     .bixi select,
     .box {
-        width: 90%; /* Teljes szélesség kisebb képernyőkön */
+        width: 90%;
+        /* Teljes szélesség kisebb képernyőkön */
     }
 }
 
@@ -181,11 +202,16 @@ th, td {
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     border-radius: 20px;
     display: flex;
-    justify-content: center; /* Középre igazítás vízszintesen */
-    align-items: center; /* Középre igazítás függőlegesen */
-    gap: 10px; /* Távolság a gombok között */
-    margin-top: 20px; /* Távolság a táblázattól */
-    flex-wrap: wrap; /* Kisebb képernyőn tördelés engedélyezése */
+    justify-content: center;
+    /* Középre igazítás vízszintesen */
+    align-items: center;
+    /* Középre igazítás függőlegesen */
+    gap: 10px;
+    /* Távolság a gombok között */
+    margin-top: 20px;
+    /* Távolság a táblázattól */
+    flex-wrap: wrap;
+    /* Kisebb képernyőn tördelés engedélyezése */
 
 }
 
@@ -196,7 +222,8 @@ th, td {
     width: 40px;
     height: 40px;
     border: 1px solid;
-    border-radius: 50%; /* Kerek gombok */
+    border-radius: 50%;
+    /* Kerek gombok */
     cursor: pointer;
 }
 
@@ -207,7 +234,7 @@ th, td {
 
 .buttton:disabled {
     color: #b3b3b3;
-    pointer-events: none;  
+    pointer-events: none;
 }
 
 .button,
@@ -225,7 +252,8 @@ th, td {
 .links {
     column-gap: 12px;
     display: flex;
-    flex-wrap: wrap; /* Kisebb képernyőn tördelés */
+    flex-wrap: wrap;
+    /* Kisebb képernyőn tördelés */
 
 }
 
@@ -249,14 +277,17 @@ th, td {
 .prevNext {
     width: 50px;
     height: 40px;
-    border-radius: 20px; /* Lekerekített téglalap forma */
+    border-radius: 20px;
+    /* Lekerekített téglalap forma */
 }
 
 /* Reszponzív stílusok */
 @media (max-width: 600px) {
     .conti {
-        flex-direction: column; /* Gombok egymás alatt */
-        gap: 15px; /* Távolság a gombok között */
+        flex-direction: column;
+        /* Gombok egymás alatt */
+        gap: 15px;
+        /* Távolság a gombok között */
     }
 
     .links {
@@ -264,33 +295,41 @@ th, td {
     }
 
     .button {
-        width: 50px; /* Nagyobb gombok mobilon */
+        width: 50px;
+        /* Nagyobb gombok mobilon */
         height: 50px;
     }
 
     .prevNext {
-        width: 60px; /* Nagyobb prev/next gombok mobilon */
+        width: 60px;
+        /* Nagyobb prev/next gombok mobilon */
         height: 50px;
     }
 
     .links a {
-        padding: 10px 15px; /* Nagyobb oldalszámok */
+        padding: 10px 15px;
+        /* Nagyobb oldalszámok */
     }
 }
 
 
 .btn-group .btn {
     color: rgb(0, 0, 0);
-    padding: 10px 20px; /* Egyenlő belső térköz */
+    padding: 10px 20px;
+    /* Egyenlő belső térköz */
     background: rgb(227, 227, 227);
-    border-radius: 20px; /* Ugyanaz a lekerekítés, mint a szortírozó */
+    border-radius: 20px;
+    /* Ugyanaz a lekerekítés, mint a szortírozó */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-    cursor: pointer; /* Mutató kurzor */
+    cursor: pointer;
+    /* Mutató kurzor */
 }
 
 .btn-group .btn:hover {
-    background-color: rgb(108, 181, 233); /* Piros háttér szín hover eseménykor */
-    color: rgb(0, 0, 0); /* fekete szöveg hover eseménykor */
+    background-color: rgb(108, 181, 233);
+    /* Piros háttér szín hover eseménykor */
+    color: rgb(0, 0, 0);
+    /* fekete szöveg hover eseménykor */
 }
 
 /*MODAL*/
@@ -301,7 +340,7 @@ th, td {
     font-family: 'Arial', sans-serif;
 }
 
-.modal-header{
+.modal-header {
     border-bottom: 0;
     background-color: #759fcb;
     color: #fff;
@@ -320,6 +359,8 @@ th, td {
 /*sürgős*/
 .urgent-row {
     font-weight: bold;
-    background-color: #ffe6e6; /* Halvány piros háttér */
-    color: #f18787; /* Sötétebb piros szöveg */
+    background-color: #ffe6e6;
+    /* Halvány piros háttér */
+    color: #f18787;
+    /* Sötétebb piros szöveg */
 }

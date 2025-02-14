@@ -1,6 +1,7 @@
 body {
     background-color: #f8f9fa;
 }
+
 .table-wrapper {
     margin: 20px auto;
     padding: 20px;
@@ -8,6 +9,7 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .header {
     text-align: center;
     margin-bottom: 20px;
@@ -45,11 +47,12 @@ table.display tbody tr:nth-child(even) {
 
 
 table.display tbody tr:hover {
-    background-color: #e6f7ff; /* Light blue on hover */
+    background-color: #e6f7ff;
+    /* Light blue on hover */
     cursor: pointer;
 }
 
-#currentDate{
+#currentDate {
     font-size: 20px;
 
 }
@@ -64,4 +67,3 @@ table.display tbody tr:hover {
         padding: 10px;
     }
 }
-

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,9 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/components.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/utilities.min.css" rel="stylesheet">
     <link rel="stylesheet" href="eveskimutatas.css">
-    
+
     <script>
-            function initializeYearSelector() {
+        function initializeYearSelector() {
             const yearSelect = document.getElementById('yearSelect');
             const currentYear = new Date().getFullYear();
             for (let i = currentYear; i >= currentYear - 10; i--) {
@@ -114,78 +115,82 @@
         window.onload = initializeYearSelector;
     </script>
 </head>
+
 <body class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
     <div class="text-center px-4">
         <h1 class="text-3xl font-bold mb-6">Éves Kimutatás</h1>
 
         <div id="dateSelectors" class="mt-6 flex justify-center">
             <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6">
-            <div>
-                <label for="yearSelect" class="block text-lg font-bold mb-2"></label>
-                <select id="yearSelect" class="w-full sm:w-48 border border-gray-300 px-4 py-2 rounded-lg">
-                <option value="2023">2023</option>
-                <option value="2024">2024</option>
-                <option value="2025">2025</option>
-                </select>
-            </div>        
+                <div>
+                    <label for="yearSelect" class="block text-lg font-bold mb-2"></label>
+                    <select id="yearSelect" class="w-full sm:w-48 border border-gray-300 px-4 py-2 rounded-lg">
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
             </div>
         </div>
         <!-- Gombok -->
-         <!-- Egyéni és Kumulált adatok gombok egymás mellett -->
-         <div class="flex space-x-4 justify-center">
-            <button onclick="toggleIndividualData()" class="bg-green-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-green-600 focus:outline-none">
+        <!-- Egyéni és Kumulált adatok gombok egymás mellett -->
+        <div class="flex space-x-4 justify-center">
+            <button onclick="toggleIndividualData()"
+                class="bg-green-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-green-600 focus:outline-none">
                 Egyéni Adatok
             </button>
 
-            <button onclick="toggleKumulaltData()" class="bg-purple-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-purple-600 focus:outline-none">
+            <button onclick="toggleKumulaltData()"
+                class="bg-purple-500 text-white px-8 py-4 rounded-lg shadow-lg text-xl hover:bg-purple-600 focus:outline-none">
                 Kummulált Adatok
-            </button>            
+            </button>
         </div>
 
     </div>
-        <!-- Egyéni adatok -->
-        <div id="individualTable" class="hidden">
-            <h2 class="text-xl font-bold mb-4 text-center m-10">Egyéni Adatok</h2>    
-            <table id="individualDataTable" class="display">
-                <thead>
-                    <tr>
-                        <th class="border px-4 py-2">Név</th>
-                        <th class="border px-4 py-2">TAJ</th>
-                        <th class="border px-4 py-2">Összes Napidíj</th>
-                        <th class="border px-4 py-2">Összes Fizetendő</th>
-                        <th class="border px-4 py-2">Összes Fizetett</th>
-                        <th class="border px-4 py-2">Hátralék</th>
-                        <th class="border px-4 py-2">Túlfizetés</th>
-                    </tr>
-                </thead>
-                <tbody id="individualTableBody"></tbody>
-            </table>
-        </div>
+    <!-- Egyéni adatok -->
+    <div id="individualTable" class="hidden">
+        <h2 class="text-xl font-bold mb-4 text-center m-10">Egyéni Adatok</h2>
+        <table id="individualDataTable" class="display">
+            <thead>
+                <tr>
+                    <th class="border px-4 py-2">Név</th>
+                    <th class="border px-4 py-2">TAJ</th>
+                    <th class="border px-4 py-2">Összes Napidíj</th>
+                    <th class="border px-4 py-2">Összes Fizetendő</th>
+                    <th class="border px-4 py-2">Összes Fizetett</th>
+                    <th class="border px-4 py-2">Hátralék</th>
+                    <th class="border px-4 py-2">Túlfizetés</th>
+                </tr>
+            </thead>
+            <tbody id="individualTableBody"></tbody>
+        </table>
+    </div>
 
-        <!-- Kumulált adatok -->
-        <div id="kumulaltData" class="hidden mt-8">
-            <h2 class="text-xl font-bold mb-4 text-center">Kummulált Adatok</h2>
-            <table id="kumulaltDataTable" class="display">
-                <thead>
-                    <tr>
-                        <th class="border px-4 py-2">Létszám</th>
-                        <th class="border px-4 py-2">Összes Tartozik</th>
-                        <th class="border px-4 py-2">Összes Követel</th>
-                        <th class="border px-4 py-2">Összes Hátralék</th>
-                        <th class="border px-4 py-2">Összes Túlfizetés</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td id="kumulaltLetszam" class="border px-4 py-2"></td>
-                        <td id="kumulaltTartozik" class="border px-4 py-2"></td>
-                        <td id="kumulaltKovetel" class="border px-4 py-2"></td>
-                        <td id="kumulaltHatralek" class="border px-4 py-2"></td>
-                        <td id="kumulaltTobblet" class="border px-4 py-2"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    
+    <!-- Kumulált adatok -->
+    <div id="kumulaltData" class="hidden mt-8">
+        <h2 class="text-xl font-bold mb-4 text-center">Kummulált Adatok</h2>
+        <table id="kumulaltDataTable" class="display">
+            <thead>
+                <tr>
+                    <th class="border px-4 py-2">Létszám</th>
+                    <th class="border px-4 py-2">Összes Tartozik</th>
+                    <th class="border px-4 py-2">Összes Követel</th>
+                    <th class="border px-4 py-2">Összes Hátralék</th>
+                    <th class="border px-4 py-2">Összes Túlfizetés</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="kumulaltLetszam" class="border px-4 py-2"></td>
+                    <td id="kumulaltTartozik" class="border px-4 py-2"></td>
+                    <td id="kumulaltKovetel" class="border px-4 py-2"></td>
+                    <td id="kumulaltHatralek" class="border px-4 py-2"></td>
+                    <td id="kumulaltTobblet" class="border px-4 py-2"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
 </body>
+
 </html>
