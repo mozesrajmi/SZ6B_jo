@@ -415,3 +415,82 @@ table.display tbody tr:hover {
 #paymentModal .btn-success:hover {
     background-color: #218838;
 }
+
+/* Responsive Modal Styling */
+@media (max-width: 600px) {
+    #paymentModal .modal-dialog {
+        max-width: 90%;
+        margin: 10px auto;
+    }
+
+    #paymentModal .modal-header,
+    #paymentModal .modal-footer {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    #paymentModal .modal-footer .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #paymentModal .modal-footer .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    .payment-info,
+    .previous-payment,
+    .summary-block,
+    .input-section {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .modal-body {
+        padding: 10px;
+    }
+}
+
+
+/* Responsive Styling for Recalculate Modal */
+@media (max-width: 600px) {
+    #recalculateModal .modal-dialog {
+        max-width: 90%;
+        margin: 10px auto;
+    }
+
+    #recalculateModal .modal-header,
+    #recalculateModal .modal-footer {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    #recalculateModal .modal-footer .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    #recalculateModal .modal-footer .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    #recalculateModal .modal-body {
+        padding: 10px;
+    }
+
+    #recalculateModal #detailsTable {
+        width: 100%;
+    }
+
+    #recalculateModal #detailsTable th,
+    #recalculateModal #detailsTable td {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    #recalculateModal #totalCost {
+        font-size: 1rem;
+    }
+}
