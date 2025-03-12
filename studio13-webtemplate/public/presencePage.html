@@ -60,7 +60,7 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="saveDayEditBtn">Mentés</button>
+                    <button type="button" class="btn btn-success" id="saveDayEditBtn">Mentés</button>
                 </div>
             </div>
         </div>
@@ -147,7 +147,7 @@ function loadTreatmentDays(patientId, year = new Date().getFullYear()) {
 
             // Tooltip szövegek és színek
             const statusDescriptions = {
-                '0': 'Nincs', '1': 'Jelen van',
+                '0': 'Nem volt felvéve', '1': 'Jelen van',
                 '2': 'Kórházban tartózkodik', '3': 'Állományban van, de otthon tartózkodik'
             };
             const colorMap = {
@@ -203,7 +203,7 @@ function loadTreatmentDays(patientId, year = new Date().getFullYear()) {
     });
 }
 
-var selectedCell = null; // Globális változó a kijelölt cellának
+var selectedCell = null; // Globális változó a kiválasztott cella tárolására
 
 
 $(document).ready(function () {
@@ -261,8 +261,14 @@ $(document).ready(function () {
 
         
         $(document).ready(function () {
-            $('#daysTable tbody').on('click', 'td', function () {
-                selectedCell = $(this); // Kijelölt cella mentése
+            $('#daysTable tbody').off('click').on('click', 'td', function () {
+                // FONTOS: A kiválasztott cellát azonnal elmentjük
+                selectedCell = $(this); 
+                
+                if (!selectedCell || selectedCell.length === 0) {
+                    console.warn('HIBA: Nem sikerült cellát kiválasztani!');
+                    return;
+                }
 
                 const row = selectedCell.closest('tr');
                 const monthText = row.find('td:first').text().trim(); // Hónap neve
@@ -273,33 +279,38 @@ $(document).ready(function () {
                 };
 
                 const selectedMonth = monthNames[monthText]; // Konvertálás számmá
-                const selectedDay = selectedCell.index(); // Napszám (oszlopindex)
+                const selectedDay = selectedCell.index(); // Nap sorszáma
                 const selectedYear = parseInt($('#yearSelect').val()); // Kiválasztott év
                 const today = new Date();
                 const currentDay = today.getDate();
                 const currentMonth = today.getMonth() + 1;
                 const currentYear = today.getFullYear();
 
-                // Ellenőrizzük, hogy a szerkesztés engedélyezett-e
+                console.log(`Kiválasztott év: ${selectedYear}, hónap: ${selectedMonth}, nap: ${selectedDay}`);
+                console.log(`Aktuális dátum: ${currentYear}-${currentMonth}-${currentDay}`);
+
+                // Ellenőrizzük, hogy az év az aktuális év-e
                 if (selectedYear !== currentYear) {
                     alert('Csak az aktuális év táblázata szerkeszthető!');
-                    selectedCell = null; // Szerkesztés tiltása
+                    selectedCell = null; // Reseteljük a kiválasztott cellát
                     return;
                 }
 
+                // Ellenőrizzük, hogy a hónap az aktuális hónap-e
                 if (selectedMonth !== currentMonth) {
                     alert('Csak a jelenlegi hónap napjai szerkeszthetők!');
-                    selectedCell = null; // Szerkesztés tiltása
+                    selectedCell = null; // Reseteljük a kiválasztott cellát
                     return;
                 }
 
+                // Ellenőrizzük, hogy a mai dátum után van-e
                 if (selectedMonth === currentMonth && selectedDay > currentDay) {
                     alert('A mai dátumnál későbbi napokat nem lehet módosítani!');
-                    selectedCell = null; // Szerkesztés tiltása
+                    selectedCell = null; // Reseteljük a kiválasztott cellát
                     return;
                 }
 
-                // Ha minden rendben, folytassuk a szerkesztést
+                // Ha minden ellenőrzés sikeres, beállítjuk az értékeket
                 const selectedValue = selectedCell.text().trim(); // Jelenlegi érték
                 $('#currentDayValue').text(selectedValue || 'Nincs érték');
                 $('#dayValueInput').val(selectedValue || 0);
@@ -317,17 +328,13 @@ $(document).ready(function () {
 
                 if (/^[0-3]$/.test(newValue)) {
                     const colorMap = {
-                        '0': '#fe8a8a',
-                        '1': '#cdfcba',
-                        '2': '#96d2f9',
-                        '3': '#fffd88',
+                        '0': '#fe8a8a', '1': '#cdfcba',
+                        '2': '#96d2f9', '3': '#fffd88'
                     };
 
                     const statusDescriptions = {
-                        '0': 'Nincs', 
-                        '1': 'Jelen van',
-                        '2': 'Kórházban tartózkodik', 
-                        '3': 'Állományban van, de otthon tartózkodik'
+                        '0': 'Nem volt felvéve', '1': 'Jelen van',
+                        '2': 'Kórházban tartózkodik', '3': 'Állományban van, de otthon tartózkodik'
                     };
 
                     // Frissítsük a cellát
