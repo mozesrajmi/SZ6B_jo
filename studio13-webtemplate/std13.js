@@ -1241,7 +1241,6 @@ app.post('/savePayment', (req, res) => {
 });
 
 
-
 // Új végpont a FIZETENDO mező nullázásához
 app.post('/resetFizetendo', (req, res) => {
     const { id, year, month } = req.body;
