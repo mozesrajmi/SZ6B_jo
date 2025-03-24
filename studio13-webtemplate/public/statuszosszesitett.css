@@ -15,7 +15,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Custom Table Styles */
 table.display {
     width: 80%;
     margin: 20px auto;
@@ -48,7 +47,6 @@ table.display tbody tr:nth-child(even) {
 
 table.display tbody tr:hover {
     background-color: #e6f7ff;
-    /* Light blue on hover */
     cursor: pointer;
 }
 
@@ -56,23 +54,17 @@ table.display tbody tr:hover {
     font-size: 20px;
 }
 
-/* bixi stílusa */
 .bixi {
     width: 80%;
     display: flex;
     flex-direction: row;
     justify-content: center;
-    /* középen helyezkedjen el */
     align-items: center;
-    /* Vertikálisan középre igazítva */
     margin: 10px auto;
     padding: 10px;
-    /* Egyenlő belső térköz */
     border-radius: 20px;
-    /* Lekerekített sarkok */
 }
 
-/* Keresősávot tartalmazó doboz */
 .box {
     display: flex;
     align-items: center;
@@ -80,17 +72,13 @@ table.display tbody tr:hover {
     width: 100%;
     max-width: 300px;
     height: 45px;
-    /* Ugyanakkora magasság, mint a szortírozó */
     padding: 10px 20px;
-    /* Egyező belső térköz */
     cursor: pointer;
     background: rgb(227, 227, 227);
     border-radius: 20px;
-    /* Ugyanaz a lekerekítés, mint a szortírozó */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* Keresőmező */
 .box input {
     width: 0;
     outline: none;
@@ -103,32 +91,25 @@ table.display tbody tr:hover {
 .box input:focus,
 .box:hover input {
     width: 100%;
-    /* Kitágul a rendelkezésre álló helyre */
 }
 
-/* Kép a keresősávban */
 .bixi-image {
     width: 24px;
     height: 24px;
 }
 
-/* Reszponzív dizájn */
 @media (max-width: 600px) {
     .bixi {
         flex-direction: column;
-        /* Kisebb képernyőn egymás alá kerülnek */
         gap: 10px;
-        /* Távolság az elemek között */
     }
 
     .bixi select,
     .box {
         width: 90%;
-        /* Teljes szélesség kisebb képernyőkön */
     }
 }
 
-/* Responsive Styling web page */
 @media (max-width: 600px) {
     table.display {
         width: 100%;
@@ -182,7 +163,6 @@ table.display tbody tr:hover {
     color: #fff;
 }
 
-/* Hover effects for buttons */
 .modal-footer .btn-secondary:hover {
     background-color: #5a6268;
     color: #fff;
@@ -217,21 +197,16 @@ table.display tbody tr:hover {
 
 .modal-lg {
     max-width: 30%;
-    /* A modális szélessége */
 }
 
-/* Center-align the modal header text */
 #detailsTable .modal-header .modal-title {
     text-align: center;
     width: 100%;
-    /* Ensure the title spans the entire header */
 }
 
-/* Bolden the labels in the modal body */
 #detailsTable .modal-body p strong {
     font-weight: bold;
     font-size: 1.1rem;
-    /* Optional: slightly increase font size */
 }
 
 #totalCost {
@@ -241,9 +216,7 @@ table.display tbody tr:hover {
 
 .formatted-amount {
     font-size: 1.5rem;
-    /* Nagyobb betűméret */
     font-weight: bold;
-    /* Félkövér szöveg */
 }
 
 #navbar,

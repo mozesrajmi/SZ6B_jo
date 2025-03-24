@@ -1,8 +1,4 @@
-/* menü json tömb. 
 
-https://stackoverflow.com/questions/2799283/use-a-json-array-with-objects-with-javascript
-
-*/
 var menü_json = [{
   "text": "Napi státusz módosítás",
   "ikon": "images/jelnecserejo.png",
@@ -36,7 +32,7 @@ var menü_json = [{
 {
   "text": "Havi statisztika",
   "ikon": "images/evihavikikutatas.png",
-  "url": "havieviforgadat.html",
+  "url": "havikimutatas.html",
   "tip": 0
 },
 {
@@ -47,8 +43,6 @@ var menü_json = [{
 }];
 
 
-/* menü_json ból menüpontokat generál id="menu1_ul" ba
---------------------------------------------------------------*/
 function menu_generator() {
   let result = '';
   for (var i = 0; i < menü_json.length; i++) {
@@ -58,12 +52,9 @@ function menu_generator() {
 }
 
 
-/* ------- nem kell sql injection ! tessék szépen "kieszképelni" a user inputot! */
 function strE(s) { return s.replaceAll("'", "").replaceAll("\"", "").replaceAll("\t", "").replaceAll("\\", "").replaceAll("`", ""); }
 
 
-/* length kar. hosszú reandom stringet generál (pl: jelszó, vagy auto ID generátor)
--------------------------------------------------*/
 function makeid(length) {
   let result = '';
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -76,8 +67,6 @@ function makeid(length) {
   return result;
 }
 
-/* server: url címről <TAG> "hova" id-be kerül a html / json adat
------------------------------------------------------------------*/
 function ajax_get(urlsor, hova, tipus, aszinkron) {
   $.ajax({
     url: urlsor, type: "get", async: aszinkron, cache: false, dataType: tipus === 0 ? 'html' : 'json',
@@ -89,8 +78,6 @@ function ajax_get(urlsor, hova, tipus, aszinkron) {
   return true;
 };
 
-/* server: url címről "return s"-be kerül a html / json adat: Rest API
-/*-------------------------------------------------------------------*/
 function ajax_post(urlsor, tipus) {
   var s = "";
   $.ajax({
@@ -103,14 +90,11 @@ function ajax_post(urlsor, tipus) {
   return s;
 };
 
-/* üzenet ablakot generál, s jelenít meg. alkalmazása: 
- mySend( {text: "Pite!",  tip: Bootstap --> "info" "success", "warning", "error"} );   
--------------------------------------------------------------------------------------*/
 function mySend(ops) {
-  var defOps = { text: "", tip: "success", mp: 5 };   /* tip: info, success, danger, warning; mp: 5 másodperc (0:off) */
-  ops = $.extend({}, defOps, ops);              // tömb összefésülése  
+  var defOps = { text: "", tip: "success", mp: 5 };
+  ops = $.extend({}, defOps, ops);
   var id = "toast1";
-  var idx = "#" + id;                               // jquery
+  var idx = "#" + id;
   var s = `<div id="${id}" class="toast bg-${ops.tip} text-black hide" style="position:fixed; right:10px; bottom:10px; z-index:99999">
               <div class="toast-header">
               <h3 class="me-auto"><i class="bi bi-chat-square-text"></i> ${ops.tip} ...</h3>
@@ -126,13 +110,9 @@ function mySend(ops) {
   $(idx).toast("show");
 };
 
-/* kérdés ablakot generál, s jelenít meg. Alkalmazása: 
- myQuestion({text: `Pite ...? `});
- $("#myQuestion").on("click",".btn-success", function() {  mySend( {text: "Pite!",  tip:"warning"} );   });
------------------------------------------------------------------------------------------------------------*/
 function myQuestion(ops) {
   var id = "myQuestion";
-  var idx = "#" + id;                               // jquery
+  var idx = "#" + id;
   var s = `<div class="modal" id="${id}" data-bs-backdrop="static">
           <div class="modal-dialog">
               <div class="modal-content">
@@ -146,7 +126,7 @@ function myQuestion(ops) {
           </div>
           </div>`;
 
-  $(idx).off('click');       // unbind, különben N.szer futna le az N. hívásra !!        
+  $(idx).off('click');
   $(idx).remove();
   $("body").append(s);
   $(idx).modal('show');

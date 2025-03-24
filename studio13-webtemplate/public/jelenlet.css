@@ -15,7 +15,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Custom Table Styles */
 table.display {
     width: 80%;
     margin: 20px auto;
@@ -48,7 +47,6 @@ table.display tbody tr:nth-child(even) {
 
 table.display tbody tr:hover {
     background-color: #e6f7ff;
-    /* Light blue on hover */
     cursor: pointer;
 }
 
@@ -57,7 +55,6 @@ table.display tbody tr:hover {
 
 }
 
-/* Responsive Styling */
 @media (max-width: 600px) {
     table.display {
         width: 100%;

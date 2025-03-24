@@ -45,7 +45,7 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Az adatokat JavaScript tölti be ide -->
+
         </tbody>
     </table>
 
@@ -58,7 +58,6 @@
         </button>
 
         <div class="links">
-            <!-- Dinamikusan generált oldalszámok -->
         </div>
 
         <button class="button prevNext" id="next">
@@ -70,7 +69,6 @@
     </div>
 
 
-    <!-- First Modal -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -90,7 +88,6 @@
         </div>
     </div>
 
-    <!-- Second Modal -->
     <div class="modal fade" id="changeStatusModal" tabindex="-1" aria-labelledby="changeStatusTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -126,33 +123,28 @@
 
             let activeStatus = 'Várakozó';
 
-            // Function to fetch and load data into the table
             function loadData(status) {
-                // Define the endpoint for the general data
                 const generalEndpoint = status === 'Várakozó'
                     ? '/getWaitingData'
                     : status === 'Előgondozott'
                         ? '/getPreCareData'
                         : status === 'Ellátott'
                             ? '/getCareData'
-                            : '/getLeftData'; // For "Távozott"
+                            : '/getLeftData';
 
-                // Fetch urgent data only if the status is "Várakozó"
                 if (status === 'Várakozó') {
                     $.ajax({
-                        url: '/getUrgentData', // Fetch urgent patients
+                        url: '/getUrgentData',
                         method: 'GET',
                         success: function (urgentData) {
                             const urgentRows = urgentData.rows;
 
-                            // Fetch general data
                             $.ajax({
                                 url: generalEndpoint,
                                 method: 'GET',
                                 success: function (generalData) {
                                     const generalRows = generalData.rows;
 
-                                    // Update the table with both urgent and general data
                                     updateTable(urgentRows, generalRows);
                                 },
                                 error: function (xhr, status, error) {
@@ -165,12 +157,11 @@
                         }
                     });
                 } else {
-                    // For other statuses, just load general data
                     $.ajax({
                         url: generalEndpoint,
                         method: 'GET',
                         success: function (data) {
-                            updateTable([], data.rows); // No urgent rows for other statuses
+                            updateTable([], data.rows);
                         },
                         error: function (xhr, status, error) {
                             console.error("Error loading data:", status, error);
@@ -179,14 +170,13 @@
                 }
             }
 
-            // Function to update the table
             function updateTable(urgentRows, generalRows) {
-                table.clear(); // Táblázat ürítése
+                table.clear();
 
-                const addedPatients = new Set(); // Duplikáció elkerülésére
+                const addedPatients = new Set();
 
                 function addRow(row, urgent = false) {
-                    if (!addedPatients.has(row.TAJ)) { // Ha még nincs benne
+                    if (!addedPatients.has(row.TAJ)) {
                         addedPatients.add(row.TAJ);
                         const rowHtml = `
                 <tr class="${urgent ? 'urgent-row' : ''}">
@@ -207,10 +197,8 @@
                     }
                 }
 
-                // Először adjuk hozzá a sürgős pácienseket (piros)
                 urgentRows.forEach(row => addRow(row, true));
 
-                // Majd az általános pácienseket (fekete), ha még nincsenek benne
                 generalRows.forEach(row => addRow(row, false));
             }
 
@@ -222,11 +210,9 @@
                 activeButton = buttonId;
             }
 
-            // Load "Várakozó" data by default
             loadData('Várakozó');
             updateActiveButton('waitingButton');
 
-            // Button click events
             $('#waitingButton').on('click', function () {
                 activeStatus = 'Várakozó';
                 checkAndLoadData(activeStatus, 'waitingButton');
@@ -247,7 +233,6 @@
                 checkAndLoadData(activeStatus, 'leftButton');
             });
 
-            // Function to check if there are records for a given status and load data
             function checkAndLoadData(status, buttonId) {
                 const endpoint = status === 'Várakozó'
                     ? '/getWaitingData'
@@ -255,7 +240,7 @@
                         ? '/getPreCareData'
                         : status === 'Ellátott'
                             ? '/getCareData'
-                            : '/getLeftData'; // Default to "Távozott"
+                            : '/getLeftData';
 
                 $.ajax({
                     url: endpoint,
@@ -276,30 +261,25 @@
             }
 
 
-            // Open first modal
             window.openModal = function (name, taj, szuldatum, status) {
                 selectedName = name;
                 currentStatus = status;
-                selectedTaj = taj; // Assuming TAJ is the unique identifier
+                selectedTaj = taj;
 
                 $('#modalName').text(name);
                 $('#modalTaj').text(taj);
                 $('#modalSzuldatum').text(szuldatum);
-                // Display the modal
                 $('#detailsModal').modal('show');
             };
 
-            // Open second modal when clicking "Státusz változtatás"
-            // Open second modal when clicking "Státusz változtatás"
             $('#changeStatusButton').on('click', function () {
                 $('#currentStatus').text('Jelenlegi státusz: ' + currentStatus);
 
-                // Normalize currentStatus for comparison
                 const normalizedStatus = currentStatus.toLowerCase();
                 console.log('Current Status:', normalizedStatus);
 
                 const newStatusDropdown = $('#newStatus');
-                newStatusDropdown.empty(); // Clear existing options
+                newStatusDropdown.empty();
 
                 if (normalizedStatus === 'várakozó') {
                     console.log('Adding option: Előgondozott');
@@ -318,10 +298,8 @@
                     console.log('No matching status for options.');
                 }
 
-                // Log the dropdown's options after appending
                 console.log('Dropdown options:', newStatusDropdown.html());
 
-                // Set the first option as selected
                 newStatusDropdown.val(newStatusDropdown.find('option:first').val());
 
                 $('#detailsModal').modal('hide');
@@ -330,12 +308,10 @@
 
 
 
-            // Save new status
-            // Format the date to MySQL DATETIME format
             function formatToMySQLDatetime(date) {
                 const d = new Date(date);
                 const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, '0'); // Ensure 2 digits
+                const month = String(d.getMonth() + 1).padStart(2, '0');
                 const day = String(d.getDate()).padStart(2, '0');
                 const hours = String(d.getHours()).padStart(2, '0');
                 const minutes = String(d.getMinutes()).padStart(2, '0');
@@ -344,7 +320,7 @@
             }
 
             $('#saveNewStatusButton').on('click', function () {
-                const newStatus = $('#newStatus').val(); // Kiválasztott új státusz
+                const newStatus = $('#newStatus').val();
                 const currentDate = new Date();
                 const currentMonth = currentDate.getMonth() + 1;
                 const currentYear = currentDate.getFullYear();
@@ -369,7 +345,6 @@
                             alert(response.message || 'Státusz sikeresen módosítva!');
                             $('#changeStatusModal').modal('hide');
 
-                            // AZ AKTÍV STÁTUSZ MARADJON MEG
                             loadData(activeStatus);
                         },
                         error: function (xhr, status, error) {
@@ -383,31 +358,26 @@
             });
 
 
-            // Táblázat betöltése
             function loadTable(status) {
-                $(`#table-${status}`).show().siblings('.table-container').hide(); // Csak a megfelelő táblázatot mutatjuk
+                $(`#table-${status}`).show().siblings('.table-container').hide();
                 console.log(`Táblázat betöltve: ${status}`);
             }
 
 
-            //gombok vizsgálata
 
             $('#szortirozas').on('change', function () {
-                var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
-                table.page.len(pageLength).draw(); // Set the page length and redraw the table
+                var pageLength = parseInt(this.value, 10);
+                table.page.len(pageLength).draw();
                 getDB();
             });
 
-            // Reactive search across name, TAJ, and birth date
             $('#searchBox').on('input', function () {
-                // Check and limit the input length to 50 characters
                 if (this.value.length > 50) {
-                    this.value = this.value.slice(0, 50); // Enforce character limit
+                    this.value = this.value.slice(0, 50);
                 }
-                table.search(this.value).draw(); // DataTable's search method filters on all columns
+                table.search(this.value).draw();
             });
 
-            // HTML elements
             const startBtn = document.querySelector("#startBtn");
             const endBtn = document.querySelector("#endBtn");
             const prevBtn = document.querySelector("#prev");
@@ -416,20 +386,16 @@
             const searchBox = document.querySelector("#searchBox");
             const sortDropdown = document.querySelector("#szortirozas");
 
-            // Update navigation button states
             function updateNavButtons() {
                 const currentPage = table.page.info().page;
                 const totalPages = table.page.info().pages;
 
-                // Disable the "start" and "previous" buttons if on the first page
                 startBtn.disabled = currentPage === 0;
                 prevBtn.disabled = currentPage === 0;
 
-                // Disable the "next" and "end" buttons if on the last page
                 nextBtn.disabled = currentPage === totalPages - 1;
                 endBtn.disabled = currentPage === totalPages - 1;
 
-                // Generate page links dynamically
                 pageLinks.innerHTML = "";
                 for (let i = 0; i < totalPages; i++) {
                     const link = document.createElement("a");
@@ -445,7 +411,6 @@
                 }
             }
 
-            // Navigation button event listeners
             startBtn.addEventListener("click", function () {
                 table.page('first').draw(false);
                 updateNavButtons();
@@ -466,29 +431,24 @@
                 updateNavButtons();
             });
 
-            // Change rows per page
             sortDropdown.addEventListener("change", function () {
                 const pageLength = parseInt(this.value, 10);
                 table.page.len(pageLength).draw();
                 updateNavButtons();
             });
 
-            // Search functionality
             searchBox.addEventListener("input", function () {
                 table.search(this.value).draw();
                 updateNavButtons();
             });
 
-            // Update buttons after table redraw
             table.on('draw', function () {
                 updateNavButtons();
             });
 
-            // Initial button update
             updateNavButtons();
         });
 
-        //gombok
 
 
     </script>

@@ -32,7 +32,6 @@ input {
   overflow-y: auto;
   opacity: 0.95;
   display: none;
-  /* alapban rejtett */
   opacity: 0.7;
   box-shadow: 11px 12px 21px 1px rgba(0, 0, 0, 0.79);
 }
@@ -46,7 +45,6 @@ input {
   overflow: auto;
   overflow-y: auto;
   display: none;
-  /* alapban rejtett */
   box-shadow: 11px 12px 21px 1px rgba(0, 0, 0, 0.79);
 }
 
@@ -62,7 +60,6 @@ ul.xmenu {
   letter-spacing: 1px;
   font-size: 16px;
   padding: 0;
-  /* így nem tart fenn helyet a listapöttynek */
 }
 
 li.xmenu {
@@ -128,7 +125,6 @@ div.button.keres {
   background-image: url(images/find-32.png);
 }
 
-/* html: class="button keres"  */
 div.button.info {
   background-image: url(images/info-32.png);
 }
@@ -165,10 +161,8 @@ div.button.logout {
   background-image: url(images/userdel-32.png);
 }
 
-/* --------------------------- ajax loader betöltő anim.gif ----------------- */
 div.loader {
   display: none;
-  /* alapban rejtett */
   z-index: 9998;
   margin: auto;
   position: absolute;
@@ -185,9 +179,6 @@ div.loader {
 }
 
 
-/*--------------------------------------------------------------
-# main_title Section
---------------------------------------------------------------*/
 #main_title {
   width: 100%;
   height: 90vh;

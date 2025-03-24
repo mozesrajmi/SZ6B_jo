@@ -9,7 +9,6 @@ table.display {
 
 table.display thead th {
     background-color: #759fcb;
-    /* A blue background */
     color: white;
     font-weight: bold;
     text-align: center;
@@ -39,7 +38,6 @@ table.display tbody td.dt-type-numeric {
 
 table.display tbody tr:hover {
     background-color: #e6f7ff;
-    /* Light blue on hover */
     cursor: pointer;
 }
 
@@ -118,49 +116,34 @@ table.display tbody tr:hover {
     margin-top: 20px;
 }
 
-/* Egyedi tooltip stílus */
 .custom-tooltip {
     position: absolute;
     background-color: rgba(0, 0, 0, 0.75);
-    /* Tooltip háttérszíne */
     color: #fff;
-    /* Szöveg színe */
     padding: 5px 10px;
-    /* Tooltip belső térköz */
     border-radius: 5px;
-    /* Lekerekített sarkok */
     font-size: 12px;
     font-family: Arial, sans-serif;
     z-index: 1000;
-    /* Legfelső réteg */
     pointer-events: none;
-    /* Az egérmutató ne zavarja */
     white-space: nowrap;
-    /* Ne törje meg a szöveget */
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 #infoModal .modal-body {
     font-weight: bold;
-    /* Makes the text bold */
     font-size: 1.2rem;
-    /* Increases font size slightly */
     text-align: center;
-    /* Optionally center the text */
 }
 
-/* Center-align the modal header text */
 #detailsModal .modal-header .modal-title {
     text-align: center;
     width: 100%;
-    /* Ensure the title spans the entire header */
 }
 
-/* Bolden the labels in the modal body */
 #detailsModal .modal-body p strong {
     font-weight: bold;
     font-size: 1.1rem;
-    /* Optional: slightly increase font size */
 }
 
 .year-selector {
@@ -180,19 +163,13 @@ table.display tbody tr:hover {
     margin-left: 20px;
 }
 
-/* Letiltott cella stílus */
 .disabled-month {
     background-color: #e0e0e0 !important;
-    /* Szürke háttér */
     color: #a0a0a0 !important;
-    /* Halvány szöveg */
     pointer-events: none;
-    /* Kattinthatóság letiltása */
     cursor: not-allowed;
-    /* Tiltott kurzor */
 }
 
-/* Kattintható cella kiemelése */
 .enabled-month {
     cursor: pointer;
 }

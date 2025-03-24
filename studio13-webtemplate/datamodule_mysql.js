@@ -1,9 +1,3 @@
-/* https://stackoverflow.com/questions/18496540/node-js-mysql-connection-pooling
-   https://adi22maurya.medium.com/mysql-createconnection-vs-mysql-createpool-in-node-js-42a5274626e7
-   https://tecadmin.net/configuring-mysql-connection-pooling-in-node-js/
-
-   példa: webfejl_nodejs_példa_62
-*/
 
 const util = require('util');
 var mysql = require("mysql");
@@ -33,7 +27,6 @@ var DB = (function () {
     function _query(sql, params, callback) {
         getConnection()
             .then((connection) => {
-                // Ensure 'error' listener is added only once
                 if (!connection._events || !connection._events.error) {
                     connection.on('error', (err) => {
                         connection.release();
@@ -94,7 +87,6 @@ var DB = (function () {
                         callback(null, JSON.stringify(js));
                     }
 
-                    // Logging to "napló" table
                     var text_naplo = js.text ? "TEXT:" + js.text : "";
                     var sql_naplo = `insert into naplo (USER, URL, SQLX) values ("${params[0]}","${params[1]}","${sql.replaceAll("\"", "'")} ${text_naplo}");`;
                     connection.query(sql_naplo, null, (errx, rowsx) => {});

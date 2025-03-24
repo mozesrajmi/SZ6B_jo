@@ -16,9 +16,7 @@
     <link rel="stylesheet" href="statuszosszesitett.css">
 </head>
 <script>
-    // Helper function to fetch and populate data
 
-    // Fetch data for all statuses
     fetchData('Várakozó', 'waiting-list');
     fetchData('Előgondozott', 'precare-list');
     fetchData('Ellátott', 'treated-list');
@@ -63,7 +61,6 @@
 
     <div class="container mt-5">
 
-        <!-- Várakozók -->
         <h2 id="waiting" class="text-center">Várakozók</h2>
         <table id="myTable" class="display col-md-8">
             <thead>
@@ -75,11 +72,9 @@
                 </tr>
             </thead>
             <tbody id="waiting-list">
-                <!-- Várakozók adatok -->
             </tbody>
         </table>
 
-        <!-- Előgondozottak -->
         <h2 id="precare" class="text-center">Előgondozottak</h2>
         <table id="myTable" class="display" style="width:60%">
             <thead>
@@ -90,11 +85,9 @@
                 </tr>
             </thead>
             <tbody id="precare-list">
-                <!-- Előgondozottak adatok -->
             </tbody>
         </table>
 
-        <!-- Ellátottak -->
         <h2 id="treated" class="text-center">Ellátottak</h2>
         <table id="myTable" class="display" style="width:60%">
             <thead>
@@ -105,11 +98,9 @@
                 </tr>
             </thead>
             <tbody id="treated-list">
-                <!-- Ellátottak adatok -->
             </tbody>
         </table>
 
-        <!-- Távozottak -->
         <h2 id="left" class="text-center">Távozottak</h2>
         <table id="myTable" class="display" style="width:60%">
             <thead>
@@ -120,7 +111,6 @@
                 </tr>
             </thead>
             <tbody id="left-list">
-                <!-- Távozottak adatok -->
             </tbody>
         </table>
     </div>

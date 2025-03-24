@@ -34,7 +34,6 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Az adatokat JavaScript tölti be ide -->
         </tbody>
     </table>
 
@@ -47,7 +46,6 @@
         </button>
 
         <div class="links">
-            <!-- Dinamikusan generált oldalszámok -->
         </div>
 
         <button class="button prevNext" id="next">
@@ -59,7 +57,6 @@
     </div>
 
 
-    <!-- Modal Structure -->
     <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -80,8 +77,8 @@
     </div>
 
     <script type="text/javascript">
-        var selectedId = null; // ID tárolása
-        var selectedName = null; // Név tárolása
+        var selectedId = null;
+        var selectedName = null;
 
         $(document).ready(function () {
             const table = $('#myTable').DataTable({
@@ -91,7 +88,6 @@
                 autocapitalize: 'off',
             });
 
-            // Adatok betöltése a táblázatba
             $.ajax({
                 url: '/getCareData',
                 method: 'GET',
@@ -110,13 +106,12 @@
             });
 
             window.openModal = function (name, id, taj, szuldatum) {
-                // ID lekérése a szervertől TAJ alapján
                 $.ajax({
                     url: '/getPatientIdByTaj',
                     method: 'GET',
                     data: { taj },
                     success: function (response) {
-                        selectedId = response.id; // ID mentése globális változóba
+                        selectedId = response.id;
                     },
                     error: function (xhr, status, error) {
                         console.error('Hiba történt az ID lekérése során TAJ alapján:', status, error);
@@ -124,46 +119,39 @@
                     }
                 });
 
-                // Modal feltöltése és megnyitása
-                selectedName = name; // Név mentése
+                selectedName = name;
                 $('#modalName').text(name);
                 $('#modalTaj').text(taj);
                 $('#modalSzuldatum').text(szuldatum);
-                // Display the modal
                 $('#detailsModal').modal('show');
             };
 
 
 
             $('#szortirozas').on('change', function () {
-                var pageLength = parseInt(this.value, 10); // Get selected value and convert to integer
-                table.page.len(pageLength).draw(); // Set the page length and redraw the table
+                var pageLength = parseInt(this.value, 10);
+                table.page.len(pageLength).draw();
                 getDB();
             });
 
-            // Reactive search across name, TAJ, and birth date
             $('#searchBox').on('input', function () {
-                // Check and limit the input length to 50 characters
                 if (this.value.length > 50) {
-                    this.value = this.value.slice(0, 50); // Enforce character limit
+                    this.value = this.value.slice(0, 50);
                 }
-                table.search(this.value).draw(); // DataTable's search method filters on all columns
+                table.search(this.value).draw();
             });
 
             $('#presenceButton').on('click', function () {
                 if (selectedId) {
-                    // Lekérdezés az ID alapján
                     $.ajax({
                         url: '/getTreatmentDays',
                         method: 'GET',
                         data: { id: selectedId },
                         success: function (response) {
                             if (response && response.days && response.days.length > 0) {
-                                // Továbbirányítás, ha vannak ellátási napok
                                 const url = `/presencePage?id=${encodeURIComponent(selectedId)}&name=${encodeURIComponent(selectedName)}`;
                                 window.location.href = url;
                             } else {
-                                // Ha nincsenek ellátási napok
                                 alert('Ehhez a pácienshez nem tartoznak ellátási napok!');
                             }
                         },
@@ -184,21 +172,18 @@
 
             document.addEventListener('DOMContentLoaded', function () {
                 const urlParams = new URLSearchParams(window.location.search);
-                const patientName = urlParams.get('name'); // Név a query stringből
-                const patientId = urlParams.get('id'); // ID a query stringből
+                const patientName = urlParams.get('name');
+                const patientId = urlParams.get('id');
 
                 if (patientName && patientId) {
-                    // Név megjelenítése az oldal tetején
                     document.getElementById('patientNameTitle').innerText = `${patientName} kezelési napjai`;
 
-                    // Kezelési napok betöltése az ID alapján
                     loadTreatmentDays(patientId);
                 } else {
                     alert('Nincs megadva páciens név vagy ID!');
                 }
             });
 
-            // HTML elements
             const startBtn = document.querySelector("#startBtn");
             const endBtn = document.querySelector("#endBtn");
             const prevBtn = document.querySelector("#prev");
@@ -207,20 +192,16 @@
             const searchBox = document.querySelector("#searchBox");
             const sortDropdown = document.querySelector("#szortirozas");
 
-            // Update navigation button states
             function updateNavButtons() {
                 const currentPage = table.page.info().page;
                 const totalPages = table.page.info().pages;
 
-                // Disable the "start" and "previous" buttons if on the first page
                 startBtn.disabled = currentPage === 0;
                 prevBtn.disabled = currentPage === 0;
 
-                // Disable the "next" and "end" buttons if on the last page
                 nextBtn.disabled = currentPage === totalPages - 1;
                 endBtn.disabled = currentPage === totalPages - 1;
 
-                // Generate page links dynamically
                 pageLinks.innerHTML = "";
                 for (let i = 0; i < totalPages; i++) {
                     const link = document.createElement("a");
@@ -236,7 +217,6 @@
                 }
             }
 
-            // Navigation button event listeners
             startBtn.addEventListener("click", function () {
                 table.page('first').draw(false);
                 updateNavButtons();
@@ -257,25 +237,21 @@
                 updateNavButtons();
             });
 
-            // Change rows per page
             sortDropdown.addEventListener("change", function () {
                 const pageLength = parseInt(this.value, 10);
                 table.page.len(pageLength).draw();
                 updateNavButtons();
             });
 
-            // Search functionality
             searchBox.addEventListener("input", function () {
                 table.search(this.value).draw();
                 updateNavButtons();
             });
 
-            // Update buttons after table redraw
             table.on('draw', function () {
                 updateNavButtons();
             });
 
-            // Initial button update
             updateNavButtons();
         });
 

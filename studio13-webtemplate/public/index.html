@@ -24,11 +24,11 @@
       .then(response => response.json())
       .then(data => {
         const tableBody = document.getElementById(tableId);
-        tableBody.innerHTML = ''; // Törli az előző sorokat
+        tableBody.innerHTML = '';
         console.log("d:", data);
 
         data.rows.forEach(patient => {
-          let dateField = patient.DATUM ? patient.DATUM : "-"; // Ha null, akkor "-"
+          let dateField = patient.DATUM ? patient.DATUM : "-";
 
           const row = document.createElement('tr');
           row.innerHTML = `
@@ -43,9 +43,8 @@
       .catch(err => console.error(`Hiba a ${status} adatok betöltésekor:`, err));
   };
 
-  /*-----------------------------*/
   $(document).ready(function () {
-    ajax_get("studio13webtemplatedoksi.html", '#main1', 0, true);    // doksi 
+    ajax_get("studio13webtemplatedoksi.html", '#main1', 0, true);
     $("#login1_modal_button").click(function () { login_show(); });
     $("#user1_login_button").click(function () { login(); });
     $("#user1_logout_button").click(function () { logout() });
@@ -53,105 +52,86 @@
     $("#menu1_button").click(function () { $('#menu1_card').fadeToggle(300); });
     $("#search1_button").click(function () { $('#search1_card').fadeToggle(300); });
     $(document).keydown(function (e) {
-      if (e.keyCode === 113) { $("#menu1_card").fadeToggle(300); }       // F2: menü
-      if (e.keyCode === 115) { $("#search1_card").fadeToggle(300); }     // F4: search
-      if (e.keyCode === 119) { login_show(); }                           // F8: login
+      if (e.keyCode === 113) { $("#menu1_card").fadeToggle(300); }
+      if (e.keyCode === 115) { $("#search1_card").fadeToggle(300); }
+      if (e.keyCode === 119) { login_show(); }
     });
 
-    $('#menu1_ul').html(menu_generator());    /* common_sudio13.js menu_json tömb feltöltése */
+    $('#menu1_ul').html(menu_generator());
 
     $("li.xmenu").click(function () {
-      var id = $(this).attr("id");                            // pl: "menu1_5"  
-      var i = id.substring(6);                                // balról vág: pl: "5" 
+      var id = $(this).attr("id");
+      var i = id.substring(6);
       var tip = menü_json[i].tip;
       var url = menü_json[i].url;
-      if (tip == 0) { ajax_get(url, '#main1', 0, true); }  // ajax html betöltése
-      if (tip == 1) { window.open(url, '').focus(); }         // teljes oldal    
-      if (tip == 2) { window.open(url, '_blank').focus(); }   // new tab 
+      if (tip == 0) { ajax_get(url, '#main1', 0, true); }
+      if (tip == 1) { window.open(url, '').focus(); }
+      if (tip == 2) { window.open(url, '_blank').focus(); }
       $("#menu1_card").fadeToggle(300);
     });
 
   });
 
-  /*  menü beállítása (jogosultságok), megjelenítése (forrás: glob. json asszoc. array) */
   function menu_get() {
 
   }
 
-  /* ---------- login-logout modális ablak ---------  */
   function login_show() {
     $('#login1_modal').modal('show');
   }
 
-  /* --- a gyorskereső mezőbe gépelt karakterre fut ... */
   function search1_get() {
     var text = $('#search1_field').val();
     $('#search1_card_body').html(text);
     $('#search1_card').css("display", text.length === 0 ? 'none' : 'block');
-    if (text.length > 2)   // ennél rövidebbet nem keres (kell ez?)
+    if (text.length > 2)
     {
-      /* ide jön a gyorskereső backend, pl. min. 3 karakter esetén. minta: https://netkazan.hu */
     }
   }
 
-  /* --- felhasználó bejelentkezik. Neve megjelenik az id=login1_user TAG-ben --- */
   function login() {
     var login_json = ajax_post("login?" + $("#user1_form").serialize(), 1);
 
     if (login_json && login_json.count === 1 && login_json.rows[0].NEV) {
-      // Siker: Felhasználó bejelentkezett
       $("#login1_user").html("Bejelentkezve: " + login_json.rows[0].NEV);
-      sessionStorage.setItem('username', login_json.rows[0].NEV); // Felhasználónév mentése
+      sessionStorage.setItem('username', login_json.rows[0].NEV);
       $('#login1_modal').modal('hide');
       mySend({ text: `Bejelentkezett: ${login_json.rows[0].NEV}!`, tip: "success", mp: 3 });
       enableNavbar();
     } else if (login_json && login_json.error) {
-      // Hiba: Már be van jelentkezve vagy egyéb hiba
       mySend({ text: login_json.error, tip: "danger", mp: 5 });
     } else {
-      // Hiba: Hibás felhasználónév vagy jelszó
       mySend({ text: `Hibás felhasználónév, vagy jelszó<br>Nincs ilyen felhasználó!`, tip: "danger", mp: 5 });
     }
   }
 
 
-  /* ---- felhasználó kijelentkezik, de megerősítést kérünk előtte ---- */
   function logout() {
-    // Ellenőrizd, hogy van-e aktív munkamenet
     $.ajax({
-      url: '/checkSession', // Backend végpont a munkamenet ellenőrzésére
+      url: '/checkSession',
       method: 'GET',
       success: function (session_data) {
         if (!session_data || !session_data.NEV) {
-          // Ha nincs bejelentkezve, jeleníts meg egy értesítést
           mySend({ text: 'Nem vagy bejelentkezve, ezért nem tudsz kijelentkezni!', tip: 'warning', mp: 3 });
         } else {
-          // Ha be van jelentkezve, kérj megerősítést a kijelentkezéshez
           myQuestion({ text: `Biztosan ki szeretne jelentkezni?` });
 
-          // Ha a felhasználó az "OK" gombra kattint
           $("#myQuestion").on("click", ".ok", function () {
             var session_response = ajax_post("logout", 1);
 
-            // Értesítés a sikeres kijelentkezésről
             mySend({ text: 'Sikeres kijelentkezés!', tip: 'info', mp: 1 });
 
-            // Navigációs sáv letiltása
             disableNavbar();
 
-            // Bejelentkezési szöveg visszaállítása
             $("#login1_user").html("Bejelentkezés");
 
-            // Modal bezárása
             $('#login1_modal').modal('hide');
 
-            // Átirányítás késleltetése, hogy az értesítés látszódjon
             setTimeout(function () {
               window.location.href = '/';
-            }, 1000); // 3 másodperc késleltetés
+            }, 1000);
           });
 
-          // Ha a felhasználó a "Mégse" gombra kattint
           $("#myQuestion").on("click", ".cancel", function () {
             mySend({ text: `Kijelentkezés megszakítva.`, tip: "warning", mp: 3 });
             $('#login1_user').html(`Bejelentkezve: ${sessionStorage.getItem('username')}`);
@@ -171,7 +151,6 @@
 </script>
 
 <body>
-  <!-- -------------------------- F E J L É C  é s  M E N Ü ----------------------------------------- -->
   <nav id="navbar" class="navbar navbar-expand-sm fixed-top">
 
     <button id="menu1_button" type="button" class="btn btn-outline-secondary bi bi-list dropdown-toggle"
@@ -186,7 +165,6 @@
       title="katt: login (F8)"></button>
   </nav>
 
-  <!--------------------------  T I T L E  --------------------------------------------->
   <section id="main_title" class="d-flex align-items-center">
 
     <div class="container">
@@ -203,7 +181,6 @@
     </div>
   </section>
 
-  <!-- -------------------------- LOGIN és LOGOUT modális -------------------------------------- -->
   <div class="modal fade" id="login1_modal" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered" style="opacity: 0.9;">
       <div class="modal-content">
@@ -233,26 +210,23 @@
     </div>
   </div>
 
-  <!-- -------------------------- S E A R C H  card  ----------------------------------- -->
   <div class="card" id="search1_card">
     <div class="card-body" id="search1_card_body">
       This is some text within a card body.
     </div>
   </div>
 
-  <!-- -------------------------- M E N Ü  card  -------------------------------------- -->
   <div class="card" id="menu1_card">
     <div class="card-header" id="semmi">
       <h3>Menü</h3>
     </div>
     <div class="card-body">
-      <ul class="xmenu" id="menu1_ul"> <!-- menu_generator() tölti fel! --> </ul>
+      <ul class="xmenu" id="menu1_ul"> </ul>
     </div>
     <div class="card-footer"><i>Sz6/B csoport vizsgaremekje</i></div>
   </div>
 
-  <!-- --------------------------M A I N ( a j a x !)  ---------------------------------- -->
-  <main id="main1" class="main p-3"> <!-- menu_json tip=0 URL kerül ide -->
+  <main id="main1" class="main p-3">
 
     <h4>A kererendszer futtatása</h4>
 
@@ -266,7 +240,6 @@
       böngésző: http://localhost:3000</p>
   </main>
 
-  <!-- --------------------------G O M B T I L T Á S / E N G E D É L Y E Z É S  ---------------------------------- -->
 
   <script type="text/javascript">
     function disableNavbar() {
@@ -283,27 +256,22 @@
 
 
     $(document).ready(function () {
-      // Ellenőrizzük, hogy van-e érvényes munkamenet
       $.ajax({
         url: '/checkSession',
         method: 'GET',
         success: function (session_data) {
           if (session_data && session_data.NEV) {
-            // Ha van érvényes munkamenet, akkor a felhasználót bejelentkezve tartjuk
             $("#login1_user").html("Bejelentkezve: " + session_data.NEV);
-            enableNavbar(); // Engedélyezzük a navigációt
+            enableNavbar();
           } else {
-            // Ha nincs érvényes munkamenet, tiltjuk a navigációs sávot
             disableNavbar();
             $("#login1_user").html("Bejelentkezés");
           }
         }
       });
 
-      // Kezdetben a navigációs sáv tiltva van
       disableNavbar();
 
-      // A navigáció engedélyezése sikeres bejelentkezés után
       $("#user1_login_button").click(function () {
         var login_json = ajax_post("login?" + $("#user1_form").serialize(), 1);
         if (login_json && login_json.count === 1 && login_json.rows[0].NEV) {
@@ -312,49 +280,44 @@
         }
       });
 
-      // A navigáció tiltása kijelentkezés után
       $("#user1_logout_button").click(function () {
         disableNavbar();
         $("#login1_user").html("Bejelentkezés");
       });
     });
 
-    // Logout button click event
     $("#user1_logout_button").click(function () {
-      $('#logoutConfirmationModal').modal('show'); // Open the confirmation modal
+      $('#logoutConfirmationModal').modal('show');
     });
 
 
 
 
     $(document).ready(function () {
-      // Munkamenet-ellenőrzés 1 percenkénti ellenőrzés
       setInterval(function () {
         $.ajax({
           url: '/checkSession',
           method: 'GET',
           success: function (session_data) {
             if (!session_data || !session_data.NEV) {
-              // Ha nincs érvényes munkamenet, átirányítjuk a főoldalra
               window.location.href = '/';
             }
           }
         });
-      }, 60000); // 1 percenkénti ellenőrzés
+      }, 60000);
     });
 
 
-    // Enter gomb lenyomására történő bejelentkezés
     document.getElementById("user1_form").addEventListener("keydown", function (event) {
       if (event.key === "Enter") {
-        event.preventDefault(); // Alapértelmezett működés megakadályozása
-        document.getElementById("user1_login_button").click(); // Kattintás szimulálása a login gombra
+        event.preventDefault();
+        document.getElementById("user1_login_button").click();
       }
     });
 
   </script>
 
-  <div class="loader" id="loader1"><img src="images/ajaxloader3.gif" alt="loader" /></div> <!-- ajax loader -->
+  <div class="loader" id="loader1"><img src="images/ajaxloader3.gif" alt="loader" /></div>
 </body>
 
 </html>

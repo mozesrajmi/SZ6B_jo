@@ -1,37 +1,27 @@
-/* 
-   Bootstrap5  (https://www.w3schools.com/bootstrap5/) ; 
-   mysql tábla megjelenítése; katt eseményre rekord megjelenítése; popup ablakban rekord módosítás 
-   SQL tokenizer
-*/
 
 const util = require('util');
 const express = require('express');
 const session = require('express-session');
 const app = express();
 const port = 3000;
-//const port   = 9062;
-var session_data;                   // login user adatai
-app.use(session({ key: 'user_sid', secret: 'nagyontitkossütemény', resave: true, saveUninitialized: true }));  /* https://www.js-tutorials.com/nodejs-tutorial/nodejs-session-example-using-express-session */
+var session_data;
+app.use(session({ key: 'user_sid', secret: 'nagyontitkossütemény', resave: true, saveUninitialized: true })); 
 var DB = require('./datamodule_mysql.js');
-app.use(express.static('public'));    // frontend root mappa (index.html)
-// Middleware-ek
-app.use(express.json()); // JSON adatok feldolgozása
-app.use(express.urlencoded({ extended: true })); // URL-encoded adatok feldolgozása
+app.use(express.static('public'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 
-//npm install node-schedule mysql
 
 
 app.post("/logout", (req, res) => {
     session_data = req.session;
 
     if (!session_data || !session_data.NEV) {
-        // felhasznalo nincs bejelentkezve
         res.set("Content-Type", "application/json; charset=UTF-8");
         return res.json("Hiba: Nincs bejelentkezve, kijelentkezés sikertelen.");
     }
 
-    // Session törlése ha bejelentkezve van
     session_data.destroy(function (err) {
         res.set("Content-Type", "application/json; charset=UTF-8");
         res.json("Sikeres kijelentkezés");
@@ -39,11 +29,9 @@ app.post("/logout", (req, res) => {
     });
 });
 
-// Bejelentkezés POST kérés kezelése
 app.post('/login', (req, res) => {
     session_data = req.session;
 
-    // Ellenőrizzük, hogy a felhasználó már be van-e jelentkezve
     if (session_data && session_data.NEV) {
         res.set('Content-Type', 'application/json; charset=UTF-8');
         return res.json({
@@ -52,11 +40,9 @@ app.post('/login', (req, res) => {
         });
     }
 
-    // Bejelentkezési adatok lekérdezése
     var user = (req.query.user1_login_field ? req.query.user1_login_field.trim() : "");
     var psw = (req.query.user1_passwd_field ? req.query.user1_passwd_field.trim() : "");
 
-    // Mindkét mező ellenőrzése
     if ((!user || user === "") && (!psw || psw === "")) {
         res.set('Content-Type', 'application/json; charset=UTF-8');
         return res.json({
@@ -65,7 +51,6 @@ app.post('/login', (req, res) => {
         });
     }
 
-    // Felhasználónév ellenőrzése
     if (!user || user === "") {
         res.set('Content-Type', 'application/json; charset=UTF-8');
         return res.json({
@@ -74,7 +59,6 @@ app.post('/login', (req, res) => {
         });
     }
 
-    // Jelszó ellenőrzése
     if (!psw || psw === "") {
         res.set('Content-Type', 'application/json; charset=UTF-8');
         return res.json({
@@ -83,12 +67,10 @@ app.post('/login', (req, res) => {
         });
     }
 
-    // SQL lekérdezés az azonosításhoz
     var sql = `SELECT ID_OPERATOR, LOGIN, NEV 
                FROM operator 
                WHERE LOGIN='${user}' AND PASSWORD=md5('${psw}')`;
 
-    // SQL futtatás és eredmény kezelése
     DB.query(sql, napló(req), (json_data, error) => {
         var data = error ? error : JSON.parse(json_data);
 
@@ -112,7 +94,6 @@ app.post('/login', (req, res) => {
 
 
 
-// Kijelentkezés POST kérés kezelése
 app.post('/logout', (req, res) => {
     session_data = req.session;
     session_data.destroy(function (err) {
@@ -122,32 +103,27 @@ app.post('/logout', (req, res) => {
     });
 });
 
-// Az oldal újratöltésekor a munkamenetet nem töröljük
 app.get('/', (req, res) => {
-    res.sendFile('index.html', { root: __dirname + '/public' }); // A főoldal betöltése
+    res.sendFile('index.html', { root: __dirname + '/public' });
 });
 
-// Új végpont a munkamenet ellenőrzésére
 app.get('/checkSession', (req, res) => {
     session_data = req.session;
     if (session_data && session_data.NEV) {
-        // Ha van érvényes munkamenet, visszaküldjük a felhasználó adatait
         res.json({ NEV: session_data.NEV });
     } else {
-        // Ha nincs érvényes munkamenet, üres választ küldünk
         res.json({});
     }
 });
 
 app.get('/', (req, res) => {
     if (req.session) {
-        req.session.destroy(); // Munkamenet törlése újratöltéskor
+        req.session.destroy();
     }
-    res.sendFile('index.html', { root: __dirname + '/public' }); // A főoldal betöltése
+    res.sendFile('index.html', { root: __dirname + '/public' });
 });
 
 
-/* --- mysql pool technikával, json formátumban visszaküldi a kliensnek az adathalmazt: restapi ----*/
 
 function Send_to_JSON(req, res, sql) {
     DB.query(sql, napló(req), (json_data, error) => {
@@ -158,21 +134,18 @@ function Send_to_JSON(req, res, sql) {
     });
 }
 
-/* ----------------------------tablazatfeltoltes------------------  */
 
-// Adatok lekérése MySQL adatbázisból és visszaadása JSON formátumban
 app.get('/getData', (req, res) => {
     const sql = "SELECT NEV, TAJ, DATE_FORMAT(SZULDATUM, \"%Y.%m.%d\") AS SZULDATUM FROM paciensek";
 
     DB.query(sql, napló(req), (json_data, error) => {
-        let data = error ? error : JSON.parse(json_data);  // MySQL eredmények JSON formátumban
+        let data = error ? error : JSON.parse(json_data);
         res.set('Content-Type', 'application/json; charset=UTF-8');
-        res.send(data);  // Adatok küldése a kliensnek
+        res.send(data);
         res.end();
     });
 });
 
-// Adatok lekérése MySQL adatbázisból és visszaadása JSON formátumban bővített státusszal
 app.get('/getDataWithStatus', (req, res) => {
     const sql = `
     SELECT 
@@ -184,14 +157,13 @@ app.get('/getDataWithStatus', (req, res) => {
   `;
 
     DB.query(sql, napló(req), (json_data, error) => {
-        let data = error ? error : JSON.parse(json_data);  // MySQL eredmények JSON formátumban
+        let data = error ? error : JSON.parse(json_data);
         res.set('Content-Type', 'application/json; charset=UTF-8');
-        res.send(data);  // Adatok küldése a kliensnek
+        res.send(data);
         res.end();
     });
 });
 
-//varakozo
 app.get('/getWaitingData', (req, res) => {
     const sql = `
     SELECT 
@@ -223,7 +195,6 @@ app.get('/getWaitingData', (req, res) => {
 });
 
 
-//előgondozott
 app.get('/getPreCareData', (req, res) => {
     const sql = `
     SELECT 
@@ -254,7 +225,6 @@ app.get('/getPreCareData', (req, res) => {
     });
 });
 
-// ellátott
 app.get('/getCareData', (req, res) => {
     const sql = `
     SELECT 
@@ -285,7 +255,6 @@ app.get('/getCareData', (req, res) => {
     });
 });
 
-//távozott
 app.get('/getLeftData', (req, res) => {
     const sql = `
       SELECT NEV, TAJ, DATE_FORMAT(SZULDATUM, '%Y-%m-%d') AS SZULDATUM, STATUS
@@ -303,7 +272,6 @@ app.get('/getLeftData', (req, res) => {
     });
 });
 
-/*HATALMAStesztek*/
 app.post('/updateStatus', (req, res) => {
     const { id, status, timestamp, year, month, day } = req.body;
 
@@ -312,7 +280,6 @@ app.post('/updateStatus', (req, res) => {
         return res.status(400).json({ error: 'Hiányzó adatok!' });
     }
 
-    // Meghatározzuk, hogy melyik dátum mezőt kell frissíteni az új státusz alapján
     let dateField = '';
     if (status === 'Előgondozott') {
         dateField = `ELOGOND_DATUM = '${timestamp}',`;
@@ -322,7 +289,6 @@ app.post('/updateStatus', (req, res) => {
         dateField = `TAVOZOTT_DATUM = '${timestamp}',`;
     }
 
-    // Frissítsük a paciensek táblát az új státusszal és adott dátum mezővel
     const updatePaciensekSql = `
         UPDATE paciensek
         SET STATUS = '${status}', ${dateField} ELOGOND_DATUM = ELOGOND_DATUM
@@ -337,7 +303,6 @@ app.post('/updateStatus', (req, res) => {
 
         console.log('Paciensek tábla sikeresen frissítve.');
 
-        // Ellenőrizzük, hogy a státusz "Sürgős Várakozó"-ról "Előgondozott"-ra vált
         if (status === 'Előgondozott') {
             const checkUrgentSql = `
                 SELECT SURGOS_VARAKOZO
@@ -352,7 +317,6 @@ app.post('/updateStatus', (req, res) => {
                 }
 
                 if (urgentResult.length > 0) {
-                    // Ha sürgős várakozó, állítsuk át a `surgos_varakozo` mezőt "N"-re
                     const updateUrgentSql = `
                         UPDATE paciensek
                         SET SURGOS_VARAKOZO = 'N'
@@ -370,7 +334,6 @@ app.post('/updateStatus', (req, res) => {
             });
         }
 
-        // Csak akkor frissítjük az ellatas tábla adatait, ha az új státusz "Ellátott"
         if (status === 'Ellátott') {
             const fetchPensionSql = `
                 SELECT NYUGDIJ FROM paciensek WHERE TAJ = '${id}'`;
@@ -409,7 +372,6 @@ app.post('/updateStatus', (req, res) => {
 
                         console.log(`Páciens ID: ${id}, Nyugdíj: ${pension}, Napidíj: ${dailyFee}`);
 
-                        // Frissítsük a napidíjat az adatbázisban
                         const updateDailyFeeSql = `
                             UPDATE ellatas
                             SET NAPIDIJ = ${dailyFee}
@@ -486,11 +448,9 @@ app.get('/getNapidij', (req, res) => {
 
 const schedule = require('node-schedule');
 
-//  Napi feladat ütemezése éjfélkor (minden nap)
 schedule.scheduleJob('0 0 * * *', () => {
     console.log('=== Napi Napok frissítés indítása ===');
 
-    // SQL lekérdezés az "Ellátott" státuszú rekordokhoz
     const selectQuery = `
         SELECT paciensek.ID_PACIENS, ellatas.EV, ellatas.HO, ellatas.NAPOK
         FROM paciensek
@@ -547,7 +507,6 @@ schedule.scheduleJob('0 0 * * *', () => {
     });
 });
 
-//  Hónapváltás kezelése éjfélkor, minden hónap első napján
 schedule.scheduleJob('0 0 1 * *', () => {
     console.log('=== Új hónap indul, adatok átvitele ===');
 
@@ -583,7 +542,6 @@ schedule.scheduleJob('0 0 1 * *', () => {
             const lastDayValue = NAPOK.slice(-1);
             console.log(`    ID_PACIENS=${ID_PACIENS}: Új hónap (${newYear}-${newMonth}) kezdő érték = ${lastDayValue}`);
 
-            // Ellenőrizzük, hogy már létezik-e az új hónap
             const checkQuery = `
                 SELECT 1 FROM ellatas 
                 WHERE ID_PACIENS = ${ID_PACIENS} AND EV = ${newYear} AND HO = ${newMonth}
@@ -712,7 +670,6 @@ app.post('/updateDayValue', (req, res) => {
 });
 
 
-// Új végpont a napok számokkal történő kiírásához
 app.post('/addTreatmentDays', (req, res) => {
     const { name, hónap, napok } = req.body;
 
@@ -738,7 +695,6 @@ app.post('/addTreatmentDays', (req, res) => {
 });
 
 
-// Új végpont a státusz lekérdezésére ID alapján
 app.get('/getStatusById', (req, res) => {
     const id = req.query.id;
 
@@ -765,7 +721,6 @@ app.get('/getStatusById', (req, res) => {
 });
 
 
-// Új végpont az adott páciens ID-jének lekéréséhez TAJ alapján
 app.get('/getPatientIdByTaj', (req, res) => {
     const taj = req.query.taj;
     if (!taj) {
@@ -812,7 +767,6 @@ app.get('/getLastMonthAndDays', (req, res) => {
         const lastMonth = data.rows[0].hónap;
         const daysString = data.rows[0].NAPOK;
 
-        // A napok utolsó számjegyének meghatározása
         const lastDigit = daysString ? daysString.slice(-1) : null;
 
         res.json({ lastMonth, lastDigit });
@@ -826,7 +780,6 @@ app.post('/fillMissingMonths', (req, res) => {
         return res.status(400).json({ error: 'Páciens ID szükséges!' });
     }
 
-    // Lekérjük a legutolsó hónapot és napok utolsó számjegyét
     const getLastMonthQuery = `
       SELECT 
           HO AS hónap, 
@@ -856,11 +809,10 @@ app.post('/fillMissingMonths', (req, res) => {
 
         const today = new Date();
         const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth() + 1; // JavaScript hónapok 0-tól indexeltek
+        const currentMonth = today.getMonth() + 1;
         const todayDay = today.getDate();
 
 
-        // Ha nincsenek hiányzó hónapok, nincs teendő
         if (lastMonth >= currentMonth) {
             return res.json({ success: true, message: 'Nincs hiányzó hónap.' });
         }
@@ -869,17 +821,14 @@ app.post('/fillMissingMonths', (req, res) => {
         for (let month = lastMonth + 1; month <= currentMonth; month++) {
             const monthStr = month.toString().padStart(2, '0');
 
-            // Meghatározzuk az adott hónap napjainak számát
             const daysInMonth = new Date(currentYear, month, 0).getDate();
 
-            // Ha a jelenlegi hónap, akkor csak a mai dátumig töltjük fel
             const daysStr = lastDigit.repeat(month === currentMonth ? todayDay : daysInMonth);
 
             newRecords.push([id, monthStr, daysStr]);
         }
 
 
-        // Tömeges beszúrás az új hónapokra
         const insertQuery = `
           INSERT INTO ellatas (ID_PACIENS, HO, NAPOK)
           VALUES ${newRecords.map(record => `('${record[0]}', '${record[1]}', '${record[2]}')`).join(', ')}; 
@@ -891,7 +840,6 @@ app.post('/fillMissingMonths', (req, res) => {
                 return res.status(500).json({ success: false, message: 'Hiba történt a hónap(ok) hozzáadása során.' });
             }
 
-            // Ellenőrizzük a beszúrás eredményét
             if (insertResult.affectedRows > 0) {
                 res.json({ success: true, message: `Hiányzó hónapok sikeresen létrehozva (${lastMonth + 1} - ${currentMonth}).` });
             } else {
@@ -935,10 +883,9 @@ app.get('/getLastMonthAndDays', (req, res) => {
 });
 
 
-// Új végpont: Kezelési napok lekérése adott évre
 app.get('/getTreatmentDaysByYear', (req, res) => {
     const id = req.query.id;
-    const year = req.query.year; // Kiválasztott év
+    const year = req.query.year;
 
     if (!id || !year) {
         return res.status(400).json({ error: 'Páciens ID és év megadása kötelező!' });
@@ -973,14 +920,12 @@ app.get('/getTreatmentDaysByYear', (req, res) => {
 });
 
 
-// Havi zárás ütemezése minden hónap elsején hajnali 1 órakor
 schedule.scheduleJob('0 1 1 * *', () => {
     console.log('Havi zárás indítása...');
     const currentDate = new Date();
     const previousMonth = currentDate.getMonth() === 0 ? 12 : currentDate.getMonth();
     const year = previousMonth === 12 ? currentDate.getFullYear() - 1 : currentDate.getFullYear();
 
-    // Lekérdezés az összes páciensre, aki rendelkezik ellátási adatokkal az előző hónapból
     const closeMonthQuery = `
       SELECT 
           ID_PACIENS, 
@@ -1014,10 +959,10 @@ schedule.scheduleJob('0 1 1 * *', () => {
 
                 if (status === '0') {
                     dailyCost = 0;
-                } else if (status === '2') { // Kórházban
+                } else if (status === '2') {
                     yearlyHospitalDays++;
                     dailyCost *= yearlyHospitalDays >= 40 ? 0.4 : 0.2;
-                } else if (status === '3') { // Helyfoglalás
+                } else if (status === '3') {
                     yearlyReservedDays++;
                     dailyCost *= yearlyReservedDays >= 40 ? 0.6 : 0.2;
                 }
@@ -1025,7 +970,6 @@ schedule.scheduleJob('0 1 1 * *', () => {
                 totalCost += dailyCost;
             });
 
-            // FIZETENDO mező frissítése
             const updateQuery = `
               UPDATE ellatas
               SET FIZETENDO = '${totalCost}'
@@ -1045,7 +989,6 @@ schedule.scheduleJob('0 1 1 * *', () => {
     });
 });
 
-// Újraszámolás végpont
 app.post('/recalculate', (req, res) => {
     const { id, year, month } = req.body;
 
@@ -1079,10 +1022,10 @@ app.post('/recalculate', (req, res) => {
 
                 if (status === '0') {
                     dailyCost = 0;
-                } else if (status === '2') { // Kórházban
+                } else if (status === '2') {
                     yearlyHospitalDays++;
                     dailyCost *= yearlyHospitalDays >= 40 ? 0.4 : 0.2;
-                } else if (status === '3') { // Helyfoglalás
+                } else if (status === '3') {
                     yearlyReservedDays++;
                     dailyCost *= yearlyReservedDays >= 40 ? 0.6 : 0.2;
                 }
@@ -1103,9 +1046,8 @@ app.post('/recalculate', (req, res) => {
 });
 
 
-// Újraszámolás végpont: Mindig az előző hónap adatait hozza
 app.post('/recalculate', (req, res) => {
-    console.log("🔍 Beérkező API hívás:", req.body); // Logolja a beérkező adatokat
+    console.log("🔍 Beérkező API hívás:", req.body);
 
     const { id, year, month } = req.body;
 
@@ -1116,9 +1058,8 @@ app.post('/recalculate', (req, res) => {
 
     res.json({ success: true, message: "Sikeresen beérkeztek az adatok!" });
 
-    // Előző hónap és év meghatározása
     const today = new Date();
-    let prevMonth = today.getMonth(); // Aktuális hónap -1 (0-alapú index)
+    let prevMonth = today.getMonth();
     let prevYear = today.getFullYear();
 
     if (prevMonth === 0) {
@@ -1126,7 +1067,6 @@ app.post('/recalculate', (req, res) => {
         prevYear -= 1;
     }
 
-    // SQL lekérdezés az előző hónap adataira
     const sql = `
         SELECT 
             NAPOK,
@@ -1185,7 +1125,6 @@ app.post('/recalculate', (req, res) => {
 });
 
 
-/* ---------------------------- sürgős várakozás van e ------------------  */
 app.get('/getUrgentData', (req, res) => {
     const sql = `
         SELECT NEV, TAJ,  DATE_FORMAT(SZULDATUM, "%Y.%m.%d") AS SZULDATUM, STATUS
@@ -1205,7 +1144,7 @@ app.get('/getUrgentData', (req, res) => {
 
 
 app.get('/getLastDayStatus', (req, res) => {
-    const statusFilter = req.query.status || 'ellátott'; // Alapértelmezett státusz az "ellátott"
+    const statusFilter = req.query.status || 'ellátott';
 
     const sql = `
         SELECT 
@@ -1250,10 +1189,8 @@ app.get('/getEllatottPatients', (req, res) => {
 });
 
 let x = 0
-// Új végpont a fizetéshez
 app.get('/getFizetendoById', (req, res) => {
     const { id, year, month } = req.query;
-    // Ellenőrizzük, hogy a szükséges paraméterek jelen vannak
     if (!id || !year || !month) {
         res.status(400).json({ error: 'Hiányzó paraméterek! (id, év, hónap szükséges)' });
     } else {
@@ -1304,7 +1241,6 @@ app.post('/savePayment', (req, res) => {
             return res.status(404).json({ error: 'A megadott ID_PACIENS nem található a paciensek táblában!' });
         }
 
-        // Folytasd az `ellatas` tábla frissítését, ha a páciens létezik
         const sql = `
             INSERT INTO ellatas (ID_PACIENS, EV, HO, FIZETETT) 
             VALUES ('${id}', ${year}, ${month}, ${amount}) 
@@ -1324,8 +1260,6 @@ app.post('/savePayment', (req, res) => {
 });
 
 
-//FIZETENDO mező nullázásához
-// Fizetendő nullázása az előző hónapra
 app.post('/resetFizetendo', (req, res) => {
     const { id } = req.body;
 
@@ -1333,9 +1267,8 @@ app.post('/resetFizetendo', (req, res) => {
         return res.status(400).json({ error: 'Páciens ID szükséges!' });
     }
 
-    // Előző hónap és év meghatározása
     const today = new Date();
-    let prevMonth = today.getMonth(); // 0-alapú index (január = 0)
+    let prevMonth = today.getMonth();
     let prevYear = today.getFullYear();
 
     if (prevMonth === 0) {
@@ -1343,7 +1276,6 @@ app.post('/resetFizetendo', (req, res) => {
         prevYear -= 1;
     }
 
-    // SQL frissítés: előző hónap fizetendő összegének nullázása
     const sql = `
         UPDATE ellatas 
         SET FIZETENDO = 0 
@@ -1367,7 +1299,6 @@ app.post('/resetFizetendo', (req, res) => {
 });
 
 
-// Új végpont a FIZETENDO újraszámolásához
 app.post('/recalculateFizetendo', (req, res) => {
     const { id, year, month } = req.body;
 
@@ -1396,13 +1327,13 @@ app.post('/recalculateFizetendo', (req, res) => {
 
         NAPOK.split('').forEach((dayStatus) => {
             if (dayStatus === '0') {
-                return; // Nem számolunk díjat
+                return;
             } else if (dayStatus === '2') {
-                totalCost += NAPIDIJ * 0.2; //kórház 20%
+                totalCost += NAPIDIJ * 0.2;
             } else if (dayStatus === '3') {
-                totalCost += NAPIDIJ * 0.6; //helyfoglalás 60%
+                totalCost += NAPIDIJ * 0.6;
             } else {
-                totalCost += NAPIDIJ; // Alapértelmezett napidíj
+                totalCost += NAPIDIJ;
             }
         });
 
@@ -1423,7 +1354,6 @@ app.post('/recalculateFizetendo', (req, res) => {
     });
 });
 
-// FIZETETT érték frissítése, beleértve negatív értékeket
 app.post('/updateFizetett', (req, res) => {
     const { id, amount, year, month } = req.body;
 
@@ -1556,7 +1486,7 @@ app.get('/getHatralekTobblet', (req, res) => {
 
 
 app.get('/getPatientsByStatus', (req, res) => {
-    const { status } = req.query; // `status` lehet 'Várakozó', 'Előgondozott', 'Ellátott', 'Távozott'
+    const { status } = req.query;
 
     if (!status) {
         return res.status(400).json({ error: 'Hiányzó státusz paraméter!' });
@@ -1592,7 +1522,6 @@ app.get('/getPatientsByStatus', (req, res) => {
 });
 
 
-// Előző hónap pénzügyi adatok lekérdezése
 app.get('/getPreviousMonthData', (req, res) => {
     const { id } = req.query;
 
@@ -1600,9 +1529,8 @@ app.get('/getPreviousMonthData', (req, res) => {
         return res.status(400).json({ error: 'Páciens ID szükséges!' });
     }
 
-    // Előző hónap és év meghatározása
     const today = new Date();
-    let prevMonth = today.getMonth(); // 0-alapú index (január = 0)
+    let prevMonth = today.getMonth();
     let prevYear = today.getFullYear();
 
     if (prevMonth === 0) {
@@ -1610,7 +1538,6 @@ app.get('/getPreviousMonthData', (req, res) => {
         prevYear -= 1;
     }
 
-    // SQL lekérdezés az előző hónap adataira (változókkal)
     const sql = `
         SELECT 
             FIZETENDO,
@@ -1676,7 +1603,6 @@ app.get('/checkIfPaid', (req, res) => {
         res.json({ paid: true });
     });
 });
-// Fizetés visszavonása (előző hónap FIZETETT nullázása + aktuális hónap HÁTRALÉK és TÖBBLET nullázása)
 app.post('/revertPayment', (req, res) => {
     const { id } = req.body;
 
@@ -1685,11 +1611,10 @@ app.post('/revertPayment', (req, res) => {
         return res.status(400).json({ error: 'Páciens ID szükséges!' });
     }
 
-    // Dátumok meghatározása
     const today = new Date();
-    let prevMonth = today.getMonth(); // Előző hónap
+    let prevMonth = today.getMonth();
     let prevYear = today.getFullYear();
-    let currentMonth = today.getMonth() + 1; // Aktuális hónap
+    let currentMonth = today.getMonth() + 1;
     let currentYear = today.getFullYear();
 
     if (prevMonth === 0) {
@@ -1697,28 +1622,24 @@ app.post('/revertPayment', (req, res) => {
         prevYear -= 1;
     }
 
-    // **Előző hónap: FIZETETT nullázása**
     const sql1 = `
         UPDATE ellatas
         SET FIZETETT = 0
         WHERE ID_PACIENS = ${id} AND EV = ${prevYear} AND HO = ${prevMonth};
     `;
 
-    // **Aktuális hónap: HÁTRALÉK és TÖBBLET nullázása**
     const sql2 = `
         UPDATE ellatas
         SET HATRALEK = 0, TOBBLET = 0
         WHERE ID_PACIENS = ${id} AND EV = ${currentYear} AND HO = ${currentMonth};
     `;
 
-    // **Előző hónap fizetett törlése**
     DB.query(sql1, (err, result1) => {
         if (err) {
             return res.status(500).json({ error: 'Adatbázis hiba történt az előző hónap módosításakor!' });
         }
 
 
-        // **Ellenőrizzük, hogy létezik-e adat az aktuális hónapra**
         const sqlCheck = `
             SELECT COUNT(*) AS count FROM ellatas
             WHERE ID_PACIENS = ${id} AND EV = ${currentYear} AND HO = ${currentMonth};
@@ -1733,7 +1654,6 @@ app.post('/revertPayment', (req, res) => {
                 return res.json({ success: true, message: 'Fizetés visszavonva, de nem volt szükség hátralék és többlet nullázására.' });
             }
 
-            // **Aktuális hónap hátralék és többlet törlése**
             DB.query(sql2, (err, result2) => {
                 if (err) {
                     return res.status(500).json({ error: 'Adatbázis hiba történt az aktuális hónap módosításakor!' });
@@ -1771,14 +1691,13 @@ app.get('/getPaidAmount', (req, res) => {
             return res.status(404).json({ error: 'Nincs adat a megadott pácienshez!' });
         }
 
-        const paid = results[0].FIZETETT || 0; // Ha nincs érték, alapértelmezettként 0-t adunk vissza
+        const paid = results[0].FIZETETT || 0;
         res.json({ paid });
     });
 });
 
 
 
-// Havi forgalmi adatok lekérdezése
 app.get('/getMonthlyFinancialData', (req, res) => {
     const { year, month } = req.query;
 
@@ -1823,7 +1742,6 @@ app.get('/getMonthlyFinancialData', (req, res) => {
     });
 });
 
-// Éves forgalmi adatok lekérdezése
 app.get('/getYearlyFinancialData', (req, res) => {
     const { year } = req.query;
 
@@ -1877,7 +1795,6 @@ app.get('/getYearlyFinancialData', (req, res) => {
 app.get('/api/getEllatottPatients', (req, res) => {
     const { year, month } = req.query;
 
-    // Ellenőrizzük, hogy az év és hónap paraméterek meg vannak-e adva
     if (!year || !month) {
         return res.status(400).json({ error: 'Év és hónap megadása kötelező!' });
     }
@@ -1973,7 +1890,6 @@ app.get('/api/getEgyeniOsszesitettAdatok', (req, res) => {
             return res.status(500).json({ error: 'Adatbázis hiba történt!' });
         }
 
-        // Az eredmények visszaadása rows formában
         res.json({ rows: results });
     });
 });
@@ -2008,7 +1924,6 @@ app.get('/api/getEvesKumulaltAdatok', (req, res) => {
 });
 
 
-/* ---------------------------- log 'fájl' naplózás ------------------  */
 function napló(req) {
     var userx = "- no login -";
     session_data = req.session;
